@@ -1039,20 +1039,65 @@ export const getUserVehicles = async (req, res) => {
 };
 
 // Get single user vehicle by ID
+// export const getUserVehicleById = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const userId = req.user.id;
+//     const isAdmin = req.user.role === "admin";
+
+//     console.log(`Fetching user vehicle with ID: ${id} for user: ${userId}`);
+
+//     const query = { _id: id };
+//     if (!isAdmin) {
+//       query.user = userId;
+//     }
+
+//     const vehicle = await UserVehicle.findOne(query).lean();
+
+//     if (!vehicle) {
+//       console.log(`Vehicle not found: ${id}`);
+//       return res.status(404).json({
+//         success: false,
+//         message: "Vehicle not found",
+//       });
+//     }
+
+//     if (vehicle.status === "active" && vehicle.isListed) {
+//       if (!isAdmin && vehicle.user.toString() !== userId) {
+//         delete vehicle.documents;
+//         delete vehicle.citizenshipFront;
+//         delete vehicle.citizenshipBack;
+//         delete vehicle.passportPhoto;
+//       }
+//     }
+
+//     console.log(`✅ Vehicle found: ${vehicle.carName}`);
+//     res.status(200).json({
+//       success: true,
+//       data: vehicle,
+//     });
+//   } catch (error) {
+//     console.error("Get user vehicle error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch vehicle",
+//     });
+//   }
+// };
+
+
+// Get single user vehicle by ID (PUBLIC for active vehicles)
 export const getUserVehicleById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
-    const isAdmin = req.user.role === "admin";
+    const userId = req.user?.id; // May be undefined for public access
+    const isAdmin = req.user?.role === "admin";
 
-    console.log(`Fetching user vehicle with ID: ${id} for user: ${userId}`);
+    console.log(`Fetching user vehicle with ID: ${id}`);
+    console.log(`Requesting user: ${userId || "Not logged in"}`);
 
-    const query = { _id: id };
-    if (!isAdmin) {
-      query.user = userId;
-    }
-
-    const vehicle = await UserVehicle.findOne(query).lean();
+    // First, find the vehicle
+    const vehicle = await UserVehicle.findById(id).lean();
 
     if (!vehicle) {
       console.log(`Vehicle not found: ${id}`);
@@ -1062,16 +1107,32 @@ export const getUserVehicleById = async (req, res) => {
       });
     }
 
+    // Check if vehicle is active and listed - anyone can view it
     if (vehicle.status === "active" && vehicle.isListed) {
+      // Remove sensitive information for non-owners
       if (!isAdmin && vehicle.user.toString() !== userId) {
         delete vehicle.documents;
         delete vehicle.citizenshipFront;
         delete vehicle.citizenshipBack;
         delete vehicle.passportPhoto;
       }
+      console.log(`✅ Vehicle found and available: ${vehicle.carName}`);
+      return res.status(200).json({
+        success: true,
+        data: vehicle,
+      });
     }
 
-    console.log(`✅ Vehicle found: ${vehicle.carName}`);
+    // If vehicle is not active/listed, only owner or admin can view
+    if (vehicle.user.toString() !== userId && !isAdmin) {
+      console.log(`❌ Vehicle not available for booking (status: ${vehicle.status})`);
+      return res.status(403).json({
+        success: false,
+        message: "This vehicle is not available for booking",
+      });
+    }
+
+    console.log(`✅ Vehicle found for owner: ${vehicle.carName}`);
     res.status(200).json({
       success: true,
       data: vehicle,
@@ -1084,6 +1145,8 @@ export const getUserVehicleById = async (req, res) => {
     });
   }
 };
+
+
 
 // Update user vehicle
 export const updateUserVehicle = async (req, res) => {
