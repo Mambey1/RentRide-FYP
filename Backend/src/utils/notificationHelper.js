@@ -14,7 +14,7 @@ export const createNotification = async (userId, title, message, type = "info", 
     });
     
     await notification.save();
-    console.log(`✅ Notification created for user ${userId}: ${title}`);
+    console.log(` Notification created for user ${userId}: ${title}`);
     return notification;
   } catch (error) {
     console.error("Error creating notification:", error);
@@ -36,7 +36,7 @@ export const createBulkNotifications = async (userIds, title, message, type = "i
     }));
     
     await Notification.insertMany(notifications);
-    console.log(`✅ Created ${notifications.length} notifications`);
+    console.log(`Created ${notifications.length} notifications`);
     return true;
   } catch (error) {
     console.error("Error creating bulk notifications:", error);

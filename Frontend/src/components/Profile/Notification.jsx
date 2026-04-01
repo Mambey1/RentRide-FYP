@@ -17,19 +17,19 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
 
   useEffect(() => {
     if (notifications) {
-      setUnreadCount(notifications.filter(n => !n.read).length);
+      setUnreadCount(notifications.filter((n) => !n.read).length);
     }
   }, [notifications]);
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'success':
+      case "success":
         return <FaCheckCircle className="text-green-500" />;
-      case 'error':
+      case "error":
         return <FaTimesCircle className="text-red-500" />;
-      case 'warning':
+      case "warning":
         return <FaInfoCircle className="text-yellow-500" />;
-      case 'booking':
+      case "booking":
         return <FaCar className="text-blue-500" />;
       default:
         return <FaEnvelope className="text-gray-500" />;
@@ -38,13 +38,13 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
 
   const getNotificationBg = (type) => {
     switch (type) {
-      case 'success':
+      case "success":
         return "bg-green-50 border-green-200";
-      case 'error':
+      case "error":
         return "bg-red-50 border-red-200";
-      case 'warning':
+      case "warning":
         return "bg-yellow-50 border-yellow-200";
-      case 'booking':
+      case "booking":
         return "bg-blue-50 border-blue-200";
       default:
         return "bg-gray-50 border-gray-200";
@@ -59,12 +59,12 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffHours < 24) return `${diffHours} hour ago`;
-    if (diffDays === 1) return 'Yesterday';
+    if (diffDays === 1) return "Yesterday";
     return notificationDate.toLocaleDateString();
-  };
+  };-6
 
   return (
     <div className="relative">
@@ -76,7 +76,7 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
         <FaBell className="text-xl text-gray-600" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-pulse">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
@@ -92,8 +92,12 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-                <p className="text-xs text-gray-500">You have {unreadCount} unread notifications</p>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Notifications
+                </h3>
+                <p className="text-xs text-gray-500">
+                  You have {unreadCount} unread notifications
+                </p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -110,9 +114,13 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
                   <div
                     key={notification.id}
                     className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer ${
-                      !notification.read ? getNotificationBg(notification.type) : ""
+                      !notification.read
+                        ? getNotificationBg(notification.type)
+                        : ""
                     }`}
-                    onClick={() => onMarkAsRead && onMarkAsRead(notification.id)}
+                    onClick={() =>
+                      onMarkAsRead && onMarkAsRead(notification.id)
+                    }
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 mt-1">
@@ -120,16 +128,22 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className={`text-sm font-semibold ${!notification.read ? "text-gray-900" : "text-gray-600"}`}>
+                          <h4
+                            className={`text-sm font-semibold ${!notification.read ? "text-gray-900" : "text-gray-600"}`}
+                          >
                             {notification.title}
                           </h4>
                           <span className="text-xs text-gray-400">
                             {formatTime(notification.createdAt)}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600">{notification.message}</p>
+                        <p className="text-sm text-gray-600">
+                          {notification.message}
+                        </p>
                         {notification.details && (
-                          <p className="text-xs text-gray-500 mt-1">{notification.details}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {notification.details}
+                          </p>
                         )}
                       </div>
                       <button
@@ -148,7 +162,9 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
                 <div className="p-8 text-center">
                   <FaBell className="text-4xl text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500">No notifications yet</p>
-                  <p className="text-xs text-gray-400 mt-1">You'll see notifications here when you have updates</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    You'll see notifications here when you have updates
+                  </p>
                 </div>
               )}
             </div>
@@ -158,7 +174,7 @@ const Notification = ({ notifications, onClose, onMarkAsRead, onDelete }) => {
               <div className="p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                 <button
                   onClick={() => {
-                    notifications.forEach(n => {
+                    notifications.forEach((n) => {
                       if (!n.read) onMarkAsRead && onMarkAsRead(n.id);
                     });
                   }}

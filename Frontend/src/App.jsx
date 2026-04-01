@@ -34,10 +34,19 @@ import VehicleDetails from "./components/Vehicle/VehicleDetails";
 //Notificatgion
 
 
+//Booking
+// import BookingDetails from "./components/Booking/BookingDetails";
+
+
 function App() {
   return (
     <Router>
       <Routes>
+
+
+        {/* <Route path="/booking-details/:id" element={<BookingDetails />} /> */}
+
+
         {/* Public Routes */}
         <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -88,7 +97,7 @@ function App() {
         </Route>
 
         {/* Catch-all route - redirect to home */}
-        <Route path="*" element={<Navigate to="/rentridehome" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Router>
   );
