@@ -1,5 +1,3 @@
-
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -30,28 +28,31 @@ import MyVehicles from "./components/Vehicle/MyVehicles";
 import EditVehicle from "./components/Vehicle/EditVehicle";
 import VehicleDetails from "./components/Vehicle/VehicleDetails";
 
-
+//Payment
+import PaymentComponent from "./components/Booking/PaymentComponent";
+import PaymentSuccess from "./components/Payment/Success";
+import PaymentFailure from "./components/Payment/Failure";
 //Notificatgion
-
 
 //Booking
 // import BookingDetails from "./components/Booking/BookingDetails";
-
 
 function App() {
   return (
     <Router>
       <Routes>
-
-
         {/* <Route path="/booking-details/:id" element={<BookingDetails />} /> */}
-
 
         {/* Public Routes */}
         <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+
+        <Route path="/payment/:bookingId" element={<PaymentComponent />} />
+        <Route path="/payment" element={<PaymentComponent />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-failure" element={<PaymentFailure />} />  // Add this line
 
         {/* Protected User Routes */}
         <Route element={<ProtectedRoute />}>
@@ -97,7 +98,7 @@ function App() {
         </Route>
 
         {/* Catch-all route - redirect to home */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/payment" replace />} />
       </Routes>
     </Router>
   );

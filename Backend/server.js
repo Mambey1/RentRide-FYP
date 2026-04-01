@@ -1,5 +1,3 @@
-
-
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -22,6 +20,8 @@ import bookingRoutes from "./src/routes/bookingRoutes.js";
 import documentRoutes from "./src/routes/documentRoutes.js";
 import userVehicleRoutes from "./src/routes/userVehicleRoutes.js"; // ADD THIS
 import notificationRoutes from "./src/routes/notificationRoutes.js";
+// import paymentRoutes from "./routes/paymentRoutes.js";
+import paymentRoutes from "./src/routes/paymentRoutes.js";
 
 const app = express();
 
@@ -64,6 +64,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/user-vehicles", userVehicleRoutes); // ADD THIS ROUTE
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // Health check route
 app.get("/api/test", (req, res) => {
