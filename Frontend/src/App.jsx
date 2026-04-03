@@ -37,6 +37,10 @@ import PaymentFailure from "./components/Payment/Failure";
 //Booking
 // import BookingDetails from "./components/Booking/BookingDetails";
 
+//Revenueu 
+
+import AdminRevenue from "./AdminDashboard/AdminRevenue";
+
 function App() {
   return (
     <Router>
@@ -90,6 +94,7 @@ function App() {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="inventory" element={<AdminInventory />} />
+          <Route path="revenue" element={<AdminRevenue />} />
           <Route path="bookings" element={<AdminBookingApproval />} />
           <Route
             path="vehicle-verification"

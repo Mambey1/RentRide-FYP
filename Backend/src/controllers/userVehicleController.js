@@ -1085,7 +1085,6 @@ export const getUserVehicles = async (req, res) => {
 //   }
 // };
 
-
 // Get single user vehicle by ID (PUBLIC for active vehicles)
 export const getUserVehicleById = async (req, res) => {
   try {
@@ -1125,7 +1124,9 @@ export const getUserVehicleById = async (req, res) => {
 
     // If vehicle is not active/listed, only owner or admin can view
     if (vehicle.user.toString() !== userId && !isAdmin) {
-      console.log(`❌ Vehicle not available for booking (status: ${vehicle.status})`);
+      console.log(
+        `❌ Vehicle not available for booking (status: ${vehicle.status})`,
+      );
       return res.status(403).json({
         success: false,
         message: "This vehicle is not available for booking",
@@ -1145,8 +1146,6 @@ export const getUserVehicleById = async (req, res) => {
     });
   }
 };
-
-
 
 // Update user vehicle
 export const updateUserVehicle = async (req, res) => {
@@ -1655,5 +1654,95 @@ export const deleteUserVehicleAdmin = async (req, res) => {
       success: false,
       message: "Failed to delete vehicle",
     });
+  }
+};
+
+// Get earnings for user's listed vehicles
+export const getUserEarnings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get all user's vehicles
+    const userVehicles = await UserVehicle.find({
+      user: userId,
+      isListed: true,
+    });
+
+    let totalEarnings = 0;
+    let totalBookings = 0;
+    let grossRevenue = 0;
+    const vehiclesEarnings = [];
+    const allTransactions = [];
+
+    for (const vehicle of userVehicles) {
+      // Get completed bookings for this vehicle (paymentStatus: "paid" and status: "confirmed" or "completed")
+      const bookings = await Booking.find({
+        vehicle: vehicle._id,
+        vehicleType: "user",
+        paymentStatus: "paid",
+        status: { $in: ["confirmed", "completed", "active"] },
+      }).populate("user", "name email");
+
+      const vehicleGrossRevenue = bookings.reduce(
+        (sum, b) => sum + b.totalAmount,
+        0,
+      );
+      const vehicleOwnerEarnings = vehicleGrossRevenue * 0.7;
+
+      totalEarnings += vehicleOwnerEarnings;
+      totalBookings += bookings.length;
+      grossRevenue += vehicleGrossRevenue;
+
+      vehiclesEarnings.push({
+        vehicle: {
+          carName: vehicle.carName,
+          carNumber: vehicle.carNumber,
+          vehiclePhotos: vehicle.vehiclePhotos,
+        },
+        totalBookings: bookings.length,
+        grossRevenue: vehicleGrossRevenue,
+        ownerEarnings: vehicleOwnerEarnings,
+        bookings: bookings.map((b) => ({
+          _id: b._id,
+          confirmationCode: b.confirmationCode,
+          totalAmount: b.totalAmount,
+          user: b.user,
+          createdAt: b.createdAt,
+        })),
+      });
+
+      // Add to all transactions
+      bookings.forEach((booking) => {
+        allTransactions.push({
+          ...booking.toObject(),
+          ownerEarnings: booking.totalAmount * 0.7,
+          vehicle: {
+            carName: vehicle.carName,
+            vehiclePhotos: vehicle.vehiclePhotos,
+          },
+        });
+      });
+    }
+
+    // Sort transactions by date (newest first)
+    allTransactions.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+
+    res.json({
+      success: true,
+      data: {
+        totalEarnings,
+        totalBookings,
+        grossRevenue,
+        averagePerBooking:
+          totalBookings > 0 ? totalEarnings / totalBookings : 0,
+        vehicles: vehiclesEarnings,
+        recentTransactions: allTransactions.slice(0, 10),
+      },
+    });
+  } catch (error) {
+    console.error("Get user earnings error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

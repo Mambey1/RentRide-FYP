@@ -22,6 +22,12 @@ import userVehicleRoutes from "./src/routes/userVehicleRoutes.js"; // ADD THIS
 import notificationRoutes from "./src/routes/notificationRoutes.js";
 // import paymentRoutes from "./routes/paymentRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
+import subscribeRoutes from "./src/routes/subscribeRoutes.js";
+import adminEmailRoutes from "./src/routes/adminEmailRoutes.js"; 
+
+
+//Revenue
+import revenueRoutes from "./src/routes/revenueRoutes.js";
 
 const app = express();
 
@@ -65,6 +71,11 @@ app.use("/api/documents", documentRoutes);
 app.use("/api/user-vehicles", userVehicleRoutes); // ADD THIS ROUTE
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/subscribe", subscribeRoutes);
+app.use("/api/admin/emails", adminEmailRoutes);
+
+app.use("/api/revenue", revenueRoutes);
+
 
 // Health check route
 app.get("/api/test", (req, res) => {

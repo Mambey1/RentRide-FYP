@@ -717,5 +717,65 @@ export const sendVehicleRejectionEmail = async (email, name, vehicleDetails, rea
     return true;
   }
 };
+
+
+// Send subscription confirmation email
+export const sendSubscriptionEmail = async (email) => {
+  console.log("\n📧 Sending subscription confirmation email to:", email);
+
+  try {
+    if (!transporter) {
+      console.log("⚠️  No transporter, skipping subscription email");
+      return true;
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER ? `"Rent-Ride" <${process.env.EMAIL_USER}>` : '"Rent-Ride" <noreply@rentride.com>',
+      to: email,
+      subject: "Welcome to Rent-Ride Newsletter! 🎉",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2563eb; margin: 0;">Rent<span style="color: #1e40af;">Ride</span></h1>
+            <p style="color: #6b7280; font-size: 14px;">Premium Car Rental Service</p>
+          </div>
+          
+          <div style="background-color: #f0fdf4; padding: 25px; border-radius: 8px;">
+            <h2 style="color: #166534;">Thank You for Subscribing! ✅</h2>
+            <p>Dear Subscriber,</p>
+            <p>Thank you for subscribing to the Rent-Ride newsletter! You will now receive all exclusive notifications, deals, and updates about our premium car rental service.</p>
+            <div style="margin: 20px 0; padding: 15px; background-color: #dcfce7; border-radius: 8px;">
+              <p style="margin: 0;">✨ <strong>What to expect:</strong></p>
+              <ul style="margin-top: 10px;">
+                <li>🚗 Exclusive vehicle deals and discounts</li>
+                <li>🎉 Special offers for subscribers only</li>
+                <li>📅 Event notifications and updates</li>
+                <li>💡 Car rental tips and recommendations</li>
+              </ul>
+            </div>
+            <p>We're excited to have you on board!</p>
+          </div>
+          
+          <div style="margin-top: 20px; text-align: center; color: #6b7280; font-size: 12px;">
+            <p>Need help? Contact us at support@rentride.com</p>
+            <p>© ${new Date().getFullYear()} Rent-Ride. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Subscription email sent!");
+
+    if (info.response && info.response.includes("ethereal.email")) {
+      console.log("   Preview:", nodemailer.getTestMessageUrl(info));
+    }
+
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending subscription email:", error.message);
+    return false;
+  }
+};
 // Export transporter for testing
 export { transporter };
