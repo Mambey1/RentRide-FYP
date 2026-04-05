@@ -146,6 +146,16 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    // Add these fields to your userSchema
+    resetPasswordOTP: {
+      type: String,
+      default: null,
+    },
+    resetPasswordOTPExpires: {
+      type: Date,
+      default: null,
+    },
+
     name: {
       type: String,
       required: true,

@@ -1,6 +1,3 @@
-
-// export default router;
-
 import express from "express";
 import {
   createBooking,
@@ -14,6 +11,8 @@ import {
   rejectBooking,
   updateBookingStatus,
   getBookingStatistics,
+  deleteBooking, // ADD THIS IMPORT
+  autoUpdateBookingStatuses
 } from "../controllers/bookingController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -69,5 +68,8 @@ router.post("/admin/:id/approve", approveBooking);
 router.post("/admin/:id/reject", rejectBooking);
 router.put("/admin/:id/status", updateBookingStatus);
 router.get("/admin/stats", getBookingStatistics);
+router.delete("/admin/:id/delete", protect, deleteBooking); // ADD THIS ROUTE
+// Admin route to manually trigger auto-update
+router.post("/admin/auto-update", protect, autoUpdateBookingStatuses);
 
 export default router;

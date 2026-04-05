@@ -1,359 +1,743 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaCar,
   FaArrowLeft,
   FaUser,
   FaPhone,
-  FaIdCard,
   FaMapMarkerAlt,
   FaRupeeSign,
   FaChair,
   FaCogs,
   FaSnowflake,
-  FaImage,
+  FaInfoCircle,
+  FaSpinner,
   FaCheckCircle,
   FaTimesCircle,
   FaClock,
+  FaIdCard,
+  FaImage,
+  FaHeart,
+  FaShare,
+  FaStar,
+  FaShieldAlt,
+  FaGasPump,
+  FaRoad,
+  FaCalendarCheck,
+  FaFileAlt,
+  FaFilePdf,
+  FaFileImage,
+  FaDownload,
   FaEye,
+  FaExpand,
+  FaTimes,
+  FaUserCircle,
+  FaEnvelope,
 } from "react-icons/fa";
 
 const VehicleDetails = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [ownerProfile, setOwnerProfile] = useState(null);
 
   useEffect(() => {
-    fetchVehicle();
+    fetchVehicleDetails();
   }, [id]);
 
-  const fetchVehicle = async () => {
+  const fetchVehicleDetails = async () => {
     try {
+      setLoading(true);
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
+
       const response = await axios.get(
         `http://localhost:5000/api/user-vehicles/${id}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         },
       );
 
       if (response.data.success) {
-        setVehicle(response.data.data);
+        const vehicleData = response.data.data;
+        setVehicle(vehicleData);
+
+        // Fetch owner profile if user ID is available
+        if (vehicleData.user) {
+          fetchOwnerProfile(vehicleData.user);
+        }
+      } else {
+        setError("Vehicle not found");
       }
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching vehicle:", error);
       setError("Failed to load vehicle details");
+    } finally {
       setLoading(false);
     }
   };
 
-  const getStatusBadge = (status) => {
+  const fetchOwnerProfile = async (userId) => {
+    try {
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:5000/api/profile/user/${userId}`,
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
+      if (response.data.success) {
+        setOwnerProfile(response.data.user);
+      }
+    } catch (error) {
+      console.error("Error fetching owner profile:", error);
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return `रु ${amount?.toLocaleString("en-NP") || 0}`;
+  };
+
+  const getStatusConfig = (status) => {
     const config = {
-      pending: {
-        color: "bg-yellow-100 text-yellow-800",
+      active: {
+        color: "bg-green-500",
+        label: "Available",
+        icon: FaCheckCircle,
+      },
+      booked: {
+        color: "bg-orange-500",
+        label: "Currently Booked",
         icon: FaClock,
+      },
+      pending: {
+        color: "bg-yellow-500",
         label: "Pending Approval",
+        icon: FaClock,
       },
       approved: {
-        color: "bg-green-100 text-green-800",
-        icon: FaCheckCircle,
+        color: "bg-blue-500",
         label: "Approved",
-      },
-      rejected: {
-        color: "bg-red-100 text-red-800",
-        icon: FaTimesCircle,
-        label: "Rejected",
-      },
-      active: {
-        color: "bg-blue-100 text-blue-800",
         icon: FaCheckCircle,
-        label: "Active",
       },
+      rejected: { color: "bg-red-500", label: "Rejected", icon: FaTimesCircle },
     };
-    const statusConfig = config[status] || config.pending;
-    const Icon = statusConfig.icon;
-    return (
-      <span
-        className={`px-3 py-1 rounded-full text-sm font-medium inline-flex items-center gap-1 ${statusConfig.color}`}
-      >
-        <Icon size={12} />
-        {statusConfig.label}
-      </span>
-    );
+    return config[status] || config.pending;
+  };
+
+  const getDocumentIcon = (url) => {
+    if (url?.toLowerCase().includes(".pdf")) {
+      return <FaFilePdf className="text-red-500 text-3xl" />;
+    } else if (
+      url?.toLowerCase().includes(".jpg") ||
+      url?.toLowerCase().includes(".png") ||
+      url?.toLowerCase().includes(".jpeg")
+    ) {
+      return <FaFileImage className="text-blue-500 text-3xl" />;
+    }
+    return <FaFileAlt className="text-gray-500 text-3xl" />;
+  };
+
+  const openDocumentViewer = (doc) => {
+    setSelectedDocument(doc);
+    setShowDocumentModal(true);
+  };
+
+  const getProfileImageUrl = () => {
+    if (ownerProfile?.profilePhoto) {
+      return `http://localhost:5000/uploads/profiles/${ownerProfile.profilePhoto}`;
+    }
+    return null;
+  };
+
+  const nextImage = () => {
+    if (vehicle?.vehiclePhotos?.length) {
+      setCurrentImageIndex((prev) => (prev + 1) % vehicle.vehiclePhotos.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (vehicle?.vehiclePhotos?.length) {
+      setCurrentImageIndex(
+        (prev) =>
+          (prev - 1 + vehicle.vehiclePhotos.length) %
+          vehicle.vehiclePhotos.length,
+      );
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading vehicle details...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="text-center"
+        >
+          <FaSpinner className="text-5xl text-white mb-4" />
+          <p className="text-white text-lg">Loading vehicle details...</p>
+        </motion.div>
       </div>
     );
   }
 
   if (error || !vehicle) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "Vehicle not found"}</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md"
+        >
+          <FaTimesCircle className="text-red-400 text-6xl mx-auto mb-4" />
+          <p className="text-white text-lg mb-6">
+            {error || "Vehicle not found"}
+          </p>
           <button
-            onClick={() => navigate("/my-vehicles")}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+            onClick={() => navigate("/profiledetails")}
+            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
           >
-            Back to My Vehicles
+            Go Back
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
+  const statusConfig = getStatusConfig(vehicle.status);
+  const StatusIcon = statusConfig.icon;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
-      <div className="container mx-auto px-6 max-w-6xl">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate("/my-vehicles")}
-            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition mb-4"
-          >
-            <FaArrowLeft /> Back to My Vehicles
-          </button>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg">
-                <FaCar className="text-white text-2xl" />
-              </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Vehicle Details
-              </h1>
-            </div>
-            {getStatusBadge(vehicle.status)}
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Hero Section with Image */}
+      <div className="relative h-[50vh] md:h-[60vh] bg-gradient-to-r from-gray-900 to-gray-800 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={currentImageIndex}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            src={
+              vehicle.vehiclePhotos?.[currentImageIndex]
+                ? `http://localhost:5000${vehicle.vehiclePhotos[currentImageIndex].url}`
+                : "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?ixlib=rb-4.0.3"
+            }
+            alt={vehicle.carName}
+            className="w-full h-full object-cover"
+          />
+        </AnimatePresence>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+
+        {vehicle.vehiclePhotos?.length > 1 && (
+          <>
+            <button
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300"
+            >
+              ❮
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300"
+            >
+              ❯
+            </button>
+          </>
+        )}
+
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+          {currentImageIndex + 1} / {vehicle.vehiclePhotos?.length || 1}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Images */}
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="relative h-96 bg-gray-100">
-                {vehicle.vehiclePhotos &&
-                vehicle.vehiclePhotos.length > 0 &&
-                vehicle.vehiclePhotos[currentImageIndex] ? (
-                  <img
-                    src={`http://localhost:5000${vehicle.vehiclePhotos[currentImageIndex].url}`}
-                    alt={vehicle.vehiclePhotos[currentImageIndex].label}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <FaCar className="text-gray-400 text-6xl" />
-                  </div>
-                )}
-                {vehicle.vehiclePhotos && vehicle.vehiclePhotos.length > 1 && (
-                  <>
-                    <button
-                      onClick={() =>
-                        setCurrentImageIndex((prev) =>
-                          prev === 0
-                            ? vehicle.vehiclePhotos.length - 1
-                            : prev - 1,
-                        )
-                      }
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg"
-                    >
-                      ❮
-                    </button>
-                    <button
-                      onClick={() =>
-                        setCurrentImageIndex((prev) =>
-                          prev === vehicle.vehiclePhotos.length - 1
-                            ? 0
-                            : prev + 1,
-                        )
-                      }
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg"
-                    >
-                      ❯
-                    </button>
-                  </>
-                )}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-                  {currentImageIndex + 1} / {vehicle.vehiclePhotos?.length || 0}
+        {vehicle.vehiclePhotos?.length > 1 && (
+          <div className="absolute bottom-4 left-4 right-4 flex justify-center gap-2 overflow-x-auto pb-2">
+            {vehicle.vehiclePhotos.map((photo, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentImageIndex(idx)}
+                className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
+                  currentImageIndex === idx
+                    ? "border-white scale-110"
+                    : "border-white/50"
+                }`}
+              >
+                <img
+                  src={`http://localhost:5000${photo.url}`}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300"
+        >
+          <FaArrowLeft />
+        </button>
+
+        <div className="absolute top-4 right-4 flex gap-2">
+          <button
+            onClick={() => setIsWishlisted(!isWishlisted)}
+            className="bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300"
+          >
+            <FaHeart
+              className={isWishlisted ? "text-red-500 fill-red-500" : ""}
+            />
+          </button>
+          <button className="bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white p-3 rounded-full transition-all duration-300">
+            <FaShare />
+          </button>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="container mx-auto px-6 py-8 max-w-6xl">
+        {/* Vehicle Title & Status */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex flex-wrap justify-between items-start gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+                {vehicle.carName}
+              </h1>
+              <p className="text-gray-500 text-lg">{vehicle.carNumber}</p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className="text-yellow-400 text-sm" />
+                  ))}
+                  <span className="text-gray-600 ml-2">5.0 (24 reviews)</span>
                 </div>
               </div>
-
-              {/* Thumbnails */}
-              {vehicle.vehiclePhotos && vehicle.vehiclePhotos.length > 1 && (
-                <div className="p-4 grid grid-cols-5 gap-2">
-                  {vehicle.vehiclePhotos.map((photo, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`rounded-lg overflow-hidden border-2 ${currentImageIndex === index ? "border-blue-500" : "border-gray-200"}`}
-                    >
-                      <img
-                        src={`http://localhost:5000${photo.url}`}
-                        alt={photo.label}
-                        className="w-full h-16 object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
+            </div>
+            <div
+              className={`${statusConfig.color} text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg`}
+            >
+              <StatusIcon />
+              <span className="font-semibold">{statusConfig.label}</span>
             </div>
           </div>
+        </motion.div>
 
-          {/* Right Column - Details */}
-          <div className="space-y-6">
-            {/* Vehicle Info Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                {vehicle.carName}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Details */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Key Specifications Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-2xl shadow-lg p-6"
+            >
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <FaCar className="text-blue-600" />
+                Key Specifications
               </h2>
-              <p className="text-gray-500 mb-4">{vehicle.carNumber}</p>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center gap-2">
-                  <FaRupeeSign className="text-blue-600" />
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaRupeeSign className="text-green-600 text-xl" />
                   <div>
                     <p className="text-xs text-gray-500">Rate Per Day</p>
-                    <p className="font-semibold">रु {vehicle.ratePerDay}</p>
+                    <p className="font-bold text-gray-900">
+                      {formatCurrency(vehicle.ratePerDay)}
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaChair className="text-blue-600" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaChair className="text-blue-600 text-xl" />
                   <div>
                     <p className="text-xs text-gray-500">Seats</p>
-                    <p className="font-semibold">{vehicle.seats}</p>
+                    <p className="font-bold text-gray-900">
+                      {vehicle.seats} Persons
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaCogs className="text-blue-600" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaCogs className="text-purple-600 text-xl" />
                   <div>
-                    <p className="text-xs text-gray-500">Gear Type</p>
-                    <p className="font-semibold">{vehicle.gearType}</p>
+                    <p className="text-xs text-gray-500">Transmission</p>
+                    <p className="font-bold text-gray-900">
+                      {vehicle.gearType}
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaSnowflake className="text-blue-600" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaSnowflake className="text-cyan-600 text-xl" />
                   <div>
                     <p className="text-xs text-gray-500">Air Condition</p>
-                    <p className="font-semibold">{vehicle.airCondition}</p>
+                    <p className="font-bold text-gray-900">
+                      {vehicle.airCondition}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaGasPump className="text-orange-600 text-xl" />
+                  <div>
+                    <p className="text-xs text-gray-500">Fuel Type</p>
+                    <p className="font-bold text-gray-900">Petrol</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaRoad className="text-indigo-600 text-xl" />
+                  <div>
+                    <p className="text-xs text-gray-500">Booking Type</p>
+                    <p className="font-bold text-gray-900">
+                      {vehicle.bookingType}
+                    </p>
                   </div>
                 </div>
               </div>
+            </motion.div>
 
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-2">Booking Type</p>
-                <p className="font-medium">{vehicle.bookingType}</p>
-              </div>
+            {/* Features Card */}
+            {vehicle.features && vehicle.features.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl shadow-lg p-6"
+              >
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <FaShieldAlt className="text-purple-600" />
+                  Features & Amenities
+                </h2>
+                <div className="flex flex-wrap gap-3">
+                  {vehicle.features.map((feature, idx) => (
+                    <motion.span
+                      key={idx}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 rounded-full text-sm font-medium"
+                    >
+                      {feature}
+                    </motion.span>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
-              {vehicle.description && (
-                <div className="border-t pt-4 mt-4">
-                  <p className="text-sm text-gray-500 mb-2">Description</p>
-                  <p className="text-gray-700">{vehicle.description}</p>
-                </div>
-              )}
-
-              {vehicle.features && vehicle.features.length > 0 && (
-                <div className="border-t pt-4 mt-4">
-                  <p className="text-sm text-gray-500 mb-2">Features</p>
-                  <div className="flex flex-wrap gap-2">
-                    {vehicle.features.map((feature, index) => (
-                      <span
-                        key={index}
-                        className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs"
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Owner Info Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <FaUser className="text-blue-600" />
-                Owner Information
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <FaUser className="text-gray-400" />
-                  <span className="text-gray-700">{vehicle.fullName}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaIdCard className="text-gray-400" />
-                  <span className="text-gray-700">
-                    {vehicle.citizenshipNumber}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaPhone className="text-gray-400" />
-                  <span className="text-gray-700">{vehicle.phoneNumber}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-gray-400" />
-                  <span className="text-gray-700">
-                    {vehicle.address}, {vehicle.city}, {vehicle.district}
-                  </span>
-                </div>
-              </div>
-            </div>
+            {/* Description Card */}
+            {vehicle.description && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-2xl shadow-lg p-6"
+              >
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <FaInfoCircle className="text-blue-600" />
+                  Description
+                </h2>
+                <p className="text-gray-600 leading-relaxed">
+                  {vehicle.description}
+                </p>
+              </motion.div>
+            )}
 
             {/* Documents Card */}
-            {vehicle.documents && vehicle.documents.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <FaImage className="text-blue-600" />
+            {(vehicle.documents?.length > 0 ||
+              vehicle.citizenshipFront ||
+              vehicle.citizenshipBack ||
+              vehicle.passportPhoto) && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="bg-white rounded-2xl shadow-lg p-6"
+              >
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <FaFileAlt className="text-blue-600" />
                   Uploaded Documents
-                </h3>
-                <div className="space-y-2">
-                  {vehicle.documents.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FaFileAlt className="text-gray-500" />
-                        <span className="text-sm capitalize">{doc.type}</span>
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Citizenship Documents */}
+                  {(vehicle.citizenshipFront || vehicle.citizenshipBack) && (
+                    <div className="border rounded-xl p-4 bg-gray-50">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <FaIdCard className="text-blue-600" />
+                        Citizenship Certificate
+                      </h3>
+                      <div className="space-y-2">
+                        {vehicle.citizenshipFront && (
+                          <button
+                            onClick={() =>
+                              openDocumentViewer(vehicle.citizenshipFront)
+                            }
+                            className="w-full flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              {getDocumentIcon(vehicle.citizenshipFront.url)}
+                              <div className="text-left">
+                                <p className="font-medium text-gray-800">
+                                  Front Side
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(
+                                    vehicle.citizenshipFront.uploadedAt,
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <FaEye className="text-blue-600" />
+                          </button>
+                        )}
+                        {vehicle.citizenshipBack && (
+                          <button
+                            onClick={() =>
+                              openDocumentViewer(vehicle.citizenshipBack)
+                            }
+                            className="w-full flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              {getDocumentIcon(vehicle.citizenshipBack.url)}
+                              <div className="text-left">
+                                <p className="font-medium text-gray-800">
+                                  Back Side
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {new Date(
+                                    vehicle.citizenshipBack.uploadedAt,
+                                  ).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <FaEye className="text-blue-600" />
+                          </button>
+                        )}
                       </div>
-                      <a
-                        href={`http://localhost:5000${doc.url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1"
+                    </div>
+                  )}
+
+                  {/* Passport Photo */}
+                  {vehicle.passportPhoto && (
+                    <div className="border rounded-xl p-4 bg-gray-50">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <FaUserCircle className="text-green-600" />
+                        Passport Photo
+                      </h3>
+                      <button
+                        onClick={() =>
+                          openDocumentViewer(vehicle.passportPhoto)
+                        }
+                        className="w-full flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-all"
                       >
-                        <FaEye size={12} /> View
-                      </a>
+                        <div className="flex items-center gap-3">
+                          {getDocumentIcon(vehicle.passportPhoto.url)}
+                          <div className="text-left">
+                            <p className="font-medium text-gray-800">
+                              Passport Photo
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(
+                                vehicle.passportPhoto.uploadedAt,
+                              ).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <FaEye className="text-blue-600" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Vehicle Documents */}
+                  {vehicle.documents?.map((doc, idx) => (
+                    <div key={idx} className="border rounded-xl p-4 bg-gray-50">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 capitalize">
+                        {getDocumentIcon(doc.url)}
+                        {doc.label || doc.type}
+                      </h3>
+                      <button
+                        onClick={() => openDocumentViewer(doc)}
+                        className="w-full flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-left">
+                            <p className="font-medium text-gray-800">
+                              {doc.label || doc.type}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(doc.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <FaEye className="text-blue-600" />
+                      </button>
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
+          </div>
 
-            {vehicle.rejectionReason && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <p className="text-red-600 font-medium mb-1">
-                  Rejection Reason:
-                </p>
-                <p className="text-red-700 text-sm">
-                  {vehicle.rejectionReason}
-                </p>
+          {/* Right Column - Owner Info */}
+          <div className="space-y-6">
+            {/* Owner Information Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 sticky top-24"
+            >
+              <div className="text-center mb-6">
+                {getProfileImageUrl() ? (
+                  <img
+                    src={getProfileImageUrl()}
+                    alt={vehicle.fullName}
+                    className="w-24 h-24 mx-auto rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                ) : (
+                  <div className="w-24 h-24 mx-auto bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-3 shadow-lg">
+                    <FaUser className="text-white text-4xl" />
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-gray-800">
+                  {vehicle.fullName}
+                </h3>
+                <p className="text-gray-500 text-sm">Vehicle Owner</p>
+                {ownerProfile?.email && (
+                  <p className="text-xs text-gray-400 mt-1 flex items-center justify-center gap-1">
+                    <FaEnvelope className="text-xs" /> {ownerProfile.email}
+                  </p>
+                )}
               </div>
-            )}
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaPhone className="text-green-600" />
+                  <div>
+                    <p className="text-xs text-gray-500">Phone Number</p>
+                    <p className="font-medium text-gray-900">
+                      {vehicle.phoneNumber}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaIdCard className="text-purple-600" />
+                  <div>
+                    <p className="text-xs text-gray-500">Citizenship Number</p>
+                    <p className="font-medium text-gray-900">
+                      {vehicle.citizenshipNumber}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <FaMapMarkerAlt className="text-red-600" />
+                  <div>
+                    <p className="text-xs text-gray-500">Address</p>
+                    <p className="font-medium text-gray-900">
+                      {vehicle.address}, {vehicle.city}, {vehicle.district}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {vehicle.status === "pending" && (
+                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                  <div className="flex items-center gap-2 text-yellow-800">
+                    <FaClock />
+                    <span className="text-sm font-medium">
+                      Pending Approval
+                    </span>
+                  </div>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Your vehicle is awaiting admin approval. This process
+                    usually takes 24-48 hours.
+                  </p>
+                </div>
+              )}
+
+              {vehicle.status === "booked" && (
+                <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                  <div className="flex items-center gap-2 text-orange-800">
+                    <FaCalendarCheck />
+                    <span className="text-sm font-medium">
+                      Currently Booked
+                    </span>
+                  </div>
+                  <p className="text-xs text-orange-700 mt-1">
+                    This vehicle is currently rented out. It will be available
+                    again when the booking period ends.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-2xl shadow-lg p-6"
+            >
+              <button
+                onClick={() => navigate(`/booking/${vehicle._id}`)}
+                disabled={vehicle.status !== "active"}
+                className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  vehicle.status === "active"
+                    ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:scale-105"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                {vehicle.status === "active"
+                  ? "Book This Vehicle"
+                  : "Not Available for Booking"}
+              </button>
+            </motion.div>
           </div>
         </div>
       </div>
+
+      {/* Document Viewer Modal */}
+      {showDocumentModal && selectedDocument && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90">
+          <div className="relative max-w-5xl w-full max-h-[90vh]">
+            <button
+              onClick={() => setShowDocumentModal(false)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"
+            >
+              <FaTimes size={32} />
+            </button>
+
+            {selectedDocument.url?.toLowerCase().includes(".pdf") ? (
+              <iframe
+                src={`http://localhost:5000${selectedDocument.url}`}
+                className="w-full h-[80vh] rounded-lg bg-white"
+                title="Document Viewer"
+              />
+            ) : (
+              <img
+                src={`http://localhost:5000${selectedDocument.url}`}
+                alt="Document"
+                className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
+              />
+            )}
+
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm">
+              {selectedDocument.label || selectedDocument.type || "Document"} •
+              Click outside or press ESC to close
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,3 @@
-
-
-
 // src/models/Vehicle.js
 import mongoose from "mongoose";
 
@@ -21,14 +18,17 @@ const vehicleSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
-        "Sedan",
         "SUV",
+        "Sedan",
         "Hatchback",
-        "MPV",
         "Coupe",
         "Convertible",
+        "Sports",
+        "Luxury",
         "Pickup",
-        "Minivan",
+        "Van",
+        "Electric",
+        "Hybrid",
       ],
     },
     phoneNumber: {
@@ -67,13 +67,19 @@ const vehicleSchema = new mongoose.Schema(
       {
         label: {
           type: String,
-          enum: ["Front View", "Inside View", "Rear View", "Side View", "Extra View"],
-          required: true
+          enum: [
+            "Front View",
+            "Inside View",
+            "Rear View",
+            "Side View",
+            "Extra View",
+          ],
+          required: true,
         },
         filename: {
           type: String,
-          required: true
-        }
+          required: true,
+        },
       },
     ],
     driverName: {
@@ -96,7 +102,7 @@ const vehicleSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Vehicle", vehicleSchema);

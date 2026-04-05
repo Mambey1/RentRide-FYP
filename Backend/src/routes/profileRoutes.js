@@ -13,7 +13,7 @@ router.put(
   "/update",
   protect,
   upload.single("profilePhoto"),
-  updateUserProfile
+  updateUserProfile,
 );
 
 export default router;

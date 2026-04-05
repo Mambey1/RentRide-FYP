@@ -1,5 +1,3 @@
-
-
 const ADMIN_EMAIL = "admin@rentride.com";
 const ADMIN_PASSWORD = "admin123";
 
@@ -56,7 +54,7 @@ export const registerUser = async (req, res) => {
       "Welcome to RentRide! ",
       `Welcome ${name}! Please verify your email to get started. Check your inbox for the OTP.`,
       "success",
-      "Email verification required"
+      "Email verification required",
     );
 
     const tempToken = jwt.sign(
@@ -148,7 +146,7 @@ export const verifyEmailOTP = async (req, res) => {
       "Email Verified! ",
       "Your email has been successfully verified. Welcome to RentRide!",
       "success",
-      "Account activated"
+      "Account activated",
     );
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -219,10 +217,10 @@ export const resendVerificationOTP = async (req, res) => {
     // Create notification for resend
     await createNotification(
       user._id,
-      "New OTP Sent 📧",
+      "New OTP Sent ",
       "A new verification OTP has been sent to your email.",
       "info",
-      "Check your inbox"
+      "Check your inbox",
     );
 
     res.status(200).json({
@@ -351,6 +349,200 @@ export const loginUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide your email address",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email address",
+      });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save OTP to user document
+    user.resetPasswordOTP = otp;
+    user.resetPasswordOTPExpires = otpExpiry;
+    await user.save();
+
+    // Send OTP email
+    const emailSent = await sendPasswordResetOTP(email, otp, user.name);
+
+    if (emailSent) {
+      res.status(200).json({
+        success: true,
+        message: "Password reset OTP sent to your email",
+        email: email,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Failed to send OTP email. Please try again.",
+      });
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Verify OTP and reset password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide email, OTP, and new password",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if OTP exists and is not expired
+    if (!user.resetPasswordOTP || user.resetPasswordOTP !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    if (user.resetPasswordOTPExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one.",
+      });
+    }
+
+    // Hash new password and save
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpires = undefined;
+    await user.save();
+
+    // Create notification
+    await createNotification(
+      user._id,
+      "Password Changed ",
+      "Your password has been successfully changed. If you didn't make this change, please contact support immediately.",
+      "success",
+      "Password updated",
+      { userId: user._id },
+    );
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Password reset successfully. Please login with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Change password (when user is logged in)
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide current password and new password",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    // Create notification
+    await createNotification(
+      userId,
+      "Password Changed ",
+      "Your password has been successfully changed.",
+      "success",
+      "Password updated",
+      { userId: userId },
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
     });
   }
 };
