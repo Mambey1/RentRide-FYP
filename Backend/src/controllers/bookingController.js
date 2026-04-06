@@ -1,5 +1,3 @@
-
-
 import Booking from "../models/Booking.js";
 import Vehicle from "../models/Vehicle.js";
 import UserVehicle from "../models/UserVehicle.js";
@@ -1387,3 +1385,79 @@ async function getAvailableDates(vehicleId) {
 
   return bookedDates;
 }
+// Add this function to your bookingController.js
+// controllers/bookingController.js - Updated checkUserBookingStatus
+export const checkUserBookingStatus = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const userId = req.user.id;
+
+    console.log("Checking booking status for:", { userId, vehicleId });
+
+    if (!vehicleId) {
+      return res.status(400).json({
+        success: false,
+        message: "Vehicle ID is required",
+      });
+    }
+
+    // First, check if the vehicle exists in either collection
+    let vehicleExists = false;
+    let isUserVehicle = false;
+    
+    const adminVehicle = await Vehicle.findById(vehicleId);
+    if (adminVehicle) {
+      vehicleExists = true;
+      isUserVehicle = false;
+    } else {
+      const userVehicle = await UserVehicle.findById(vehicleId);
+      if (userVehicle) {
+        vehicleExists = true;
+        isUserVehicle = true;
+      }
+    }
+
+    if (!vehicleExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    // Check for any booking (not just completed) that is paid
+    // A user can review after booking is confirmed/approved, not necessarily completed
+    const booking = await Booking.findOne({
+      user: userId,
+      vehicle: vehicleId,
+      status: { $in: ["confirmed", "approved", "completed", "active"] },
+      paymentStatus: "paid",
+    });
+
+    let hasBooked = false;
+    let bookingStatus = null;
+
+    if (booking) {
+      hasBooked = true;
+      bookingStatus = booking.status;
+      console.log("Found booking:", booking._id, "Status:", booking.status);
+    } else {
+      console.log("No booking found for this vehicle");
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        hasBooked,
+        status: bookingStatus,
+        bookingId: booking?._id || null,
+        vehicleType: isUserVehicle ? "user" : "admin",
+      },
+    });
+  } catch (error) {
+    console.error("Error checking booking status:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to check booking status",
+    });
+  }
+}; 

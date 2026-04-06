@@ -12,7 +12,8 @@ import {
   updateBookingStatus,
   getBookingStatistics,
   deleteBooking, // ADD THIS IMPORT
-  autoUpdateBookingStatuses
+  autoUpdateBookingStatuses,
+  checkUserBookingStatus,
 } from "../controllers/bookingController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -71,5 +72,7 @@ router.get("/admin/stats", getBookingStatistics);
 router.delete("/admin/:id/delete", protect, deleteBooking); // ADD THIS ROUTE
 // Admin route to manually trigger auto-update
 router.post("/admin/auto-update", protect, autoUpdateBookingStatuses);
+// Add this route
+router.get("/user/vehicle/:vehicleId/status", protect, checkUserBookingStatus);
 
 export default router;

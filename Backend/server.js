@@ -29,6 +29,12 @@ import adminEmailRoutes from "./src/routes/adminEmailRoutes.js";
 //Revenue
 import revenueRoutes from "./src/routes/revenueRoutes.js";
 
+//Review
+// In your main app.js or server.js
+import reviewRoutes from "./src/routes/reviewRoutes.js";
+
+
+
 const app = express();
 
 // CORS configuration
@@ -75,6 +81,9 @@ app.use("/api/subscribe", subscribeRoutes);
 app.use("/api/admin/emails", adminEmailRoutes);
 
 app.use("/api/revenue", revenueRoutes);
+
+
+app.use("/api/reviews", reviewRoutes);
 
 
 // Health check route
