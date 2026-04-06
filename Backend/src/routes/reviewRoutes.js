@@ -5,26 +5,26 @@ import {
   getUserVehicleReview,
   updateReview,
   deleteReview,
-  markReviewHelpful,
+  toggleReviewHelpful,
   getAllReviews,
 } from "../controllers/reviewController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Public routes (no auth required)
+// PUBLIC route - anyone can view reviews (no authentication required)
 router.get("/vehicle/:vehicleId", getVehicleReviews);
 
-// Protected routes (auth required)
-router.use(protect); // All routes below require authentication
+// PROTECTED routes - require authentication
+router.use(protect);
 
 router.post("/", createReview);
 router.get("/user/vehicle/:vehicleId", getUserVehicleReview);
 router.put("/:id", updateReview);
 router.delete("/:id", deleteReview);
-router.post("/:id/helpful", markReviewHelpful);
+router.post("/:id/helpful", toggleReviewHelpful);
 
 // Admin only routes
-router.get("/admin/all", getAllReviews);
+router.get("/admin/all", adminOnly, getAllReviews);
 
 export default router;
