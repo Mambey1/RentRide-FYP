@@ -90,6 +90,43 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 // Get user by ID (for public profile viewing)
+// export const getUserById = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+    
+//     const user = await User.findById(userId).select("-password -emailVerificationOtp -emailVerificationOtpExpires -resetPasswordOTP -resetPasswordOTPExpires");
+    
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+    
+//     res.status(200).json({
+//       success: true,
+//       user: {
+//         _id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         username: user.username,
+//         profilePhoto: user.profilePhoto,
+//         gender: user.gender,
+//         createdAt: user.createdAt,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get user by ID error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch user",
+//     });
+//   }
+// };
+
+
+
+// Get user by ID (for public profile viewing)
 export const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -112,6 +149,7 @@ export const getUserById = async (req, res) => {
         username: user.username,
         profilePhoto: user.profilePhoto,
         gender: user.gender,
+        role: user.role,
         createdAt: user.createdAt,
       },
     });

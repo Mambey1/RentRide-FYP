@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import io from "socket.io-client";
-import config from "../config";
 
 const SocketContext = createContext();
 
@@ -19,15 +25,20 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
     if (!token) {
+      console.log("No token found, skipping socket connection");
       return;
     }
 
-    // Extract base URL from API URL
-    const socketUrl = config.apiUrl.replace("/api", "");
-    
+    // Get API URL from environment or use default
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+    const socketUrl = API_URL.replace("/api", "");
+
+    console.log("Connecting to socket at:", socketUrl);
+
     const newSocket = io(socketUrl, {
       auth: { token },
       transports: ["websocket", "polling"],
@@ -52,10 +63,8 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on("new_message_notification", (data) => {
-      setUnreadCount(prev => prev + 1);
-      // Play notification sound (optional)
-      const audio = new Audio("/notification.mp3");
-      audio.play().catch(e => console.log("Audio play failed"));
+      console.log("New message notification:", data);
+      setUnreadCount((prev) => prev + 1);
     });
 
     socketRef.current = newSocket;
@@ -66,23 +75,36 @@ export const SocketProvider = ({ children }) => {
     };
   }, []);
 
-  const joinChat = useCallback((chatId) => {
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit("join_chat", chatId);
-    }
-  }, [isConnected]);
+  const joinChat = useCallback(
+    (chatId) => {
+      if (socketRef.current && isConnected) {
+        socketRef.current.emit("join_chat", chatId);
+      }
+    },
+    [isConnected],
+  );
 
-  const sendMessage = useCallback((chatId, message, attachments = []) => {
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit("send_message", { chatId, message, attachments });
-    }
-  }, [isConnected]);
+  const sendMessage = useCallback(
+    (chatId, message, attachments = []) => {
+      if (socketRef.current && isConnected) {
+        socketRef.current.emit("send_message", {
+          chatId,
+          message,
+          attachments,
+        });
+      }
+    },
+    [isConnected],
+  );
 
-  const sendTyping = useCallback((chatId, isTyping) => {
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit("typing", { chatId, isTyping });
-    }
-  }, [isConnected]);
+  const sendTyping = useCallback(
+    (chatId, isTyping) => {
+      if (socketRef.current && isConnected) {
+        socketRef.current.emit("typing", { chatId, isTyping });
+      }
+    },
+    [isConnected],
+  );
 
   const onNewMessage = useCallback((callback) => {
     if (socketRef.current) {
@@ -135,8 +157,6 @@ export const SocketProvider = ({ children }) => {
   };
 
   return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 };

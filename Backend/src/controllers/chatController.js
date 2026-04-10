@@ -19,7 +19,9 @@ export const getOrCreateVehicleChat = async (req, res) => {
     if (vehicleType === "user") {
       const userVehicle = await UserVehicle.findById(vehicleId);
       if (!userVehicle) {
-        return res.status(404).json({ success: false, message: "Vehicle not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "Vehicle not found" });
       }
       ownerId = userVehicle.user;
       vehicleName = userVehicle.carName;
@@ -28,7 +30,9 @@ export const getOrCreateVehicleChat = async (req, res) => {
       // Admin vehicles - chat with admin/support
       const adminVehicle = await Vehicle.findById(vehicleId);
       if (!adminVehicle) {
-        return res.status(404).json({ success: false, message: "Vehicle not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "Vehicle not found" });
       }
       vehicleName = adminVehicle.carName;
       vehicleData = adminVehicle;
@@ -40,7 +44,9 @@ export const getOrCreateVehicleChat = async (req, res) => {
     }
 
     if (!ownerId) {
-      return res.status(404).json({ success: false, message: "No owner/admin found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "No owner/admin found" });
     }
 
     // Check if chat already exists
@@ -68,6 +74,12 @@ export const getOrCreateVehicleChat = async (req, res) => {
       });
       await chat.save();
       await chat.populate("participants", "name email profilePhoto role");
+    } else {
+      // Make sure vehicleName is set even for existing chats
+      if (!chat.vehicleName && vehicleName) {
+        chat.vehicleName = vehicleName;
+        await chat.save();
+      }
     }
 
     res.status(200).json({
@@ -95,16 +107,16 @@ export const getOrCreateSupportChat = async (req, res) => {
     if (!chat) {
       // Find all admin users
       const admins = await User.find({ role: "admin" }).select("_id");
-      const adminIds = admins.map(a => a._id);
-      
+      const adminIds = admins.map((a) => a._id);
+
       const participants = [userId, ...adminIds];
-      
+
       // Initialize unread counts
       const unreadCounts = new Map();
-      participants.forEach(p => {
+      participants.forEach((p) => {
         unreadCounts.set(p.toString(), 0);
       });
-      
+
       chat = new Chat({
         chatType: "support",
         participants: participants,
@@ -138,11 +150,13 @@ export const getChatById = async (req, res) => {
       .populate("lastMessageSender", "name");
 
     if (!chat) {
-      return res.status(404).json({ success: false, message: "Chat not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
     }
 
     // Check if user is participant
-    if (!chat.participants.some(p => p._id.toString() === userId)) {
+    if (!chat.participants.some((p) => p._id.toString() === userId)) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
@@ -187,12 +201,14 @@ export const markMessagesAsRead = async (req, res) => {
 
     const chat = await Chat.findById(chatId);
     if (!chat) {
-      return res.status(404).json({ success: false, message: "Chat not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
     }
 
     // Mark all unread messages from others as read
     let updated = false;
-    chat.messages.forEach(message => {
+    chat.messages.forEach((message) => {
       if (message.sender.toString() !== userId && !message.read) {
         message.read = true;
         message.readAt = new Date();
@@ -228,7 +244,7 @@ export const getUnreadCount = async (req, res) => {
     });
 
     let totalUnread = 0;
-    chats.forEach(chat => {
+    chats.forEach((chat) => {
       totalUnread += chat.unreadCounts.get(userId.toString()) || 0;
     });
 
@@ -251,11 +267,15 @@ export const closeChat = async (req, res) => {
 
     const chat = await Chat.findById(chatId);
     if (!chat) {
-      return res.status(404).json({ success: false, message: "Chat not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
     }
 
     if (!isAdmin) {
-      return res.status(403).json({ success: false, message: "Only admins can close chats" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Only admins can close chats" });
     }
 
     chat.isActive = false;

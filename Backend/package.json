@@ -59,7 +59,13 @@
   "node-cron": "^4.2.1",
   
     
-  "nodemailer": "^7.0.13"
+  "nodemailer": "^7.0.13",
+  
+    
+  "socket.io": "^4.8.3",
+  
+    
+  "socket.io-client": "^4.8.3"
   
   },
   
