@@ -7,6 +7,9 @@ import {
   markMessagesAsRead,
   getUnreadCount,
   closeChat,
+  sendMessage,
+  blockUser,
+  unblockUser,
 } from "../controllers/chatController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -22,5 +25,9 @@ router.get("/unread-count", getUnreadCount);
 router.get("/:chatId", getChatById);
 router.put("/:chatId/read", markMessagesAsRead);
 router.put("/:chatId/close", closeChat);
+router.post("/:chatId/message", sendMessage);
+router.put("/:chatId/block", blockUser);
+router.put("/:chatId/unblock", unblockUser);
+
 
 export default router;

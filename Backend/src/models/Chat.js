@@ -88,6 +88,18 @@ const chatSchema = new mongoose.Schema({
     of: Number,
     default: {},
   },
+
+  // Add these fields to your existing Chat schema
+blockedBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User",
+  default: null,
+},
+blockedAt: Date,
+isBlocked: {
+  type: Boolean,
+  default: false,
+},
   
 }, { timestamps: true });
 

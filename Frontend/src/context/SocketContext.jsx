@@ -23,6 +23,7 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const socketRef = useRef(null);
+  const newMessageCallbacks = useRef(new Set());
 
   useEffect(() => {
     const token =
@@ -33,7 +34,6 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Get API URL from environment or use default
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
     const socketUrl = API_URL.replace("/api", "");
 
@@ -62,9 +62,29 @@ export const SocketProvider = ({ children }) => {
       setIsConnected(false);
     });
 
+    newSocket.on("new_message", (data) => {
+      console.log("📨 New message received via socket:", data);
+      // Call all registered callbacks
+      newMessageCallbacks.current.forEach((callback) => {
+        try {
+          callback(data);
+        } catch (err) {
+          console.error("Error in message callback:", err);
+        }
+      });
+    });
+
     newSocket.on("new_message_notification", (data) => {
-      console.log("New message notification:", data);
+      console.log("🔔 New message notification:", data);
       setUnreadCount((prev) => prev + 1);
+    });
+
+    newSocket.on("messages_read", (data) => {
+      console.log("📖 Messages read:", data);
+    });
+
+    newSocket.on("user_typing", (data) => {
+      console.log("✍️ User typing:", data);
     });
 
     socketRef.current = newSocket;
@@ -78,6 +98,7 @@ export const SocketProvider = ({ children }) => {
   const joinChat = useCallback(
     (chatId) => {
       if (socketRef.current && isConnected) {
+        console.log(`Joining chat: ${chatId}`);
         socketRef.current.emit("join_chat", chatId);
       }
     },
@@ -87,11 +108,14 @@ export const SocketProvider = ({ children }) => {
   const sendMessage = useCallback(
     (chatId, message, attachments = []) => {
       if (socketRef.current && isConnected) {
+        console.log(`Sending message to chat: ${chatId}`);
         socketRef.current.emit("send_message", {
           chatId,
           message,
           attachments,
         });
+      } else {
+        console.log("Socket not connected, message will be sent via API only");
       }
     },
     [isConnected],
@@ -107,35 +131,10 @@ export const SocketProvider = ({ children }) => {
   );
 
   const onNewMessage = useCallback((callback) => {
-    if (socketRef.current) {
-      socketRef.current.on("new_message", callback);
-      return () => socketRef.current.off("new_message", callback);
-    }
-    return () => {};
-  }, []);
-
-  const onMessagesRead = useCallback((callback) => {
-    if (socketRef.current) {
-      socketRef.current.on("messages_read", callback);
-      return () => socketRef.current.off("messages_read", callback);
-    }
-    return () => {};
-  }, []);
-
-  const onUserTyping = useCallback((callback) => {
-    if (socketRef.current) {
-      socketRef.current.on("user_typing", callback);
-      return () => socketRef.current.off("user_typing", callback);
-    }
-    return () => {};
-  }, []);
-
-  const onNewMessageNotification = useCallback((callback) => {
-    if (socketRef.current) {
-      socketRef.current.on("new_message_notification", callback);
-      return () => socketRef.current.off("new_message_notification", callback);
-    }
-    return () => {};
+    newMessageCallbacks.current.add(callback);
+    return () => {
+      newMessageCallbacks.current.delete(callback);
+    };
   }, []);
 
   const resetUnreadCount = useCallback(() => {
@@ -150,9 +149,6 @@ export const SocketProvider = ({ children }) => {
     sendMessage,
     sendTyping,
     onNewMessage,
-    onMessagesRead,
-    onUserTyping,
-    onNewMessageNotification,
     resetUnreadCount,
   };
 

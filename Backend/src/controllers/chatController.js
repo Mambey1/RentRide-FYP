@@ -292,3 +292,166 @@ export const closeChat = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+// Add this function to chatController.js
+export const sendMessage = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const { message } = req.body;
+    const userId = req.user.id;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Chat not found" });
+    }
+
+    // Check if user is participant
+    if (!chat.participants.includes(userId)) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    // Determine sender type
+    let senderType = "user";
+    if (req.user.role === "admin") {
+      senderType = "admin";
+    }
+
+    const newMessage = {
+      sender: userId,
+      senderType,
+      message: message.trim(),
+      read: false,
+      delivered: true,
+    };
+
+    chat.messages.push(newMessage);
+    chat.lastMessage = message;
+    chat.lastMessageAt = new Date();
+    chat.lastMessageSender = userId;
+
+    // Update unread counts for other participants
+    for (const participantId of chat.participants) {
+      if (participantId.toString() !== userId) {
+        const currentUnread =
+          chat.unreadCounts.get(participantId.toString()) || 0;
+        chat.unreadCounts.set(participantId.toString(), currentUnread + 1);
+      }
+    }
+
+    await chat.save();
+
+    // Get the saved message with full details
+    const savedMessage = chat.messages[chat.messages.length - 1];
+
+    // Get sender details
+    const sender = await User.findById(userId).select(
+      "name email profilePhoto role",
+    );
+
+    // Prepare message for socket emission
+    const messageToEmit = {
+      _id: savedMessage._id,
+      message: savedMessage.message,
+      senderType: savedMessage.senderType,
+      read: savedMessage.read,
+      delivered: savedMessage.delivered,
+      createdAt: savedMessage.createdAt,
+      sender: {
+        _id: userId,
+        name: sender.name,
+        email: sender.email,
+        profilePhoto: sender.profilePhoto,
+        role: sender.role,
+      },
+    };
+
+    // Emit via socket for real-time - FIXED
+    const io = req.app.get("io");
+    if (io) {
+      // Emit to the specific chat room
+      io.to(`chat_${chatId}`).emit("new_message", {
+        chatId,
+        message: messageToEmit,
+      });
+
+      // Also send personal notifications to each participant
+      for (const participantId of chat.participants) {
+        if (participantId.toString() !== userId) {
+          io.to(`user_${participantId}`).emit("new_message_notification", {
+            chatId,
+            from: sender.name,
+            message: message.substring(0, 100),
+          });
+        }
+      }
+    } else {
+      console.log(
+        "Socket.IO not available, message saved but not sent in real-time",
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Message sent successfully",
+      data: messageToEmit,
+    });
+  } catch (error) {
+    console.error("Error sending message:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+// Block user in chat
+export const blockUser = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.id;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
+
+    if (!chat.participants.includes(userId)) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    chat.isBlocked = true;
+    chat.blockedBy = userId;
+    chat.blockedAt = new Date();
+    await chat.save();
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`chat_${chatId}`).emit("user_blocked", { chatId, blockedBy: userId });
+    }
+
+    res.status(200).json({ success: true, message: "User blocked successfully" });
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Unblock user
+export const unblockUser = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user.id;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
+
+    chat.isBlocked = false;
+    chat.blockedBy = null;
+    chat.blockedAt = null;
+    await chat.save();
+
+    res.status(200).json({ success: true, message: "User unblocked successfully" });
+  } catch (error) {
+    console.error("Error unblocking user:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

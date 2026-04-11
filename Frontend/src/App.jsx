@@ -42,7 +42,7 @@ import ChangePassword from "./components/Auth/ChangePassword";
 
 // Chat
 import { SocketProvider } from "./context/SocketContext";
-import ChatFloatingButton from "./components/Chat/ChatFloatingButton";
+// import ChatFloatingButton from "./components/Chat/ChatFloatingButton";
 
 function App() {
   return (
@@ -104,7 +104,7 @@ function App() {
           <Route path="*" element={<Navigate to="/rentridehome" replace />} />
         </Routes>
       </Router>
-      <ChatFloatingButton />
+      {/* <ChatFloatingButton /> */}
     </SocketProvider>
   );
 }
