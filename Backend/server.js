@@ -263,9 +263,10 @@ import adminEmailRoutes from "./src/routes/adminEmailRoutes.js";
 import revenueRoutes from "./src/routes/revenueRoutes.js";
 import reviewRoutes from "./src/routes/reviewRoutes.js";
 import chatRoutes from "./src/routes/chatRoutes.js";
-
+// import adminChatRoutes from "./routes/adminChatRoutes.js";
 // Import Socket.IO
 import { initializeSocket } from "./src/socket/socketServer.js";
+import adminChatRoutes from "./src/routes/adminChatRoutes.js";
 
 const app = express();
 
@@ -314,6 +315,7 @@ app.use("/api/admin/emails", adminEmailRoutes);
 app.use("/api/revenue", revenueRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/chats", chatRoutes);
+app.use("/api/admin/chats", adminChatRoutes);
 
 // Health check route
 app.get("/api/test", (req, res) => {

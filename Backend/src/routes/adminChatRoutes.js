@@ -1,60 +1,464 @@
-// routes/adminChatRoutes.js
-// Mount this in your Express app as: app.use('/api/admin/chats', adminChatRoutes)
+// import express from "express";
+// import Chat from "../models/Chat.js";
+// import User from "../models/User.js";
+// import { protect, adminOnly } from "../middleware/authMiddleware.js";
+
+// const router = express.Router();
+
+// // Apply admin authentication to all routes
+// router.use(protect, adminOnly);
+
+// // Helper function to get the other participant
+// const getOtherParticipant = (chat, adminId) => {
+//   if (!chat.participants) return null;
+//   const adminIdStr = adminId.toString();
+//   const other = chat.participants.find(p => p._id.toString() !== adminIdStr);
+//   return other || null;
+// };
+
+// // ─── GET /api/admin/chats ─────────────────────────────────────────────
+// // Get all chats with optional filtering
+// router.get("/", async (req, res) => {
+//   try {
+//     const { filter = "all", search = "" } = req.query;
+//     const adminId = req.user._id;
+
+//     let query = { 
+//       isActive: true,
+//       participants: adminId 
+//     };
+
+//     // Filter by chat type
+//     if (filter === "vehicle") query.chatType = "vehicle";
+//     else if (filter === "support") query.chatType = "support";
+//     else if (filter === "booking") query.chatType = "booking";
+
+//     let chats = await Chat.find(query)
+//       .populate("participants", "name email profilePhoto role")
+//       .sort({ lastMessageAt: -1, updatedAt: -1 });
+
+//     // Apply search filter
+//     if (search) {
+//       const searchLower = search.toLowerCase();
+//       chats = chats.filter(chat => {
+//         const otherUser = getOtherParticipant(chat, adminId);
+//         return (
+//           otherUser?.name?.toLowerCase().includes(searchLower) ||
+//           chat.vehicleName?.toLowerCase().includes(searchLower) ||
+//           chat.lastMessage?.toLowerCase().includes(searchLower)
+//         );
+//       });
+//     }
+
+//     // Format chats for response
+//     const formattedChats = chats.map(chat => {
+//       const otherUser = getOtherParticipant(chat, adminId);
+//       const unreadCount = chat.unreadCounts?.get(adminId.toString()) || 0;
+      
+//       return {
+//         _id: chat._id,
+//         chatType: chat.chatType,
+//         participants: chat.participants,
+//         vehicleId: chat.vehicleId,
+//         vehicleName: chat.vehicleName,
+//         vehicleNumber: chat.vehicleNumber,
+//         title: chat.title,
+//         lastMessage: chat.lastMessage,
+//         lastMessageAt: chat.lastMessageAt || chat.updatedAt,
+//         isActive: chat.isActive,
+//         isBlocked: chat.isBlocked,
+//         blockedBy: chat.blockedBy,
+//         unreadCounts: chat.unreadCounts ? Object.fromEntries(chat.unreadCounts) : {},
+//         unreadForAdmin: unreadCount,
+//         otherParticipant: otherUser ? {
+//           _id: otherUser._id,
+//           name: otherUser.name,
+//           email: otherUser.email,
+//           profilePhoto: otherUser.profilePhoto,
+//           role: otherUser.role,
+//         } : null,
+//       };
+//     });
+
+//     // If filter is "unread", only return chats with unread messages
+//     const result = filter === "unread" 
+//       ? formattedChats.filter(c => c.unreadForAdmin > 0)
+//       : formattedChats;
+
+//     res.json({ success: true, data: result });
+//   } catch (err) {
+//     console.error("Admin get chats error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// // ─── GET /api/admin/chats/:chatId ─────────────────────────────────────
+// // Get a single chat with full message history
+// router.get("/:chatId", async (req, res) => {
+//   try {
+//     const { chatId } = req.params;
+//     const adminId = req.user._id;
+
+//     const chat = await Chat.findById(chatId)
+//       .populate("participants", "name email profilePhoto role")
+//       .populate("messages.sender", "name email profilePhoto role");
+
+//     if (!chat) {
+//       return res.status(404).json({ success: false, message: "Chat not found" });
+//     }
+
+//     // Check if admin is a participant
+//     if (!chat.participants.some(p => p._id.toString() === adminId.toString())) {
+//       return res.status(403).json({ success: false, message: "Unauthorized" });
+//     }
+
+//     const otherUser = getOtherParticipant(chat, adminId);
+//     const unreadCount = chat.unreadCounts?.get(adminId.toString()) || 0;
+
+//     res.json({
+//       success: true,
+//       data: {
+//         _id: chat._id,
+//         chatType: chat.chatType,
+//         participants: chat.participants,
+//         vehicleId: chat.vehicleId,
+//         vehicleName: chat.vehicleName,
+//         vehicleNumber: chat.vehicleNumber,
+//         title: chat.title,
+//         messages: chat.messages || [],
+//         lastMessage: chat.lastMessage,
+//         lastMessageAt: chat.lastMessageAt,
+//         isActive: chat.isActive,
+//         isBlocked: chat.isBlocked,
+//         blockedBy: chat.blockedBy,
+//         unreadForAdmin: unreadCount,
+//         otherParticipant: otherUser ? {
+//           _id: otherUser._id,
+//           name: otherUser.name,
+//           email: otherUser.email,
+//           profilePhoto: otherUser.profilePhoto,
+//           role: otherUser.role,
+//         } : null,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Admin get chat error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// // ─── POST /api/admin/chats/:chatId/message ────────────────────────────
+// // Send a message as admin
+// router.post("/:chatId/message", async (req, res) => {
+//   try {
+//     const { chatId } = req.params;
+//     const { message } = req.body;
+//     const adminId = req.user._id;
+
+//     if (!message?.trim()) {
+//       return res.status(400).json({ success: false, message: "Message is required" });
+//     }
+
+//     const chat = await Chat.findById(chatId);
+//     if (!chat) {
+//       return res.status(404).json({ success: false, message: "Chat not found" });
+//     }
+
+//     // Check if admin is a participant
+//     if (!chat.participants.includes(adminId)) {
+//       return res.status(403).json({ success: false, message: "Unauthorized" });
+//     }
+
+//     // Check if chat is blocked by admin
+//     if (chat.isBlocked && chat.blockedBy?.toString() === adminId.toString()) {
+//       return res.status(403).json({ success: false, message: "Chat is blocked by you" });
+//     }
+
+//     // Create new message
+//     const newMessage = {
+//       sender: adminId,
+//       senderType: "admin",
+//       message: message.trim(),
+//       read: false,
+//       delivered: true,
+//       createdAt: new Date(),
+//     };
+
+//     chat.messages.push(newMessage);
+//     chat.lastMessage = message.trim();
+//     chat.lastMessageAt = new Date();
+//     chat.lastMessageSender = adminId;
+
+//     // Update unread counts for other participants (not admin)
+//     if (!chat.unreadCounts) {
+//       chat.unreadCounts = new Map();
+//     }
+//     for (const participantId of chat.participants) {
+//       if (participantId.toString() !== adminId.toString()) {
+//         const currentUnread = chat.unreadCounts.get(participantId.toString()) || 0;
+//         chat.unreadCounts.set(participantId.toString(), currentUnread + 1);
+//       }
+//     }
+
+//     // Reset admin's unread count
+//     chat.unreadCounts.set(adminId.toString(), 0);
+
+//     await chat.save();
+
+//     // Get the saved message with sender details
+//     const savedMessage = chat.messages[chat.messages.length - 1];
+//     const sender = await User.findById(adminId).select("name email profilePhoto role");
+
+//     const messageToReturn = {
+//       _id: savedMessage._id,
+//       message: savedMessage.message,
+//       senderType: savedMessage.senderType,
+//       read: savedMessage.read,
+//       delivered: savedMessage.delivered,
+//       createdAt: savedMessage.createdAt,
+//       sender: {
+//         _id: adminId,
+//         name: sender.name,
+//         email: sender.email,
+//         profilePhoto: sender.profilePhoto,
+//         role: sender.role,
+//       },
+//     };
+
+//     // Emit via Socket.IO if available
+//     const io = req.app.get("io");
+//     if (io) {
+//       // Emit to the chat room
+//       io.to(`chat_${chatId}`).emit("new_message", {
+//         chatId,
+//         message: messageToReturn,
+//       });
+
+//       // Send notifications to other participants
+//       for (const participantId of chat.participants) {
+//         if (participantId.toString() !== adminId.toString()) {
+//           io.to(`user_${participantId}`).emit("new_message_notification", {
+//             chatId,
+//             from: sender.name,
+//             message: message.substring(0, 100),
+//           });
+//         }
+//       }
+//     }
+
+//     res.json({ success: true, data: messageToReturn });
+//   } catch (err) {
+//     console.error("Admin send message error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// // ─── PUT /api/admin/chats/:chatId/read ────────────────────────────────
+// // Mark all messages as read for admin
+// router.put("/:chatId/read", async (req, res) => {
+//   try {
+//     const { chatId } = req.params;
+//     const adminId = req.user._id;
+
+//     const chat = await Chat.findById(chatId);
+//     if (!chat) {
+//       return res.status(404).json({ success: false, message: "Chat not found" });
+//     }
+
+//     // Mark all messages from others as read
+//     let updated = false;
+//     chat.messages.forEach((message) => {
+//       if (message.sender.toString() !== adminId.toString() && !message.read) {
+//         message.read = true;
+//         message.readAt = new Date();
+//         updated = true;
+//       }
+//     });
+
+//     // Reset admin's unread count
+//     if (!chat.unreadCounts) {
+//       chat.unreadCounts = new Map();
+//     }
+//     chat.unreadCounts.set(adminId.toString(), 0);
+
+//     if (updated) {
+//       await chat.save();
+//     }
+
+//     res.json({ success: true, message: "Messages marked as read" });
+//   } catch (err) {
+//     console.error("Admin mark read error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// // ─── PUT /api/admin/chats/:chatId/block ───────────────────────────────
+// // Block a user from chatting (admin blocks the other participant)
+// router.put("/:chatId/block", async (req, res) => {
+//   try {
+//     const { chatId } = req.params;
+//     const adminId = req.user._id;
+
+//     const chat = await Chat.findById(chatId);
+//     if (!chat) {
+//       return res.status(404).json({ success: false, message: "Chat not found" });
+//     }
+
+//     if (!chat.participants.includes(adminId)) {
+//       return res.status(403).json({ success: false, message: "Unauthorized" });
+//     }
+
+//     chat.isBlocked = true;
+//     chat.blockedBy = adminId;
+//     chat.blockedAt = new Date();
+//     await chat.save();
+
+//     // Emit block event
+//     const io = req.app.get("io");
+//     if (io) {
+//       io.to(`chat_${chatId}`).emit("user_blocked", { chatId, blockedBy: adminId });
+//     }
+
+//     res.json({ success: true, message: "User blocked successfully" });
+//   } catch (err) {
+//     console.error("Admin block error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// // ─── PUT /api/admin/chats/:chatId/unblock ─────────────────────────────
+// // Unblock a user
+// router.put("/:chatId/unblock", async (req, res) => {
+//   try {
+//     const { chatId } = req.params;
+//     const adminId = req.user._id;
+
+//     const chat = await Chat.findById(chatId);
+//     if (!chat) {
+//       return res.status(404).json({ success: false, message: "Chat not found" });
+//     }
+
+//     chat.isBlocked = false;
+//     chat.blockedBy = null;
+//     chat.blockedAt = null;
+//     await chat.save();
+
+//     res.json({ success: true, message: "User unblocked successfully" });
+//   } catch (err) {
+//     console.error("Admin unblock error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// // ─── GET /api/admin/chats/unread/count ────────────────────────────────
+// // Get total unread count for admin across all chats
+// router.get("/unread/count", async (req, res) => {
+//   try {
+//     const adminId = req.user._id;
+
+//     const chats = await Chat.find({
+//       participants: adminId,
+//       isActive: true,
+//     });
+
+//     let totalUnread = 0;
+//     chats.forEach((chat) => {
+//       totalUnread += chat.unreadCounts?.get(adminId.toString()) || 0;
+//     });
+
+//     res.json({ success: true, count: totalUnread });
+//   } catch (err) {
+//     console.error("Admin unread count error:", err);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// });
+
+// export default router;
+
+
+
 
 import express from "express";
 import Chat from "../models/Chat.js";
-import Message from "../models/Message.js";
-
-// ── Import YOUR existing auth middleware directly ──────────────────────────
-// protect   → verifies JWT and attaches req.user
-// adminOnly → checks req.user.role === "admin"  (or use authorize("admin"))
+import User from "../models/User.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
-// If your file is named differently, adjust the path above. Examples:
-//   import { protect, adminOnly } from "../middleware/auth.js";
-//   import { protect, authorize } from "../middleware/authMiddleware.js";
-//   const adminOnly = authorize("admin");  ← if you prefer the authorize helper
 
 const router = express.Router();
 
-// ─── GET /api/admin/chats ─────────────────────────────────────────────────────
-// Returns ALL chats (optionally filtered). Admin sees every conversation.
-router.get("/", protect, adminOnly, async (req, res) => {
+// Apply admin authentication to all routes
+router.use(protect, adminOnly);
+
+// Helper function to get the other participant
+const getOtherParticipant = (chat, adminId) => {
+  if (!chat || !chat.participants) return null;
+  const adminIdStr = adminId.toString();
+  const other = chat.participants.find(p => p && p._id && p._id.toString() !== adminIdStr);
+  return other || null;
+};
+
+// GET /api/admin/chats - Get all chats
+router.get("/", async (req, res) => {
   try {
-    const { filter = "all" } = req.query;
+    const { filter = "all", search = "" } = req.query;
+    const adminId = req.user._id;
 
-    let query = {};
+    let query = { 
+      isActive: true,
+      participants: adminId 
+    };
 
-    // Filter by chat type
     if (filter === "vehicle") query.chatType = "vehicle";
     else if (filter === "support") query.chatType = "support";
-    else if (filter === "unread") {
-      // chats where admin has unread messages — handled after fetch
+    else if (filter === "booking") query.chatType = "booking";
+
+    let chats = await Chat.find(query)
+      .populate("participants", "name email profilePhoto role")
+      .sort({ lastMessageAt: -1, updatedAt: -1 });
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      chats = chats.filter(chat => {
+        const otherUser = getOtherParticipant(chat, adminId);
+        return (
+          otherUser?.name?.toLowerCase().includes(searchLower) ||
+          chat.vehicleName?.toLowerCase().includes(searchLower) ||
+          chat.lastMessage?.toLowerCase().includes(searchLower)
+        );
+      });
     }
 
-    const chats = await Chat.find(query)
-      .populate("participants", "name email profilePhoto role")
-      .populate("vehicle", "carName carNumber vehiclePhotos")
-      .sort({ lastMessageAt: -1, updatedAt: -1 })
-      .lean();
-
-    // Attach last message text & unread counts per participant
-    const enriched = chats.map((chat) => {
-      const adminId = req.user._id.toString();
-      const unreadForAdmin = chat.unreadCounts?.[adminId] || 0;
+    const formattedChats = chats.map(chat => {
+      const otherUser = getOtherParticipant(chat, adminId);
+      const unreadCount = chat.unreadCounts?.get(adminId.toString()) || 0;
+      
       return {
-        ...chat,
-        vehicleName: chat.vehicle?.carName || chat.vehicleName,
-        vehicleNumber: chat.vehicle?.carNumber,
-        unreadCounts: chat.unreadCounts || {},
-        _unreadForAdmin: unreadForAdmin,
+        _id: chat._id,
+        chatType: chat.chatType,
+        participants: chat.participants,
+        vehicleId: chat.vehicleId,
+        vehicleName: chat.vehicleName,
+        vehicleNumber: chat.vehicleNumber,
+        title: chat.title,
+        lastMessage: chat.lastMessage,
+        lastMessageAt: chat.lastMessageAt || chat.updatedAt,
+        isActive: chat.isActive,
+        isBlocked: chat.isBlocked,
+        blockedBy: chat.blockedBy,
+        unreadCounts: chat.unreadCounts ? Object.fromEntries(chat.unreadCounts) : {},
+        unreadForAdmin: unreadCount,
+        otherParticipant: otherUser ? {
+          _id: otherUser._id,
+          name: otherUser.name,
+          email: otherUser.email,
+          profilePhoto: otherUser.profilePhoto,
+          role: otherUser.role,
+        } : null,
       };
     });
 
-    // If filter === 'unread', only return chats where admin has unread msgs
-    const result =
-      filter === "unread"
-        ? enriched.filter((c) => c._unreadForAdmin > 0)
-        : enriched;
+    const result = filter === "unread" 
+      ? formattedChats.filter(c => c.unreadForAdmin > 0)
+      : formattedChats;
 
     res.json({ success: true, data: result });
   } catch (err) {
@@ -63,32 +467,51 @@ router.get("/", protect, adminOnly, async (req, res) => {
   }
 });
 
-// ─── GET /api/admin/chats/:chatId ─────────────────────────────────────────────
-// Returns a single chat with its full message history
-router.get("/:chatId", protect, adminOnly, async (req, res) => {
+// GET /api/admin/chats/:chatId - Get single chat
+router.get("/:chatId", async (req, res) => {
   try {
-    const chat = await Chat.findById(req.params.chatId)
+    const { chatId } = req.params;
+    const adminId = req.user._id;
+
+    const chat = await Chat.findById(chatId)
       .populate("participants", "name email profilePhoto role")
-      .populate("vehicle", "carName carNumber vehiclePhotos")
-      .lean();
+      .populate("messages.sender", "name email profilePhoto role");
 
-    if (!chat) return res.status(404).json({ success: false, message: "Chat not found" });
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
 
-    // Fetch messages — adjust depending on your schema:
-    // Option A: messages embedded in Chat document → const messages = chat.messages || [];
-    // Option B: separate Message collection with chatId reference (default below)
-    const messages = await Message.find({ chat: req.params.chatId })
-      .populate("sender", "name email profilePhoto role")
-      .sort({ createdAt: 1 })
-      .lean();
+    if (!chat.participants.some(p => p._id.toString() === adminId.toString())) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    const otherUser = getOtherParticipant(chat, adminId);
+    const unreadCount = chat.unreadCounts?.get(adminId.toString()) || 0;
 
     res.json({
       success: true,
       data: {
-        ...chat,
-        vehicleName: chat.vehicle?.carName || chat.vehicleName,
-        vehicleNumber: chat.vehicle?.carNumber,
-        messages,
+        _id: chat._id,
+        chatType: chat.chatType,
+        participants: chat.participants,
+        vehicleId: chat.vehicleId,
+        vehicleName: chat.vehicleName,
+        vehicleNumber: chat.vehicleNumber,
+        title: chat.title,
+        messages: chat.messages || [],
+        lastMessage: chat.lastMessage,
+        lastMessageAt: chat.lastMessageAt,
+        isActive: chat.isActive,
+        isBlocked: chat.isBlocked,
+        blockedBy: chat.blockedBy,
+        unreadForAdmin: unreadCount,
+        otherParticipant: otherUser ? {
+          _id: otherUser._id,
+          name: otherUser.name,
+          email: otherUser.email,
+          profilePhoto: otherUser.profilePhoto,
+          role: otherUser.role,
+        } : null,
       },
     });
   } catch (err) {
@@ -97,92 +520,212 @@ router.get("/:chatId", protect, adminOnly, async (req, res) => {
   }
 });
 
-// ─── POST /api/admin/chats/:chatId/message ────────────────────────────────────
-// Admin sends a message in a chat
-router.post("/:chatId/message", protect, adminOnly, async (req, res) => {
+// POST /api/admin/chats/:chatId/message - Send message as admin
+router.post("/:chatId/message", async (req, res) => {
   try {
+    const { chatId } = req.params;
     const { message } = req.body;
+    const adminId = req.user._id;
+
     if (!message?.trim()) {
       return res.status(400).json({ success: false, message: "Message is required" });
     }
 
-    const chat = await Chat.findById(req.params.chatId)
-      .populate("participants", "name email profilePhoto role");
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
 
-    if (!chat) return res.status(404).json({ success: false, message: "Chat not found" });
-    if (chat.isBlocked) return res.status(403).json({ success: false, message: "Chat is blocked" });
+    if (!chat.participants.includes(adminId)) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
 
-    const newMsg = await Message.create({
-      chat: chat._id,
-      sender: req.user._id,
+    if (chat.isBlocked && chat.blockedBy?.toString() === adminId.toString()) {
+      return res.status(403).json({ success: false, message: "Chat is blocked by you" });
+    }
+
+    const newMessage = {
+      sender: adminId,
       senderType: "admin",
       message: message.trim(),
       read: false,
-    });
-
-    await newMsg.populate("sender", "name email profilePhoto role");
-
-    // Update the chat's lastMessage and bump unread counts for non-admin participants
-    const updateData = {
-      lastMessage: message.trim(),
-      lastMessageAt: new Date(),
+      delivered: true,
+      createdAt: new Date(),
     };
 
-    // Increment unread count for each non-admin participant
-    chat.participants.forEach((p) => {
-      if (p.role !== "admin") {
-        updateData[`unreadCounts.${p._id}`] =
-          (chat.unreadCounts?.get(p._id.toString()) || 0) + 1;
+    chat.messages.push(newMessage);
+    chat.lastMessage = message.trim();
+    chat.lastMessageAt = new Date();
+    chat.lastMessageSender = adminId;
+
+    if (!chat.unreadCounts) {
+      chat.unreadCounts = new Map();
+    }
+    for (const participantId of chat.participants) {
+      if (participantId.toString() !== adminId.toString()) {
+        const currentUnread = chat.unreadCounts.get(participantId.toString()) || 0;
+        chat.unreadCounts.set(participantId.toString(), currentUnread + 1);
       }
-    });
+    }
+    chat.unreadCounts.set(adminId.toString(), 0);
 
-    await Chat.findByIdAndUpdate(chat._id, { $set: updateData });
+    await chat.save();
 
-    // ── Emit via Socket.IO (access from app) ──
+    const sender = await User.findById(adminId).select("name email profilePhoto role");
+    const savedMessage = chat.messages[chat.messages.length - 1];
+
+    const messageToReturn = {
+      _id: savedMessage._id,
+      message: savedMessage.message,
+      senderType: savedMessage.senderType,
+      read: savedMessage.read,
+      delivered: savedMessage.delivered,
+      createdAt: savedMessage.createdAt,
+      sender: {
+        _id: adminId,
+        name: sender.name,
+        email: sender.email,
+        profilePhoto: sender.profilePhoto,
+        role: sender.role,
+      },
+    };
+
     const io = req.app.get("io");
     if (io) {
-      io.to(chat._id.toString()).emit("newMessage", {
-        chatId: chat._id,
-        message: newMsg,
+      io.to(`chat_${chatId}`).emit("new_message", {
+        chatId,
+        message: messageToReturn,
       });
+
+      for (const participantId of chat.participants) {
+        if (participantId.toString() !== adminId.toString()) {
+          io.to(`user_${participantId}`).emit("new_message_notification", {
+            chatId,
+            from: sender.name,
+            message: message.substring(0, 100),
+          });
+        }
+      }
     }
 
-    res.json({ success: true, data: newMsg });
+    res.json({ success: true, data: messageToReturn });
   } catch (err) {
     console.error("Admin send message error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-// ─── PUT /api/admin/chats/:chatId/read ───────────────────────────────────────
-// Mark all messages in a chat as read for the admin
-router.put("/:chatId/read", protect, adminOnly, async (req, res) => {
+// PUT /api/admin/chats/:chatId/read - Mark messages as read
+router.put("/:chatId/read", async (req, res) => {
   try {
-    const adminId = req.user._id.toString();
+    const { chatId } = req.params;
+    const adminId = req.user._id;
 
-    await Chat.findByIdAndUpdate(req.params.chatId, {
-      $set: { [`unreadCounts.${adminId}`]: 0 },
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
+
+    let updated = false;
+    chat.messages.forEach((message) => {
+      if (message.sender.toString() !== adminId.toString() && !message.read) {
+        message.read = true;
+        message.readAt = new Date();
+        updated = true;
+      }
     });
 
-    // Also mark individual messages as read if you track per-message read status
-    // await Message.updateMany({ chat: req.params.chatId, read: false }, { $set: { read: true } });
+    if (!chat.unreadCounts) {
+      chat.unreadCounts = new Map();
+    }
+    chat.unreadCounts.set(adminId.toString(), 0);
 
-    res.json({ success: true });
+    if (updated) {
+      await chat.save();
+    }
+
+    res.json({ success: true, message: "Messages marked as read" });
   } catch (err) {
     console.error("Admin mark read error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-export default router;
+// PUT /api/admin/chats/:chatId/block - Block user
+router.put("/:chatId/block", async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const adminId = req.user._id;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HOW TO REGISTER IN YOUR Express app (app.js / server.js)
-// ─────────────────────────────────────────────────────────────────────────────
-//
-//   import adminChatRoutes from './routes/adminChatRoutes.js';
-//   app.use('/api/admin/chats', adminChatRoutes);
-//
-// Block/unblock still use your EXISTING user-chat routes — no changes needed:
-//   PUT /api/chats/:chatId/block
-//   PUT /api/chats/:chatId/unblock
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
+
+    if (!chat.participants.includes(adminId)) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+
+    chat.isBlocked = true;
+    chat.blockedBy = adminId;
+    chat.blockedAt = new Date();
+    await chat.save();
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`chat_${chatId}`).emit("user_blocked", { chatId, blockedBy: adminId });
+    }
+
+    res.json({ success: true, message: "User blocked successfully" });
+  } catch (err) {
+    console.error("Admin block error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// PUT /api/admin/chats/:chatId/unblock - Unblock user
+router.put("/:chatId/unblock", async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const adminId = req.user._id;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ success: false, message: "Chat not found" });
+    }
+
+    chat.isBlocked = false;
+    chat.blockedBy = null;
+    chat.blockedAt = null;
+    await chat.save();
+
+    res.json({ success: true, message: "User unblocked successfully" });
+  } catch (err) {
+    console.error("Admin unblock error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// GET /api/admin/chats/unread/count - Get unread count
+router.get("/unread/count", async (req, res) => {
+  try {
+    const adminId = req.user._id;
+
+    const chats = await Chat.find({
+      participants: adminId,
+      isActive: true,
+    });
+
+    let totalUnread = 0;
+    chats.forEach((chat) => {
+      totalUnread += chat.unreadCounts?.get(adminId.toString()) || 0;
+    });
+
+    res.json({ success: true, count: totalUnread });
+  } catch (err) {
+    console.error("Admin unread count error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+export default router;
