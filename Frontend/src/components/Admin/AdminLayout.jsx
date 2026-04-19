@@ -442,7 +442,8 @@ import {
   FaBars,
   FaUserCircle,
   FaShieldAlt,
-  FaComments, // ← new
+  FaComments,
+  FaMotorcycle, // ← new
 } from "react-icons/fa";
 
 const AdminLayout = () => {
@@ -481,6 +482,13 @@ const AdminLayout = () => {
       icon: FaList,
       label: "Vehicle Inventory",
       bgColor: "bg-gradient-to-r from-emerald-500 to-teal-500",
+    },
+    {
+      id: "bikes",
+      path: "/admin/bikes",
+      icon: FaMotorcycle,
+      label: "Bikes",
+      bgColor: "bg-gradient-to-r from-purple-500 to-pink-500",
     },
     {
       id: "bookings",

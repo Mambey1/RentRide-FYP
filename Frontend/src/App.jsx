@@ -394,6 +394,12 @@ import { SocketProvider } from "./context/SocketContext";
 // Import Chat Components
 import ChatFloatingButton from "./components/Chat/ChatFloatingButton";
 
+
+//Bokes
+import BikeBooking from "./components/Booking/BikeBooking";
+import AdminBikes from "./AdminDashboard/AdminBikes";
+
+
 function App() {
   // Check if user is logged in to show chat button
   const isLoggedIn = !!localStorage.getItem("token");
@@ -423,6 +429,7 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-failure" element={<PaymentFailure />} />
           <Route path="/vehicle-details/:id" element={<VehicleDetails />} />
+          <Route path="/bike-booking/:bikeId" element={<BikeBooking />} />
 
           {/* Protected User Routes */}
           <Route element={<ProtectedRoute />}>
@@ -472,6 +479,7 @@ function App() {
                 <Navigate to="/rentridehome" replace />
             } 
           />
+          <Route path="bikes" element={<AdminBikes />} />
         </Routes>
 
         {/* Floating Chat Button - Only show for logged in users (not admins - they have their own chat) */}

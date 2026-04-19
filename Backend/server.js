@@ -268,6 +268,8 @@ import chatRoutes from "./src/routes/chatRoutes.js";
 import { initializeSocket } from "./src/socket/socketServer.js";
 import adminChatRoutes from "./src/routes/adminChatRoutes.js";
 
+import bikeRoutes from "./src/routes/bikeRoutes.js";
+
 const app = express();
 
 // CORS configuration
@@ -317,6 +319,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/admin/chats", adminChatRoutes);
 
+app.use("/api/bikes", bikeRoutes);
 // Health check route
 app.get("/api/test", (req, res) => {
   res.json({ success: true, message: "Backend is working!" });

@@ -40,3 +40,6 @@
 .read-the-docs {
   color: #888;
 }
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
