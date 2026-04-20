@@ -1,21 +1,61 @@
 import Bike from "../models/Bike.js";
 import BikeBooking from "../models/BikeBooking.js";
 import { createNotification } from "../utils/notificationHelper.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const uploadDir = path.join(__dirname, "../../uploads/bikes");
+
+// Only jpg, jpeg, webp allowed — no png or gif
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/jpg", "image/webp"];
+const ALLOWED_LABEL = "JPG, JPEG, WEBP";
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+const validateImageFiles = (files) => {
+  if (!files || files.length === 0) return { valid: true };
+
+  for (const file of files) {
+    if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      return {
+        valid: false,
+        error: `"${file.originalname}": Only ${ALLOWED_LABEL} images are allowed`,
+      };
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return {
+        valid: false,
+        error: `"${file.originalname}": File size must be less than 5MB`,
+      };
+    }
+  }
+  return { valid: true };
+};
+
+const cleanupFiles = (files) => {
+  if (files && files.length) {
+    files.forEach((file) => {
+      const filePath = path.join(uploadDir, file.filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`🗑️ Deleted file: ${file.filename}`);
+      }
+    });
+  }
+};
 
 // ========== BIKE CRUD ==========
 
-// Get all bikes (public)
 export const getAllBikes = async (req, res) => {
   try {
     const { type, status, search } = req.query;
     let query = {};
 
-    if (type && type !== "all") {
-      query.bikeType = type;
-    }
-    if (status) {
-      query.status = status;
-    }
+    if (type && type !== "all") query.bikeType = type;
+    if (status) query.status = status;
     if (search) {
       query.$or = [
         { bikeName: { $regex: search, $options: "i" } },
@@ -28,145 +68,156 @@ export const getAllBikes = async (req, res) => {
     res.json({ success: true, data: bikes });
   } catch (error) {
     console.error("Error fetching bikes:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch bikes" });
+    res.status(500).json({ success: false, message: "Failed to fetch bikes", error: error.message });
   }
 };
 
-// Get single bike
 export const getBikeById = async (req, res) => {
   try {
     const bike = await Bike.findById(req.params.id);
-    if (!bike) {
-      return res.status(404).json({ success: false, message: "Bike not found" });
-    }
+    if (!bike) return res.status(404).json({ success: false, message: "Bike not found" });
     res.json({ success: true, data: bike });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch bike" });
+    res.status(500).json({ success: false, message: "Failed to fetch bike", error: error.message });
   }
 };
 
-// Create bike (admin)
 export const createBike = async (req, res) => {
   try {
-    const bikeData = req.body;
+    console.log("📝 Creating new bike...");
+    const bikeData = { ...req.body };
+
+    // Parse numeric fields
+    ["ratePerDay","ratePerWeek","securityDeposit","quantity","minimumAge","year"].forEach((f) => {
+      if (bikeData[f]) bikeData[f] = Number(bikeData[f]);
+    });
+
+    if (bikeData.features && typeof bikeData.features === "string") {
+      bikeData.features = bikeData.features.split(",").map((f) => f.trim()).filter(Boolean);
+    }
 
     if (req.files && req.files.length > 0) {
-      const photoLabels = ["Front View", "Side View", "Rear View", "Dashboard", "Extra View"];
+      const validation = validateImageFiles(req.files);
+      if (!validation.valid) {
+        cleanupFiles(req.files);
+        return res.status(400).json({ success: false, message: validation.error });
+      }
+
+      // Labels in slot order: Front View, Rear View, Extra View
+      const photoLabels = ["Front View", "Rear View", "Extra View"];
       bikeData.photos = req.files.map((file, index) => ({
         label: photoLabels[index] || "Extra View",
         filename: file.filename,
       }));
+    } else {
+      bikeData.photos = [];
     }
 
     bikeData.createdBy = req.user.id;
+
     const bike = new Bike(bikeData);
     await bike.save();
 
+    console.log(`✅ Bike created: ${bike.bikeName}`);
     res.status(201).json({ success: true, message: "Bike added successfully", data: bike });
   } catch (error) {
-    console.error("Error creating bike:", error);
-    res.status(500).json({ success: false, message: "Failed to add bike" });
+    cleanupFiles(req.files);
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: "Bike number already exists" });
+    }
+    res.status(500).json({ success: false, message: error.message || "Failed to add bike" });
   }
 };
 
-// Update bike (admin)
 export const updateBike = async (req, res) => {
   try {
-    const bikeData = req.body;
+    const bikeData = { ...req.body };
+
+    ["ratePerDay","ratePerWeek","securityDeposit","quantity","minimumAge","year"].forEach((f) => {
+      if (bikeData[f]) bikeData[f] = Number(bikeData[f]);
+    });
+
+    if (bikeData.features && typeof bikeData.features === "string") {
+      bikeData.features = bikeData.features.split(",").map((f) => f.trim()).filter(Boolean);
+    }
 
     if (req.files && req.files.length > 0) {
-      const photoLabels = ["Front View", "Side View", "Rear View", "Dashboard", "Extra View"];
+      const validation = validateImageFiles(req.files);
+      if (!validation.valid) {
+        cleanupFiles(req.files);
+        return res.status(400).json({ success: false, message: validation.error });
+      }
+
+      const photoLabels = ["Front View", "Rear View", "Extra View"];
       bikeData.photos = req.files.map((file, index) => ({
         label: photoLabels[index] || "Extra View",
         filename: file.filename,
       }));
     }
 
-    const bike = await Bike.findByIdAndUpdate(req.params.id, bikeData, { new: true });
+    const bike = await Bike.findByIdAndUpdate(req.params.id, bikeData, { new: true, runValidators: true });
     if (!bike) {
+      cleanupFiles(req.files);
       return res.status(404).json({ success: false, message: "Bike not found" });
     }
 
     res.json({ success: true, message: "Bike updated successfully", data: bike });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update bike" });
+    cleanupFiles(req.files);
+    res.status(500).json({ success: false, message: "Failed to update bike", error: error.message });
   }
 };
 
-// Delete bike (admin)
 export const deleteBike = async (req, res) => {
   try {
-    const bike = await Bike.findByIdAndDelete(req.params.id);
-    if (!bike) {
-      return res.status(404).json({ success: false, message: "Bike not found" });
+    const bike = await Bike.findById(req.params.id);
+    if (!bike) return res.status(404).json({ success: false, message: "Bike not found" });
+
+    if (bike.photos?.length > 0) {
+      bike.photos.forEach((photo) => {
+        const filePath = path.join(uploadDir, photo.filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      });
     }
+
+    await Bike.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Bike deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to delete bike" });
+    res.status(500).json({ success: false, message: "Failed to delete bike", error: error.message });
   }
 };
 
-// Update bike status
 export const updateBikeStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const bike = await Bike.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-    if (!bike) {
-      return res.status(404).json({ success: false, message: "Bike not found" });
-    }
+    const bike = await Bike.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    if (!bike) return res.status(404).json({ success: false, message: "Bike not found" });
     res.json({ success: true, message: "Bike status updated", data: bike });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update status" });
+    res.status(500).json({ success: false, message: "Failed to update status", error: error.message });
   }
 };
 
 // ========== BIKE BOOKING ==========
 
-// Create bike booking
 export const createBikeBooking = async (req, res) => {
   try {
     const {
-      bikeId,
-      pickupDate,
-      pickupTime,
-      returnDate,
-      returnTime,
-      pickupLocation,
-      dropoffLocation,
-      helmetIncluded,
-      extraHelmet,
-      ridingGear,
-      specialRequests,
-      riderExperience,
-      emergencyContact,
+      bikeId, pickupDate, pickupTime, returnDate, returnTime,
+      pickupLocation, dropoffLocation, extraHelmet, ridingGear,
+      specialRequests, riderExperience, emergencyContact,
     } = req.body;
 
     const userId = req.user.id;
-
-    // Get bike details
     const bike = await Bike.findById(bikeId);
-    if (!bike) {
-      return res.status(404).json({ success: false, message: "Bike not found" });
-    }
+    if (!bike) return res.status(404).json({ success: false, message: "Bike not found" });
+    if (bike.status !== "Available") return res.status(400).json({ success: false, message: "Bike is not available" });
 
-    if (bike.status !== "Available") {
-      return res.status(400).json({ success: false, message: "Bike is not available" });
-    }
-
-    // Calculate days
     const pickupDateTime = new Date(pickupDate);
     const returnDateTime = new Date(returnDate);
     const totalDays = Math.ceil((returnDateTime - pickupDateTime) / (1000 * 3600 * 24));
+    if (totalDays < 1) return res.status(400).json({ success: false, message: "Minimum booking is 1 day" });
 
-    if (totalDays < 1) {
-      return res.status(400).json({ success: false, message: "Minimum booking is 1 day" });
-    }
-
-    // Calculate pricing
     const basePrice = bike.ratePerDay * totalDays;
     const serviceFee = 200;
     let extraCharges = 0;
@@ -174,40 +225,25 @@ export const createBikeBooking = async (req, res) => {
     if (ridingGear) extraCharges += 200 * totalDays;
     const totalAmount = basePrice + serviceFee + extraCharges;
 
-    // Create booking
     const booking = new BikeBooking({
-      user: userId,
-      bike: bikeId,
-      pickupDate: pickupDateTime,
-      pickupTime,
-      returnDate: returnDateTime,
-      returnTime,
+      user: userId, bike: bikeId, pickupDate: pickupDateTime, pickupTime,
+      returnDate: returnDateTime, returnTime,
       pickupLocation: pickupLocation || "Kathmandu, Nepal",
       dropoffLocation: dropoffLocation || "Kathmandu, Nepal",
-      totalDays,
-      basePrice,
-      serviceFee,
-      totalAmount,
-      helmetIncluded: helmetIncluded !== false,
-      extraHelmet: extraHelmet || false,
-      ridingGear: ridingGear || false,
+      totalDays, basePrice, serviceFee, totalAmount,
+      extraHelmet: extraHelmet || false, ridingGear: ridingGear || false,
       specialRequests: specialRequests || "",
       riderExperience: riderExperience || "Intermediate",
       emergencyContact: emergencyContact || {},
-      status: "pending",
-      paymentStatus: "pending",
+      status: "pending", paymentStatus: "pending",
     });
 
     await booking.save();
 
-    // Create notification
     await createNotification(
-      userId,
-      "Bike Booking Created 🏍️",
-      `Your booking for ${bike.bikeName} has been created and is awaiting approval.`,
-      "info",
-      `Booking ID: ${booking.confirmationCode}`,
-      { bookingId: booking._id }
+      userId, "Bike Booking Created 🏍️",
+      `Your booking for ${bike.bikeName} is awaiting approval.`,
+      "info", `Booking ID: ${booking.confirmationCode}`, { bookingId: booking._id }
     );
 
     res.status(201).json({
@@ -224,11 +260,10 @@ export const createBikeBooking = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating bike booking:", error);
-    res.status(500).json({ success: false, message: "Failed to create booking" });
+    res.status(500).json({ success: false, message: "Failed to create booking", error: error.message });
   }
 };
 
-// Get user's bike bookings
 export const getUserBikeBookings = async (req, res) => {
   try {
     const bookings = await BikeBooking.find({ user: req.user.id })
@@ -236,78 +271,63 @@ export const getUserBikeBookings = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, data: bookings });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch bookings" });
+    res.status(500).json({ success: false, message: "Failed to fetch bookings", error: error.message });
   }
 };
 
-// Get all bike bookings (admin)
 export const getAllBikeBookings = async (req, res) => {
   try {
     const { status } = req.query;
-    const query = {};
-    if (status) query.status = status;
-
+    const query = status ? { status } : {};
     const bookings = await BikeBooking.find(query)
       .populate("user", "name email phone")
       .populate("bike", "bikeName bikeNumber bikeType")
       .sort({ createdAt: -1 });
     res.json({ success: true, data: bookings });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch bookings" });
+    res.status(500).json({ success: false, message: "Failed to fetch bookings", error: error.message });
   }
 };
 
-// Approve bike booking
 export const approveBikeBooking = async (req, res) => {
   try {
     const booking = await BikeBooking.findById(req.params.id).populate("user", "name email");
-    if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
-    }
+    if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
     booking.status = "approved";
     booking.approvedBy = req.user.id;
     booking.approvedAt = new Date();
     await booking.save();
 
-    // Update bike status
     await Bike.findByIdAndUpdate(booking.bike, { status: "Booked" });
 
     await createNotification(
-      booking.user._id,
-      "Bike Booking Approved 🏍️",
-      `Your booking for bike has been approved! Complete payment to confirm.`,
-      "success",
-      `Booking ID: ${booking.confirmationCode}`,
-      { bookingId: booking._id }
+      booking.user._id, "Bike Booking Approved 🏍️",
+      "Your bike booking has been approved! Complete payment to confirm.",
+      "success", `Booking ID: ${booking.confirmationCode}`, { bookingId: booking._id }
     );
 
     res.json({ success: true, message: "Booking approved successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to approve booking" });
+    res.status(500).json({ success: false, message: "Failed to approve booking", error: error.message });
   }
 };
 
-// Cancel bike booking
 export const cancelBikeBooking = async (req, res) => {
   try {
     const { reason } = req.body;
     const booking = await BikeBooking.findById(req.params.id);
-
-    if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
-    }
+    if (!booking) return res.status(404).json({ success: false, message: "Booking not found" });
 
     booking.status = "cancelled";
     booking.cancellationReason = reason;
     booking.cancellationDate = new Date();
     await booking.save();
 
-    // Update bike status back to available
     await Bike.findByIdAndUpdate(booking.bike, { status: "Available" });
 
     res.json({ success: true, message: "Booking cancelled successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to cancel booking" });
+    res.status(500).json({ success: false, message: "Failed to cancel booking", error: error.message });
   }
 };

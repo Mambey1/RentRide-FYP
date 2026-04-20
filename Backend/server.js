@@ -352,6 +352,11 @@ const server = createServer(app);
 // Initialize Socket.IO
 const io = initializeSocket(server);
 
+// Add this before your routes
+app.get("/api/bikes-test", (req, res) => {
+  res.json({ success: true, message: "Bikes API is working!" });
+});
+
 // Store io in app for access in controllers
 app.set("io", io);
 

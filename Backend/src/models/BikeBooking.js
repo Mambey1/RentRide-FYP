@@ -12,8 +12,6 @@ const bikeBookingSchema = new mongoose.Schema(
       ref: "Bike",
       required: true,
     },
-    
-    // Booking Details
     pickupDate: {
       type: Date,
       required: true,
@@ -32,16 +30,12 @@ const bikeBookingSchema = new mongoose.Schema(
     },
     pickupLocation: {
       type: String,
-      required: true,
       default: "Kathmandu, Nepal",
     },
     dropoffLocation: {
       type: String,
-      required: true,
       default: "Kathmandu, Nepal",
     },
-    
-    // Duration & Pricing
     totalDays: {
       type: Number,
       required: true,
@@ -63,12 +57,6 @@ const bikeBookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    
-    // Helmet & Gear
-    helmetIncluded: {
-      type: Boolean,
-      default: true,
-    },
     extraHelmet: {
       type: Boolean,
       default: false,
@@ -77,15 +65,11 @@ const bikeBookingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    
-    // Status
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "confirmed", "active", "completed", "cancelled"],
       default: "pending",
     },
-    
-    // Admin Actions
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -97,19 +81,13 @@ const bikeBookingSchema = new mongoose.Schema(
     },
     rejectedAt: Date,
     rejectionReason: String,
-    
-    // Confirmation
     confirmationCode: {
       type: String,
       unique: true,
     },
     confirmedAt: Date,
-    
-    // Cancellation
     cancellationDate: Date,
     cancellationReason: String,
-    
-    // Payment
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "refunded", "failed"],
@@ -120,8 +98,6 @@ const bikeBookingSchema = new mongoose.Schema(
       enum: ["cash", "card", "online"],
     },
     paymentId: String,
-    
-    // Additional Info
     specialRequests: String,
     riderExperience: {
       type: String,
@@ -132,16 +108,6 @@ const bikeBookingSchema = new mongoose.Schema(
       phone: String,
       relationship: String,
     },
-    
-    // License Document
-    licensePhoto: {
-      filename: String,
-      originalName: String,
-      path: String,
-      url: String,
-      uploadedAt: Date,
-    },
-    
     expiresAt: {
       type: Date,
       default: () => new Date(Date.now() + 48 * 60 * 60 * 1000),
