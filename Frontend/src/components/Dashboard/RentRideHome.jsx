@@ -1,3 +1,4830 @@
+// // // // import React, { useState, useEffect } from "react";
+// // // // import {
+// // // //   FaCar,
+// // // //   FaUserCircle,
+// // // //   FaCheckCircle,
+// // // //   FaShieldAlt,
+// // // //   FaCogs,
+// // // //   FaSnowflake,
+// // // //   FaUser,
+// // // //   FaPhone,
+// // // //   FaChair,
+// // // //   FaStar,
+// // // //   FaHeart,
+// // // //   FaMapMarkerAlt,
+// // // //   FaClock,
+// // // //   FaSearch,
+// // // //   FaCalendarAlt,
+// // // //   FaCreditCard,
+// // // //   FaInfoCircle,
+// // // //   FaEnvelope,
+// // // // } from "react-icons/fa";
+// // // // import { useNavigate } from "react-router-dom";
+// // // // import axios from "axios";
+
+// // // // const API_URL = "http://localhost:5000/api";
+
+// // // // const axiosInstance = axios.create({
+// // // //   baseURL: API_URL,
+// // // //   timeout: 10000,
+// // // // });
+
+// // // // axiosInstance.interceptors.request.use((config) => {
+// // // //   const token = localStorage.getItem("token");
+// // // //   if (token) config.headers.Authorization = `Bearer ${token}`;
+// // // //   return config;
+// // // // });
+
+// // // // const RentRideHome = () => {
+// // // //   const [activeFilter, setActiveFilter] = useState("All vehicles");
+// // // //   const [vehicles, setVehicles] = useState([]);
+// // // //   const [loading, setLoading] = useState(true);
+// // // //   const [error, setError] = useState("");
+// // // //   const [selectedVehicle, setSelectedVehicle] = useState(null);
+// // // //   const [showDetailsModal, setShowDetailsModal] = useState(false);
+// // // //   const [searchQuery, setSearchQuery] = useState("");
+// // // //   const [wishlist, setWishlist] = useState(new Set());
+// // // //   const [userProfile, setUserProfile] = useState(null);
+// // // //   const [userLoading, setUserLoading] = useState(true);
+// // // //   const [subscriberEmail, setSubscriberEmail] = useState("");
+// // // //   const [subscribeMessage, setSubscribeMessage] = useState("");
+// // // //   const [subscribeStatus, setSubscribeStatus] = useState(null);
+// // // //   const navigate = useNavigate();
+
+// // // //   const filters = [
+// // // //     "All vehicles",
+// // // //     "Sedan",
+// // // //     "SUV",
+// // // //     "Hatchback",
+// // // //     "MPV",
+// // // //     "Coupe",
+// // // //     "Convertible",
+// // // //     "Pickup",
+// // // //     "Minivan",
+// // // //     "Electric",
+// // // //   ];
+
+// // // //   const features = [
+// // // //     {
+// // // //       icon: <FaCar className="text-3xl" />,
+// // // //       title: "Wide Selection",
+// // // //       description: "Choose from premium vehicles for every need",
+// // // //       gradient: "from-blue-500 to-cyan-400",
+// // // //     },
+// // // //     {
+// // // //       icon: <FaCheckCircle className="text-3xl" />,
+// // // //       title: "Easy Booking",
+// // // //       description: "Book in 3 simple steps, 24/7 availability",
+// // // //       gradient: "from-green-500 to-emerald-400",
+// // // //     },
+// // // //     {
+// // // //       icon: <FaShieldAlt className="text-3xl" />,
+// // // //       title: "Fully Insured",
+// // // //       description: "Comprehensive coverage for peace of mind",
+// // // //       gradient: "from-purple-500 to-pink-400",
+// // // //     },
+// // // //     {
+// // // //       icon: <FaCreditCard className="text-3xl" />,
+// // // //       title: "Flexible Payment",
+// // // //       description: "Multiple payment options available",
+// // // //       gradient: "from-orange-500 to-yellow-400",
+// // // //     },
+// // // //   ];
+
+// // // //   // Fetch user profile
+// // // //   const fetchUserProfile = async () => {
+// // // //     try {
+// // // //       const token = localStorage.getItem("token");
+// // // //       if (!token) {
+// // // //         setUserLoading(false);
+// // // //         return;
+// // // //       }
+// // // //       const response = await axiosInstance.get("/profile");
+// // // //       if (response.data.success) setUserProfile(response.data.user);
+// // // //     } catch (error) {
+// // // //       console.error("Error fetching profile:", error);
+// // // //     } finally {
+// // // //       setUserLoading(false);
+// // // //     }
+// // // //   };
+
+// // // //   const getProfilePhotoUrl = () =>
+// // // //     userProfile?.profilePhoto
+// // // //       ? `http://localhost:5000/uploads/profiles/${userProfile.profilePhoto}`
+// // // //       : null;
+// // // //   const getUserInitial = () =>
+// // // //     userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : "U";
+
+// // // //   // Handle newsletter subscription
+// // // //   const handleSubscribe = async (e) => {
+// // // //     e.preventDefault();
+// // // //     if (!subscriberEmail) {
+// // // //       setSubscribeMessage("Please enter your email address");
+// // // //       setSubscribeStatus("error");
+// // // //       setTimeout(() => setSubscribeMessage(""), 3000);
+// // // //       return;
+// // // //     }
+
+// // // //     setSubscribeMessage("Subscribing...");
+// // // //     setSubscribeStatus("loading");
+
+// // // //     try {
+// // // //       const response = await axios.post(`${API_URL}/subscribe`, {
+// // // //         email: subscriberEmail,
+// // // //       });
+// // // //       if (response.data.success) {
+// // // //         setSubscribeMessage(
+// // // //           "✅ Thank you for subscribing! You'll receive exclusive updates.",
+// // // //         );
+// // // //         setSubscribeStatus("success");
+// // // //         setSubscriberEmail("");
+// // // //       }
+// // // //     } catch (error) {
+// // // //       setSubscribeMessage(
+// // // //         error.response?.data?.message ||
+// // // //           "❌ Subscription failed. Please try again.",
+// // // //       );
+// // // //       setSubscribeStatus("error");
+// // // //     }
+// // // //     setTimeout(() => setSubscribeMessage(""), 5000);
+// // // //   };
+
+// // // //   // Fetch vehicles
+// // // //   useEffect(() => {
+// // // //     fetchAllVehicles();
+// // // //     fetchUserProfile();
+// // // //   }, []);
+
+// // // //   // const fetchAllVehicles = async () => {
+// // // //   //   try {
+// // // //   //     setLoading(true);
+// // // //   //     setError("");
+
+// // // //   //     // Fetch admin vehicles
+// // // //   //     const adminResponse = await axios.get(
+// // // //   //       "http://localhost:5000/api/vehicles",
+// // // //   //       { timeout: 10000 },
+// // // //   //     );
+
+// // // //   //     // Fetch user vehicles from public endpoint
+// // // //   //     let userVehicles = [];
+// // // //   //     try {
+// // // //   //       const userResponse = await axios.get(
+// // // //   //         "http://localhost:5000/api/user-vehicles/public/active",
+// // // //   //         { timeout: 10000 },
+// // // //   //       );
+// // // //   //       if (userResponse.data.success) userVehicles = userResponse.data.data;
+// // // //   //     } catch (userError) {
+// // // //   //       console.log("Could not fetch user vehicles:", userError.message);
+// // // //   //     }
+
+// // // //   //     // Get current user ID from token (if logged in)
+// // // //   //     let currentUserId = null;
+// // // //   //     const token = localStorage.getItem("token");
+// // // //   //     if (token) {
+// // // //   //       try {
+// // // //   //         // Decode JWT token to get user ID
+// // // //   //         const tokenParts = token.split(".");
+// // // //   //         if (tokenParts.length === 3) {
+// // // //   //           const payload = JSON.parse(atob(tokenParts[1]));
+// // // //   //           currentUserId = payload.id || payload.userId;
+// // // //   //           console.log("Current user ID from token:", currentUserId);
+// // // //   //         }
+// // // //   //       } catch (decodeError) {
+// // // //   //         console.error("Error decoding token:", decodeError);
+// // // //   //       }
+// // // //   //     }
+
+// // // //   //     // Filter out vehicles that belong to the current user
+// // // //   //     const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// // // //   //       // If no user is logged in, show all user vehicles
+// // // //   //       if (!currentUserId) return true;
+
+// // // //   //       // Check if this vehicle belongs to the current user
+// // // //   //       const vehicleOwnerId = vehicle.owner || vehicle.userId;
+
+// // // //   //       // Only show vehicles that are NOT owned by the current user
+// // // //   //       const isNotOwnVehicle = vehicleOwnerId !== currentUserId;
+
+// // // //   //       if (!isNotOwnVehicle) {
+// // // //   //         console.log(
+// // // //   //           `Filtering out own vehicle: ${vehicle.carName} (Owner: ${vehicleOwnerId})`,
+// // // //   //         );
+// // // //   //       }
+
+// // // //   //       return isNotOwnVehicle;
+// // // //   //     });
+
+// // // //   //     console.log(
+// // // //   //       `Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded own vehicles)`,
+// // // //   //     );
+
+// // // //   //     let allVehicles = [];
+// // // //   //     if (adminResponse.data && Array.isArray(adminResponse.data))
+// // // //   //       allVehicles = [...adminResponse.data];
+// // // //   //     else if (
+// // // //   //       adminResponse.data?.data &&
+// // // //   //       Array.isArray(adminResponse.data.data)
+// // // //   //     )
+// // // //   //       allVehicles = [...adminResponse.data.data];
+
+// // // //   //     // Add filtered user vehicles (excluding own)
+// // // //   //     filteredUserVehicles.forEach((userVehicle) =>
+// // // //   //       allVehicles.push({ ...userVehicle, source: "user" }),
+// // // //   //     );
+
+// // // //   //     setVehicles(allVehicles);
+// // // //   //   } catch (error) {
+// // // //   //     console.error("Error fetching vehicles:", error);
+// // // //   //     setError("Failed to load vehicles. Please try again.");
+// // // //   //   } finally {
+// // // //   //     setLoading(false);
+// // // //   //   }
+// // // //   // };
+
+// // // //   const fetchAllVehicles = async () => {
+// // // //     try {
+// // // //       setLoading(true);
+// // // //       setError("");
+
+// // // //       // Fetch admin vehicles
+// // // //       const adminResponse = await axios.get(
+// // // //         "http://localhost:5000/api/vehicles",
+// // // //         { timeout: 10000 },
+// // // //       );
+
+// // // //       // Get token for authenticated requests
+// // // //       const token = localStorage.getItem("token");
+
+// // // //       // Fetch user vehicles from public endpoint WITH token if available
+// // // //       let userVehicles = [];
+// // // //       try {
+// // // //         const headers = token ? { Authorization: `Bearer ${token}` } : {};
+// // // //         const userResponse = await axios.get(
+// // // //           "http://localhost:5000/api/user-vehicles/public/active",
+// // // //           {
+// // // //             timeout: 10000,
+// // // //             headers: headers, // Send token to backend so it can filter own vehicles
+// // // //           },
+// // // //         );
+// // // //         if (userResponse.data.success) userVehicles = userResponse.data.data;
+// // // //       } catch (userError) {
+// // // //         console.log("Could not fetch user vehicles:", userError.message);
+// // // //       }
+
+// // // //       // Get current user ID from token (if logged in) - for frontend filtering as backup
+// // // //       let currentUserId = null;
+// // // //       if (token) {
+// // // //         try {
+// // // //           // Decode JWT token to get user ID
+// // // //           const tokenParts = token.split(".");
+// // // //           if (tokenParts.length === 3) {
+// // // //             const payload = JSON.parse(atob(tokenParts[1]));
+// // // //             currentUserId = payload.id || payload.userId;
+// // // //             console.log("Current user ID from token:", currentUserId);
+// // // //           }
+// // // //         } catch (decodeError) {
+// // // //           console.error("Error decoding token:", decodeError);
+// // // //         }
+// // // //       }
+
+// // // //       // Frontend filtering as backup (backend should already filter, but double-check)
+// // // //       const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// // // //         // If no user is logged in, show all user vehicles
+// // // //         if (!currentUserId) return true;
+
+// // // //         // Check if this vehicle belongs to the current user
+// // // //         const vehicleOwnerId = vehicle.userId || vehicle.owner || vehicle.user;
+
+// // // //         // Convert both to strings for comparison
+// // // //         const ownerIdStr = vehicleOwnerId?.toString();
+// // // //         const currentUserIdStr = currentUserId?.toString();
+
+// // // //         // Only show vehicles that are NOT owned by the current user
+// // // //         const isNotOwnVehicle = ownerIdStr !== currentUserIdStr;
+
+// // // //         if (!isNotOwnVehicle) {
+// // // //           console.log(
+// // // //             `🚫 Filtering out own vehicle: ${vehicle.carName} (Owner: ${ownerIdStr})`,
+// // // //           );
+// // // //         }
+
+// // // //         return isNotOwnVehicle;
+// // // //       });
+
+// // // //       console.log(
+// // // //         `✅ Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded ${userVehicles.length - filteredUserVehicles.length} own vehicles)`,
+// // // //       );
+
+// // // //       // Combine admin and user vehicles
+// // // //       let allVehicles = [];
+
+// // // //       // Add admin vehicles
+// // // //       if (adminResponse.data && Array.isArray(adminResponse.data)) {
+// // // //         allVehicles = [...adminResponse.data];
+// // // //       } else if (
+// // // //         adminResponse.data?.data &&
+// // // //         Array.isArray(adminResponse.data.data)
+// // // //       ) {
+// // // //         allVehicles = [...adminResponse.data.data];
+// // // //       }
+
+// // // //       // Add filtered user vehicles (excluding own)
+// // // //       filteredUserVehicles.forEach((userVehicle) =>
+// // // //         allVehicles.push({ ...userVehicle, source: "user" }),
+// // // //       );
+
+// // // //       console.log(`📊 Total vehicles to display: ${allVehicles.length}`);
+// // // //       setVehicles(allVehicles);
+// // // //     } catch (error) {
+// // // //       console.error("Error fetching vehicles:", error);
+// // // //       setError("Failed to load vehicles. Please try again.");
+// // // //     } finally {
+// // // //       setLoading(false);
+// // // //     }
+// // // //   };
+
+// // // //   const toggleWishlist = (vehicleId, e) => {
+// // // //     e.stopPropagation();
+// // // //     const newWishlist = new Set(wishlist);
+// // // //     newWishlist.has(vehicleId)
+// // // //       ? newWishlist.delete(vehicleId)
+// // // //       : newWishlist.add(vehicleId);
+// // // //     setWishlist(newWishlist);
+// // // //   };
+
+// // // //   const filteredVehicles = vehicles.filter((vehicle) => {
+// // // //     const matchesFilter =
+// // // //       activeFilter === "All vehicles" ||
+// // // //       vehicle.carType?.toLowerCase() === activeFilter.toLowerCase();
+// // // //     const matchesSearch =
+// // // //       searchQuery === "" ||
+// // // //       vehicle.carName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+// // // //       vehicle.carType?.toLowerCase().includes(searchQuery.toLowerCase());
+// // // //     return matchesFilter && matchesSearch;
+// // // //   });
+
+// // // //   const getVehicleImage = (vehicle) => {
+// // // //     if (vehicle.photos?.length > 0) {
+// // // //       const extraView = vehicle.photos.find(
+// // // //         (photo) => photo.label === "Extra View",
+// // // //       );
+// // // //       const photo = extraView || vehicle.photos[0];
+// // // //       const folder = vehicle.source === "user" ? "user-vehicles" : "vehicles";
+// // // //       return `http://localhost:5000/uploads/${folder}/${photo.filename}`;
+// // // //     }
+// // // //     return null;
+// // // //   };
+
+// // // //   const handleViewDetails = (vehicle) => {
+// // // //     setSelectedVehicle(vehicle);
+// // // //     setShowDetailsModal(true);
+// // // //   };
+
+// // // //   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
+
+// // // //   const CarCard = ({ vehicle }) => {
+// // // //     const imageUrl = getVehicleImage(vehicle);
+// // // //     const isWishlisted = wishlist.has(vehicle._id);
+
+// // // //     return (
+// // // //       <div
+// // // //         className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer"
+// // // //         onClick={() => handleViewDetails(vehicle)}
+// // // //       >
+// // // //         <button
+// // // //           onClick={(e) => toggleWishlist(vehicle._id, e)}
+// // // //           className="absolute top-4 right-4 z-10 p-2.5 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-white hover:scale-110 transition-transform duration-300"
+// // // //         >
+// // // //           <FaHeart
+// // // //             className={`text-lg ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-400"}`}
+// // // //           />
+// // // //         </button>
+// // // //         <div className="absolute top-4 left-4 z-10">
+// // // //           <span
+// // // //             className={`px-3 py-1.5 rounded-full text-xs font-semibold ${vehicle.status === "Available" ? "bg-green-500/90 text-white" : "bg-red-500/90 text-white"}`}
+// // // //           >
+// // // //             {vehicle.status}
+// // // //           </span>
+// // // //         </div>
+// // // //         <div className="h-56 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+// // // //           {imageUrl ? (
+// // // //             <img
+// // // //               src={imageUrl}
+// // // //               alt={vehicle.carName}
+// // // //               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+// // // //             />
+// // // //           ) : (
+// // // //             <div className="w-full h-full flex items-center justify-center">
+// // // //               <FaCar className="text-7xl text-gray-300" />
+// // // //             </div>
+// // // //           )}
+// // // //         </div>
+// // // //         <div className="p-6">
+// // // //           <div className="flex justify-between items-start mb-4">
+// // // //             <div className="flex-1">
+// // // //               <div className="flex items-center gap-2 mb-1">
+// // // //                 <h3 className="text-xl font-bold text-gray-800 truncate">
+// // // //                   {vehicle.carName}
+// // // //                 </h3>
+// // // //                 <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+// // // //                   {vehicle.carType}
+// // // //                 </span>
+// // // //               </div>
+// // // //               <div className="flex items-center text-gray-500 text-sm mb-3">
+// // // //                 <FaMapMarkerAlt className="mr-1.5" />
+// // // //                 <span>Kathmandu, Nepal</span>
+// // // //               </div>
+// // // //               <div className="flex items-center gap-1 mb-4">
+// // // //                 {[...Array(5)].map((_, i) => (
+// // // //                   <FaStar
+// // // //                     key={i}
+// // // //                     className={`text-sm ${i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+// // // //                   />
+// // // //                 ))}
+// // // //                 <span className="text-gray-500 text-sm ml-2">4.8 (128)</span>
+// // // //               </div>
+// // // //             </div>
+// // // //           </div>
+// // // //           <div className="grid grid-cols-2 gap-3 mb-6">
+// // // //             <div className="flex items-center gap-2">
+// // // //               <div className="p-2 bg-gray-50 rounded-lg">
+// // // //                 <FaCogs className="text-gray-600" />
+// // // //               </div>
+// // // //               <div>
+// // // //                 <p className="text-xs text-gray-500">Transmission</p>
+// // // //                 <p className="font-medium text-gray-800">{vehicle.gearType}</p>
+// // // //               </div>
+// // // //             </div>
+// // // //             <div className="flex items-center gap-2">
+// // // //               <div className="p-2 bg-gray-50 rounded-lg">
+// // // //                 <FaChair className="text-gray-600" />
+// // // //               </div>
+// // // //               <div>
+// // // //                 <p className="text-xs text-gray-500">Seats</p>
+// // // //                 <p className="font-medium text-gray-800">{vehicle.seats}</p>
+// // // //               </div>
+// // // //             </div>
+// // // //           </div>
+// // // //           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+// // // //             <div>
+// // // //               <p className="text-xs text-gray-500">Daily rate</p>
+// // // //               <div className="flex items-baseline">
+// // // //                 <span className="text-2xl font-bold text-gray-800">
+// // // //                   रु {vehicle.ratePerDay}
+// // // //                 </span>
+// // // //                 <span className="text-gray-500 text-sm ml-1">/day</span>
+// // // //               </div>
+// // // //             </div>
+// // // //             <button
+// // // //               onClick={(e) => {
+// // // //                 e.stopPropagation();
+// // // //                 handleViewDetails(vehicle);
+// // // //               }}
+// // // //               className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+// // // //             >
+// // // //               View Details
+// // // //             </button>
+// // // //           </div>
+// // // //         </div>
+// // // //       </div>
+// // // //     );
+// // // //   };
+
+// // // //   return (
+// // // //     <div className="min-h-screen bg-gray-50">
+// // // //       {/* Header */}
+// // // //       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
+// // // //         <div className="container mx-auto px-6 py-4">
+// // // //           <div className="flex items-center justify-between">
+// // // //             {/* Logo */}
+// // // //             {/* <div
+// // // //               className="flex items-center gap-3 cursor-pointer"
+// // // //               onClick={() => navigate("/")}
+// // // //             >
+// // // //               <div className="p-2.5 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg">
+// // // //                 <FaCar className="text-white text-2xl" />
+// // // //               </div>
+// // // //               <div>
+// // // //                 <h1 className="text-2xl font-bold text-gray-900">
+// // // //                   Rent<span className="text-blue-600">Ride</span>
+// // // //                 </h1>
+// // // //                 <p className="text-xs text-gray-500 -mt-1">
+// // // //                   Premium Car Rentals
+// // // //                 </p>
+// // // //               </div>
+// // // //             </div> */}
+// // // //             <div
+// // // //               className="flex items-center gap-3 cursor-pointer"
+// // // //               onClick={() => navigate("/")}
+// // // //             >
+// // // //               <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// // // //                 <FaCar className="text-white text-2xl" />
+// // // //               </div>
+// // // //               <div>
+// // // //                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// // // //                   Rent<span className="text-gray-800">Ride</span>
+// // // //                 </h1>
+// // // //                 <p className="text-xs text-gray-500 -mt-1">
+// // // //                   Premium Car Rentals
+// // // //                 </p>
+// // // //               </div>
+// // // //             </div>
+
+// // // //             {/* Search Bar */}
+// // // //             <div className="hidden md:block flex-1 max-w-xl mx-8">
+// // // //               <div className="relative">
+// // // //                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// // // //                   <FaSearch className="text-gray-400" />
+// // // //                 </div>
+// // // //                 <input
+// // // //                   type="text"
+// // // //                   placeholder="Search by car name or type..."
+// // // //                   value={searchQuery}
+// // // //                   onChange={(e) => setSearchQuery(e.target.value)}
+// // // //                   className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // // //                 />
+// // // //               </div>
+// // // //             </div>
+
+// // // //             {/* Navigation */}
+// // // //             <nav className="hidden lg:flex items-center space-x-8">
+// // // //               <a
+// // // //                 href="#vehicles"
+// // // //                 className="text-gray-700 hover:text-blue-600 font-medium"
+// // // //               >
+// // // //                 Browse
+// // // //               </a>
+// // // //               <a
+// // // //                 href="#how-it-works"
+// // // //                 className="text-gray-700 hover:text-blue-600 font-medium"
+// // // //               >
+// // // //                 How It Works
+// // // //               </a>
+// // // //               <a
+// // // //                 href="#contact"
+// // // //                 className="text-gray-700 hover:text-blue-600 font-medium"
+// // // //               >
+// // // //                 Contact
+// // // //               </a>
+// // // //             </nav>
+
+// // // //             {/* User Actions with Profile Photo */}
+// // // //             <div className="flex items-center gap-4">
+// // // //               <button
+// // // //                 className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg"
+// // // //                 onClick={() => navigate("/profiledetails")}
+// // // //               >
+// // // //                 Book Now
+// // // //               </button>
+// // // //               {userLoading ? (
+// // // //                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+// // // //               ) : userProfile && getProfilePhotoUrl() ? (
+// // // //                 <div
+// // // //                   onClick={() => navigate("/profiledetails")}
+// // // //                   className="cursor-pointer"
+// // // //                 >
+// // // //                   <img
+// // // //                     src={getProfilePhotoUrl()}
+// // // //                     alt="Profile"
+// // // //                     className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+// // // //                     onError={(e) => {
+// // // //                       e.target.style.display = "none";
+// // // //                       const parent = e.target.parentElement;
+// // // //                       if (parent) {
+// // // //                         const avatar = document.createElement("div");
+// // // //                         avatar.className =
+// // // //                           "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg cursor-pointer";
+// // // //                         avatar.textContent = getUserInitial();
+// // // //                         parent.innerHTML = "";
+// // // //                         parent.appendChild(avatar);
+// // // //                       }
+// // // //                     }}
+// // // //                   />
+// // // //                 </div>
+// // // //               ) : (
+// // // //                 <div
+// // // //                   onClick={() => navigate("/profiledetails")}
+// // // //                   className="cursor-pointer"
+// // // //                 >
+// // // //                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+// // // //                     {getUserInitial()}
+// // // //                   </div>
+// // // //                 </div>
+// // // //               )}
+// // // //             </div>
+// // // //           </div>
+
+// // // //           {/* Mobile Search */}
+// // // //           <div className="md:hidden mt-4">
+// // // //             <div className="relative">
+// // // //               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// // // //                 <FaSearch className="text-gray-400" />
+// // // //               </div>
+// // // //               <input
+// // // //                 type="text"
+// // // //                 placeholder="Search vehicles..."
+// // // //                 value={searchQuery}
+// // // //                 onChange={(e) => setSearchQuery(e.target.value)}
+// // // //                 className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // // //               />
+// // // //             </div>
+// // // //           </div>
+// // // //         </div>
+// // // //       </header>
+
+// // // //       {/* Hero Section */}
+// // // //       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+// // // //         <div className="absolute inset-0">
+// // // //           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10"></div>
+// // // //           <div
+// // // //             className="absolute inset-0 z-0"
+// // // //             style={{
+// // // //               backgroundImage:
+// // // //                 'url("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
+// // // //               backgroundSize: "cover",
+// // // //               backgroundPosition: "center",
+// // // //             }}
+// // // //           ></div>
+// // // //         </div>
+// // // //         <div className="container mx-auto px-6 py-24 md:py-32 relative z-20">
+// // // //           <div className="max-w-2xl">
+// // // //             <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+// // // //               🎉 Premium Service Since 2024
+// // // //             </span>
+// // // //             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+// // // //               Drive Your <span className="text-blue-400">Dream Car</span> in
+// // // //               Kathmandu
+// // // //             </h1>
+// // // //             <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-xl">
+// // // //               Experience luxury and convenience with our premium car rental
+// // // //               service. Book online in minutes.
+// // // //             </p>
+// // // //             <div className="flex flex-col sm:flex-row gap-4">
+// // // //               <button
+// // // //                 onClick={() =>
+// // // //                   document
+// // // //                     .getElementById("vehicles")
+// // // //                     .scrollIntoView({ behavior: "smooth" })
+// // // //                 }
+// // // //                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all"
+// // // //               >
+// // // //                 Explore Cars
+// // // //               </button>
+// // // //               <button
+// // // //                 onClick={() =>
+// // // //                   document
+// // // //                     .getElementById("how-it-works")
+// // // //                     .scrollIntoView({ behavior: "smooth" })
+// // // //                 }
+// // // //                 className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-xl hover:bg-white/20"
+// // // //               >
+// // // //                 How It Works
+// // // //               </button>
+// // // //             </div>
+// // // //           </div>
+// // // //         </div>
+// // // //         <div className="relative z-20">
+// // // //           <div className="container mx-auto px-6 -mb-12">
+// // // //             <div className="bg-white rounded-2xl shadow-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+// // // //               <div className="text-center">
+// // // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // // //                   10K+
+// // // //                 </div>
+// // // //                 <div className="text-gray-600 text-sm">Happy Customers</div>
+// // // //               </div>
+// // // //               <div className="text-center">
+// // // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // // //                   200+
+// // // //                 </div>
+// // // //                 <div className="text-gray-600 text-sm">Premium Vehicles</div>
+// // // //               </div>
+// // // //               <div className="text-center">
+// // // //                 <div className="text-3xl font-bold text-gray-900 mb-1">15+</div>
+// // // //                 <div className="text-gray-600 text-sm">Cities</div>
+// // // //               </div>
+// // // //               <div className="text-center">
+// // // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // // //                   24/7
+// // // //                 </div>
+// // // //                 <div className="text-gray-600 text-sm">Support</div>
+// // // //               </div>
+// // // //             </div>
+// // // //           </div>
+// // // //         </div>
+// // // //       </section>
+
+// // // //       {/* Features Section */}
+// // // //       <section
+// // // //         id="how-it-works"
+// // // //         className="py-20 bg-gradient-to-b from-white to-gray-50"
+// // // //       >
+// // // //         <div className="container mx-auto px-6">
+// // // //           <div className="text-center mb-16">
+// // // //             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
+// // // //               WHY CHOOSE US
+// // // //             </span>
+// // // //             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+// // // //               The Best Rental Experience
+// // // //             </h2>
+// // // //             <p className="text-gray-600 max-w-2xl mx-auto">
+// // // //               We combine technology with personalized service to deliver an
+// // // //               exceptional car rental experience
+// // // //             </p>
+// // // //           </div>
+// // // //           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+// // // //             {features.map((feature, index) => (
+// // // //               <div
+// // // //                 key={index}
+// // // //                 className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100"
+// // // //               >
+// // // //                 <div
+// // // //                   className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 group-hover:scale-110 transition-transform`}
+// // // //                 >
+// // // //                   <div className="text-white">{feature.icon}</div>
+// // // //                 </div>
+// // // //                 <h3 className="text-xl font-bold text-gray-900 mb-3">
+// // // //                   {feature.title}
+// // // //                 </h3>
+// // // //                 <p className="text-gray-600">{feature.description}</p>
+// // // //               </div>
+// // // //             ))}
+// // // //           </div>
+// // // //         </div>
+// // // //       </section>
+
+// // // //       {/* Choose Your Ride Section */}
+// // // //       <section id="vehicles" className="py-20 bg-gray-50">
+// // // //         <div className="container mx-auto px-6">
+// // // //           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+// // // //             <div>
+// // // //               <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
+// // // //                 FLEET COLLECTION
+// // // //               </span>
+// // // //               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+// // // //                 Choose Your Perfect Ride
+// // // //               </h2>
+// // // //               <p className="text-gray-600 mt-2">
+// // // //                 Select from our premium collection of vehicles
+// // // //               </p>
+// // // //             </div>
+// // // //             <div className="flex items-center gap-4">
+// // // //               <div className="text-right">
+// // // //                 <div className="text-2xl font-bold text-gray-900">
+// // // //                   {filteredVehicles.length}
+// // // //                 </div>
+// // // //                 <div className="text-gray-600 text-sm">Available Cars</div>
+// // // //               </div>
+// // // //             </div>
+// // // //           </div>
+
+// // // //           <div className="flex flex-wrap gap-3 mb-12">
+// // // //             {filters.map((filter) => (
+// // // //               <button
+// // // //                 key={filter}
+// // // //                 onClick={() => setActiveFilter(filter)}
+// // // //                 className={`px-5 py-2.5 rounded-full transition-all duration-300 ${activeFilter === filter ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg" : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"}`}
+// // // //               >
+// // // //                 {filter}
+// // // //               </button>
+// // // //             ))}
+// // // //           </div>
+
+// // // //           {loading && (
+// // // //             <div className="text-center py-20">
+// // // //               <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+// // // //               <p className="text-gray-600">Loading premium vehicles...</p>
+// // // //             </div>
+// // // //           )}
+// // // //           {error && !loading && (
+// // // //             <div className="text-center py-20">
+// // // //               <div className="text-red-500 text-5xl mb-4">⚠️</div>
+// // // //               <h3 className="text-xl font-semibold mb-2">
+// // // //                 Something went wrong
+// // // //               </h3>
+// // // //               <p className="text-gray-600 mb-6">{error}</p>
+// // // //               <button
+// // // //                 onClick={fetchAllVehicles}
+// // // //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg"
+// // // //               >
+// // // //                 Try Again
+// // // //               </button>
+// // // //             </div>
+// // // //           )}
+
+// // // //           {!loading && !error && filteredVehicles.length > 0 && (
+// // // //             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+// // // //               {filteredVehicles.map((vehicle) => (
+// // // //                 <CarCard key={vehicle._id} vehicle={vehicle} />
+// // // //               ))}
+// // // //             </div>
+// // // //           )}
+
+// // // //           {!loading && !error && filteredVehicles.length === 0 && (
+// // // //             <div className="text-center py-20">
+// // // //               <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl">
+// // // //                 <FaCar className="text-6xl text-gray-400" />
+// // // //               </div>
+// // // //               <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+// // // //                 No vehicles found
+// // // //               </h3>
+// // // //               <p className="text-gray-600 mb-6">
+// // // //                 {searchQuery
+// // // //                   ? `No results for "${searchQuery}"`
+// // // //                   : "No vehicles available in this category"}
+// // // //               </p>
+// // // //               <button
+// // // //                 onClick={() => {
+// // // //                   setActiveFilter("All vehicles");
+// // // //                   setSearchQuery("");
+// // // //                 }}
+// // // //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg"
+// // // //               >
+// // // //                 View All Vehicles
+// // // //               </button>
+// // // //             </div>
+// // // //           )}
+// // // //         </div>
+// // // //       </section>
+
+// // // //       {/* Vehicle Details Modal */}
+// // // //       {showDetailsModal && selectedVehicle && (
+// // // //         <div className="fixed inset-0 z-[100]">
+// // // //           <div
+// // // //             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+// // // //             onClick={() => setShowDetailsModal(false)}
+// // // //           ></div>
+// // // //           <div className="absolute inset-0 flex items-center justify-center p-4">
+// // // //             <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+// // // //               <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
+// // // //                 <div>
+// // // //                   <h2 className="text-3xl font-bold text-gray-900">
+// // // //                     {selectedVehicle.carName}
+// // // //                   </h2>
+// // // //                   <div className="flex items-center gap-3 mt-2">
+// // // //                     <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+// // // //                       {selectedVehicle.carType}
+// // // //                     </span>
+// // // //                     <span
+// // // //                       className={`px-3 py-1 rounded-full text-sm font-medium ${selectedVehicle.status === "Available" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
+// // // //                     >
+// // // //                       {selectedVehicle.status}
+// // // //                     </span>
+// // // //                     <span className="text-gray-500">
+// // // //                       {selectedVehicle.carNumber}
+// // // //                     </span>
+// // // //                   </div>
+// // // //                 </div>
+// // // //                 <button
+// // // //                   onClick={() => setShowDetailsModal(false)}
+// // // //                   className="p-3 hover:bg-gray-100 rounded-full transition-colors"
+// // // //                 >
+// // // //                   <span className="text-2xl text-gray-500">×</span>
+// // // //                 </button>
+// // // //               </div>
+// // // //               <div className="p-8">
+// // // //                 {/* Gallery */}
+// // // //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+// // // //                   {selectedVehicle.photos &&
+// // // //                   selectedVehicle.photos.length > 0 ? (
+// // // //                     selectedVehicle.photos.map((photo, index) => (
+// // // //                       <div
+// // // //                         key={index}
+// // // //                         className={`${index === 0 ? "lg:col-span-2" : ""}`}
+// // // //                       >
+// // // //                         <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+// // // //                           <img
+// // // //                             src={`http://localhost:5000/uploads/${selectedVehicle.source === "user" ? "user-vehicles" : "vehicles"}/${photo.filename}`}
+// // // //                             alt={photo.label}
+// // // //                             className="w-full h-full object-cover"
+// // // //                           />
+// // // //                           <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm backdrop-blur-sm">
+// // // //                             {photo.label}
+// // // //                           </div>
+// // // //                         </div>
+// // // //                       </div>
+// // // //                     ))
+// // // //                   ) : (
+// // // //                     <div className="lg:col-span-3 h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+// // // //                       <FaCar className="text-8xl text-gray-300" />
+// // // //                     </div>
+// // // //                   )}
+// // // //                 </div>
+
+// // // //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+// // // //                   {/* Left Column - Specifications */}
+// // // //                   <div className="lg:col-span-2">
+// // // //                     <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// // // //                       Specifications
+// // // //                     </h3>
+// // // //                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+// // // //                       {[
+// // // //                         {
+// // // //                           icon: FaCogs,
+// // // //                           label: "Transmission",
+// // // //                           value: selectedVehicle.gearType,
+// // // //                         },
+// // // //                         {
+// // // //                           icon: FaChair,
+// // // //                           label: "Seats",
+// // // //                           value: `${selectedVehicle.seats} Persons`,
+// // // //                         },
+// // // //                         {
+// // // //                           icon: FaSnowflake,
+// // // //                           label: "Air Conditioning",
+// // // //                           value: selectedVehicle.airCondition,
+// // // //                         },
+// // // //                         {
+// // // //                           icon: FaUser,
+// // // //                           label: "Driver",
+// // // //                           value: selectedVehicle.driverName || "Not Included",
+// // // //                         },
+// // // //                         {
+// // // //                           icon: FaPhone,
+// // // //                           label: "Contact",
+// // // //                           value: selectedVehicle.phoneNumber,
+// // // //                         },
+// // // //                         {
+// // // //                           icon: FaCalendarAlt,
+// // // //                           label: "Booking Type",
+// // // //                           value: selectedVehicle.bookingType,
+// // // //                         },
+// // // //                       ].map((spec, index) => (
+// // // //                         <div
+// // // //                           key={index}
+// // // //                           className="flex items-center p-4 bg-gray-50 rounded-xl"
+// // // //                         >
+// // // //                           <div className="p-3 bg-white rounded-lg shadow-sm mr-4">
+// // // //                             <spec.icon className="text-blue-600" />
+// // // //                           </div>
+// // // //                           <div>
+// // // //                             <p className="text-sm text-gray-500">
+// // // //                               {spec.label}
+// // // //                             </p>
+// // // //                             <p className="font-semibold text-gray-900">
+// // // //                               {spec.value}
+// // // //                             </p>
+// // // //                           </div>
+// // // //                         </div>
+// // // //                       ))}
+// // // //                     </div>
+// // // //                     {selectedVehicle.features &&
+// // // //                       selectedVehicle.features.length > 0 && (
+// // // //                         <div className="mt-10">
+// // // //                           <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// // // //                             Features & Amenities
+// // // //                           </h3>
+// // // //                           <div className="flex flex-wrap gap-3">
+// // // //                             {selectedVehicle.features.map((feature, index) => (
+// // // //                               <span
+// // // //                                 key={index}
+// // // //                                 className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium"
+// // // //                               >
+// // // //                                 {feature}
+// // // //                               </span>
+// // // //                             ))}
+// // // //                           </div>
+// // // //                         </div>
+// // // //                       )}
+// // // //                     {selectedVehicle.description && (
+// // // //                       <div className="mt-10">
+// // // //                         <h3 className="text-2xl font-bold text-gray-900 mb-4">
+// // // //                           Description
+// // // //                         </h3>
+// // // //                         <p className="text-gray-600 leading-relaxed">
+// // // //                           {selectedVehicle.description}
+// // // //                         </p>
+// // // //                       </div>
+// // // //                     )}
+// // // //                   </div>
+
+// // // //                   {/* Right Column - Pricing & Booking */}
+// // // //                   <div className="lg:col-span-1">
+// // // //                     <div className="sticky top-24 bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg">
+// // // //                       <div className="text-center mb-6">
+// // // //                         <p className="text-gray-500 mb-2">Daily Rate</p>
+// // // //                         <div className="flex items-baseline justify-center">
+// // // //                           <span className="text-5xl font-bold text-gray-900">
+// // // //                             रु{selectedVehicle.ratePerDay}
+// // // //                           </span>
+// // // //                           <span className="text-gray-500 ml-2">/day</span>
+// // // //                         </div>
+// // // //                       </div>
+// // // //                       <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+// // // //                         <div className="flex items-start">
+// // // //                           <FaInfoCircle className="text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+// // // //                           <div>
+// // // //                             <h4 className="font-semibold text-blue-800 mb-1">
+// // // //                               Complete Price Breakdown
+// // // //                             </h4>
+// // // //                             <p className="text-sm text-blue-700">
+// // // //                               Full price calculation including optional extras,
+// // // //                               service fee, and taxes will be shown during
+// // // //                               booking.
+// // // //                             </p>
+// // // //                           </div>
+// // // //                         </div>
+// // // //                       </div>
+// // // //                       <button
+// // // //                         onClick={() => {
+// // // //                           handleBookNow(selectedVehicle);
+// // // //                           setShowDetailsModal(false);
+// // // //                         }}
+// // // //                         className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-green-500/30 hover:scale-105 transition-all duration-300"
+// // // //                       >
+// // // //                         Book This Vehicle
+// // // //                       </button>
+// // // //                       <div className="mt-6 text-center">
+// // // //                         <p className="text-gray-500 text-sm">
+// // // //                           • Free cancellation • 24/7 support • Instant
+// // // //                           confirmation
+// // // //                         </p>
+// // // //                       </div>
+// // // //                     </div>
+// // // //                   </div>
+// // // //                 </div>
+// // // //               </div>
+// // // //             </div>
+// // // //           </div>
+// // // //         </div>
+// // // //       )}
+
+// // // //       {/* CTA Section */}
+// // // //       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900">
+// // // //         <div className="container mx-auto px-6 text-center">
+// // // //           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+// // // //             Ready for Your Next Adventure?
+// // // //           </h2>
+// // // //           <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto">
+// // // //             Join thousands of satisfied customers who trust RentRide for their
+// // // //             travel needs
+// // // //           </p>
+// // // //           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+// // // //             <button
+// // // //               onClick={() => navigate("/profiledetails")}
+// // // //               className="px-10 py-4 bg-white text-gray-900 font-bold rounded-xl hover:shadow-2xl transition-all"
+// // // //             >
+// // // //               Start Booking Now
+// // // //             </button>
+// // // //             <button className="px-10 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10">
+// // // //               Contact Support
+// // // //             </button>
+// // // //           </div>
+// // // //         </div>
+// // // //       </section>
+
+// // // //       {/* Footer with Newsletter */}
+// // // //       <footer className="bg-gray-900 text-white pt-20 pb-8">
+// // // //         <div className="container mx-auto px-6">
+// // // //           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+// // // //             <div>
+// // // //               {/* <div className="flex items-center gap-3 mb-6">
+// // // //                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg">
+// // // //                   <FaCar className="text-white" />
+// // // //                 </div>
+// // // //                 <h3 className="text-2xl font-bold">
+// // // //                   Rent<span className="text-blue-400">Ride</span>
+// // // //                 </h3>
+// // // //               </div> */}
+
+// // // //               <div className="flex items-center gap-3 mb-6">
+// // // //                 <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// // // //                   <FaCar className="text-white text-2xl" />
+// // // //                 </div>
+// // // //                 <div>
+// // // //                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// // // //                     Rent<span className="text-white">Ride</span>
+// // // //                   </h1>
+// // // //                   <p className="text-xs text-gray-400 -mt-1">
+// // // //                     Premium Car Rental
+// // // //                   </p>
+// // // //                 </div>
+// // // //               </div>
+// // // //               <p className="text-gray-400 mb-6">
+// // // //                 Premium car rental service in Kathmandu. Experience luxury,
+// // // //                 reliability, and exceptional service.
+// // // //               </p>
+// // // //             </div>
+// // // //             <div>
+// // // //               <h4 className="text-lg font-bold mb-6">Quick Links</h4>
+// // // //               <ul className="space-y-3">
+// // // //                 {["Browse Cars", "How It Works", "About Us", "Contact"].map(
+// // // //                   (item, index) => (
+// // // //                     <li key={index}>
+// // // //                       <a
+// // // //                         href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+// // // //                         className="text-gray-400 hover:text-white"
+// // // //                       >
+// // // //                         {item}
+// // // //                       </a>
+// // // //                     </li>
+// // // //                   ),
+// // // //                 )}
+// // // //               </ul>
+// // // //             </div>
+// // // //             <div>
+// // // //               <h4 className="text-lg font-bold mb-6">Contact Info</h4>
+// // // //               <ul className="text-gray-400 space-y-4">
+// // // //                 <li className="flex items-start">
+// // // //                   <FaMapMarkerAlt className="mr-3 mt-1 text-blue-400" />
+// // // //                   <span>Kathmandu, Nepal</span>
+// // // //                 </li>
+// // // //                 <li className="flex items-center">
+// // // //                   <FaPhone className="mr-3 text-blue-400" />
+// // // //                   <span>+977 9844177965</span>
+// // // //                 </li>
+// // // //                 <li className="flex items-center">
+// // // //                   <FaClock className="mr-3 text-blue-400" />
+// // // //                   <span>24/7 Support</span>
+// // // //                 </li>
+// // // //               </ul>
+// // // //             </div>
+// // // //             <div>
+// // // //               <h4 className="text-lg font-bold mb-6">Newsletter</h4>
+// // // //               <p className="text-gray-400 mb-4">
+// // // //                 Subscribe for exclusive deals and updates
+// // // //               </p>
+// // // //               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+// // // //                 <div className="flex">
+// // // //                   <input
+// // // //                     type="email"
+// // // //                     placeholder="Your email"
+// // // //                     value={subscriberEmail}
+// // // //                     onChange={(e) => setSubscriberEmail(e.target.value)}
+// // // //                     className="flex-1 px-4 py-3 bg-gray-800 border-0 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // // //                   />
+// // // //                   <button
+// // // //                     type="submit"
+// // // //                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-r-lg hover:opacity-90 transition-opacity"
+// // // //                   >
+// // // //                     <FaEnvelope />
+// // // //                   </button>
+// // // //                 </div>
+// // // //                 {subscribeMessage && (
+// // // //                   <p
+// // // //                     className={`text-sm ${subscribeStatus === "success" ? "text-green-400" : subscribeStatus === "error" ? "text-red-400" : "text-blue-400"}`}
+// // // //                   >
+// // // //                     {subscribeMessage}
+// // // //                   </p>
+// // // //                 )}
+// // // //               </form>
+// // // //             </div>
+// // // //           </div>
+// // // //           <div className="border-t border-gray-800 pt-8 text-center">
+// // // //             <p className="text-gray-500">
+// // // //               &copy; {new Date().getFullYear()} RentRide. All rights reserved.
+// // // //             </p>
+// // // //             <p className="text-gray-500 text-sm mt-2">
+// // // //               Premium car rental service in Kathmandu
+// // // //             </p>
+// // // //           </div>
+// // // //         </div>
+// // // //       </footer>
+// // // //     </div>
+// // // //   );
+// // // // };
+
+// // // // export default RentRideHome;
+
+// // // import React, { useState, useEffect } from "react";
+// // // import {
+// // //   FaCar,
+// // //   FaUserCircle,
+// // //   FaCheckCircle,
+// // //   FaShieldAlt,
+// // //   FaCogs,
+// // //   FaSnowflake,
+// // //   FaUser,
+// // //   FaPhone,
+// // //   FaChair,
+// // //   FaStar,
+// // //   FaHeart,
+// // //   FaMapMarkerAlt,
+// // //   FaClock,
+// // //   FaSearch,
+// // //   FaCalendarAlt,
+// // //   FaCreditCard,
+// // //   FaInfoCircle,
+// // //   FaEnvelope,
+// // // } from "react-icons/fa";
+// // // import { useNavigate } from "react-router-dom";
+// // // import axios from "axios";
+// // // import BikesSection from "./BikesSection";
+
+// // // const API_URL = "http://localhost:5000/api";
+
+// // // const axiosInstance = axios.create({
+// // //   baseURL: API_URL,
+// // //   timeout: 10000,
+// // // });
+
+// // // axiosInstance.interceptors.request.use((config) => {
+// // //   const token = localStorage.getItem("token");
+// // //   if (token) config.headers.Authorization = `Bearer ${token}`;
+// // //   return config;
+// // // });
+
+// // // const RentRideHome = () => {
+// // //   const [activeFilter, setActiveFilter] = useState("All vehicles");
+// // //   const [vehicles, setVehicles] = useState([]);
+// // //   const [loading, setLoading] = useState(true);
+// // //   const [error, setError] = useState("");
+// // //   const [selectedVehicle, setSelectedVehicle] = useState(null);
+// // //   const [showDetailsModal, setShowDetailsModal] = useState(false);
+// // //   const [searchQuery, setSearchQuery] = useState("");
+// // //   const [wishlist, setWishlist] = useState(new Set());
+// // //   const [userProfile, setUserProfile] = useState(null);
+// // //   const [userLoading, setUserLoading] = useState(true);
+// // //   const [subscriberEmail, setSubscriberEmail] = useState("");
+// // //   const [subscribeMessage, setSubscribeMessage] = useState("");
+// // //   const [subscribeStatus, setSubscribeStatus] = useState(null);
+// // //   const navigate = useNavigate();
+
+// // //   const filters = [
+// // //     "All vehicles",
+// // //     "Sedan",
+// // //     "SUV",
+// // //     "Hatchback",
+// // //     "MPV",
+// // //     "Coupe",
+// // //     "Convertible",
+// // //     "Pickup",
+// // //     "Minivan",
+// // //     "Electric",
+// // //   ];
+
+// // //   const features = [
+// // //     {
+// // //       icon: <FaCar className="text-3xl" />,
+// // //       title: "Wide Selection",
+// // //       description: "Choose from premium vehicles for every need",
+// // //       gradient: "from-blue-500 to-cyan-400",
+// // //     },
+// // //     {
+// // //       icon: <FaCheckCircle className="text-3xl" />,
+// // //       title: "Easy Booking",
+// // //       description: "Book in 3 simple steps, 24/7 availability",
+// // //       gradient: "from-green-500 to-emerald-400",
+// // //     },
+// // //     {
+// // //       icon: <FaShieldAlt className="text-3xl" />,
+// // //       title: "Fully Insured",
+// // //       description: "Comprehensive coverage for peace of mind",
+// // //       gradient: "from-purple-500 to-pink-400",
+// // //     },
+// // //     {
+// // //       icon: <FaCreditCard className="text-3xl" />,
+// // //       title: "Flexible Payment",
+// // //       description: "Multiple payment options available",
+// // //       gradient: "from-orange-500 to-yellow-400",
+// // //     },
+// // //   ];
+
+// // //   // Fetch user profile
+// // //   const fetchUserProfile = async () => {
+// // //     try {
+// // //       const token = localStorage.getItem("token");
+// // //       if (!token) {
+// // //         setUserLoading(false);
+// // //         return;
+// // //       }
+// // //       const response = await axiosInstance.get("/profile");
+// // //       if (response.data.success) setUserProfile(response.data.user);
+// // //     } catch (error) {
+// // //       console.error("Error fetching profile:", error);
+// // //     } finally {
+// // //       setUserLoading(false);
+// // //     }
+// // //   };
+
+// // //   const getProfilePhotoUrl = () =>
+// // //     userProfile?.profilePhoto
+// // //       ? `http://localhost:5000/uploads/profiles/${userProfile.profilePhoto}`
+// // //       : null;
+// // //   const getUserInitial = () =>
+// // //     userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : "U";
+
+// // //   // Handle newsletter subscription
+// // //   const handleSubscribe = async (e) => {
+// // //     e.preventDefault();
+// // //     if (!subscriberEmail) {
+// // //       setSubscribeMessage("Please enter your email address");
+// // //       setSubscribeStatus("error");
+// // //       setTimeout(() => setSubscribeMessage(""), 3000);
+// // //       return;
+// // //     }
+
+// // //     setSubscribeMessage("Subscribing...");
+// // //     setSubscribeStatus("loading");
+
+// // //     try {
+// // //       const response = await axios.post(`${API_URL}/subscribe`, {
+// // //         email: subscriberEmail,
+// // //       });
+// // //       if (response.data.success) {
+// // //         setSubscribeMessage(
+// // //           "✅ Thank you for subscribing! You'll receive exclusive updates.",
+// // //         );
+// // //         setSubscribeStatus("success");
+// // //         setSubscriberEmail("");
+// // //       }
+// // //     } catch (error) {
+// // //       setSubscribeMessage(
+// // //         error.response?.data?.message ||
+// // //           "❌ Subscription failed. Please try again.",
+// // //       );
+// // //       setSubscribeStatus("error");
+// // //     }
+// // //     setTimeout(() => setSubscribeMessage(""), 5000);
+// // //   };
+
+// // //   // Fetch vehicles
+// // //   useEffect(() => {
+// // //     fetchAllVehicles();
+// // //     fetchUserProfile();
+// // //   }, []);
+
+// // //   // const fetchAllVehicles = async () => {
+// // //   //   try {
+// // //   //     setLoading(true);
+// // //   //     setError("");
+
+// // //   //     // Fetch admin vehicles
+// // //   //     const adminResponse = await axios.get(
+// // //   //       "http://localhost:5000/api/vehicles",
+// // //   //       { timeout: 10000 },
+// // //   //     );
+
+// // //   //     // Fetch user vehicles from public endpoint
+// // //   //     let userVehicles = [];
+// // //   //     try {
+// // //   //       const userResponse = await axios.get(
+// // //   //         "http://localhost:5000/api/user-vehicles/public/active",
+// // //   //         { timeout: 10000 },
+// // //   //       );
+// // //   //       if (userResponse.data.success) userVehicles = userResponse.data.data;
+// // //   //     } catch (userError) {
+// // //   //       console.log("Could not fetch user vehicles:", userError.message);
+// // //   //     }
+
+// // //   //     // Get current user ID from token (if logged in)
+// // //   //     let currentUserId = null;
+// // //   //     const token = localStorage.getItem("token");
+// // //   //     if (token) {
+// // //   //       try {
+// // //   //         // Decode JWT token to get user ID
+// // //   //         const tokenParts = token.split(".");
+// // //   //         if (tokenParts.length === 3) {
+// // //   //           const payload = JSON.parse(atob(tokenParts[1]));
+// // //   //           currentUserId = payload.id || payload.userId;
+// // //   //           console.log("Current user ID from token:", currentUserId);
+// // //   //         }
+// // //   //       } catch (decodeError) {
+// // //   //         console.error("Error decoding token:", decodeError);
+// // //   //       }
+// // //   //     }
+
+// // //   //     // Filter out vehicles that belong to the current user
+// // //   //     const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// // //   //       // If no user is logged in, show all user vehicles
+// // //   //       if (!currentUserId) return true;
+
+// // //   //       // Check if this vehicle belongs to the current user
+// // //   //       const vehicleOwnerId = vehicle.owner || vehicle.userId;
+
+// // //   //       // Only show vehicles that are NOT owned by the current user
+// // //   //       const isNotOwnVehicle = vehicleOwnerId !== currentUserId;
+
+// // //   //       if (!isNotOwnVehicle) {
+// // //   //         console.log(
+// // //   //           `Filtering out own vehicle: ${vehicle.carName} (Owner: ${vehicleOwnerId})`,
+// // //   //         );
+// // //   //       }
+
+// // //   //       return isNotOwnVehicle;
+// // //   //     });
+
+// // //   //     console.log(
+// // //   //       `Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded own vehicles)`,
+// // //   //     );
+
+// // //   //     let allVehicles = [];
+// // //   //     if (adminResponse.data && Array.isArray(adminResponse.data))
+// // //   //       allVehicles = [...adminResponse.data];
+// // //   //     else if (
+// // //   //       adminResponse.data?.data &&
+// // //   //       Array.isArray(adminResponse.data.data)
+// // //   //     )
+// // //   //       allVehicles = [...adminResponse.data.data];
+
+// // //   //     // Add filtered user vehicles (excluding own)
+// // //   //     filteredUserVehicles.forEach((userVehicle) =>
+// // //   //       allVehicles.push({ ...userVehicle, source: "user" }),
+// // //   //     );
+
+// // //   //     setVehicles(allVehicles);
+// // //   //   } catch (error) {
+// // //   //     console.error("Error fetching vehicles:", error);
+// // //   //     setError("Failed to load vehicles. Please try again.");
+// // //   //   } finally {
+// // //   //     setLoading(false);
+// // //   //   }
+// // //   // };
+
+// // //   const fetchAllVehicles = async () => {
+// // //     try {
+// // //       setLoading(true);
+// // //       setError("");
+
+// // //       // Fetch admin vehicles
+// // //       const adminResponse = await axios.get(
+// // //         "http://localhost:5000/api/vehicles",
+// // //         { timeout: 10000 },
+// // //       );
+
+// // //       // Get token for authenticated requests
+// // //       const token = localStorage.getItem("token");
+
+// // //       // Fetch user vehicles from public endpoint WITH token if available
+// // //       let userVehicles = [];
+// // //       try {
+// // //         const headers = token ? { Authorization: `Bearer ${token}` } : {};
+// // //         const userResponse = await axios.get(
+// // //           "http://localhost:5000/api/user-vehicles/public/active",
+// // //           {
+// // //             timeout: 10000,
+// // //             headers: headers, // Send token to backend so it can filter own vehicles
+// // //           },
+// // //         );
+// // //         if (userResponse.data.success) userVehicles = userResponse.data.data;
+// // //       } catch (userError) {
+// // //         console.log("Could not fetch user vehicles:", userError.message);
+// // //       }
+
+// // //       // Get current user ID from token (if logged in) - for frontend filtering as backup
+// // //       let currentUserId = null;
+// // //       if (token) {
+// // //         try {
+// // //           // Decode JWT token to get user ID
+// // //           const tokenParts = token.split(".");
+// // //           if (tokenParts.length === 3) {
+// // //             const payload = JSON.parse(atob(tokenParts[1]));
+// // //             currentUserId = payload.id || payload.userId;
+// // //             console.log("Current user ID from token:", currentUserId);
+// // //           }
+// // //         } catch (decodeError) {
+// // //           console.error("Error decoding token:", decodeError);
+// // //         }
+// // //       }
+
+// // //       // Frontend filtering as backup (backend should already filter, but double-check)
+// // //       const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// // //         // If no user is logged in, show all user vehicles
+// // //         if (!currentUserId) return true;
+
+// // //         // Check if this vehicle belongs to the current user
+// // //         const vehicleOwnerId = vehicle.userId || vehicle.owner || vehicle.user;
+
+// // //         // Convert both to strings for comparison
+// // //         const ownerIdStr = vehicleOwnerId?.toString();
+// // //         const currentUserIdStr = currentUserId?.toString();
+
+// // //         // Only show vehicles that are NOT owned by the current user
+// // //         const isNotOwnVehicle = ownerIdStr !== currentUserIdStr;
+
+// // //         if (!isNotOwnVehicle) {
+// // //           console.log(
+// // //             `🚫 Filtering out own vehicle: ${vehicle.carName} (Owner: ${ownerIdStr})`,
+// // //           );
+// // //         }
+
+// // //         return isNotOwnVehicle;
+// // //       });
+
+// // //       console.log(
+// // //         `✅ Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded ${userVehicles.length - filteredUserVehicles.length} own vehicles)`,
+// // //       );
+
+// // //       // Combine admin and user vehicles
+// // //       let allVehicles = [];
+
+// // //       // Add admin vehicles
+// // //       if (adminResponse.data && Array.isArray(adminResponse.data)) {
+// // //         allVehicles = [...adminResponse.data];
+// // //       } else if (
+// // //         adminResponse.data?.data &&
+// // //         Array.isArray(adminResponse.data.data)
+// // //       ) {
+// // //         allVehicles = [...adminResponse.data.data];
+// // //       }
+
+// // //       // Add filtered user vehicles (excluding own)
+// // //       filteredUserVehicles.forEach((userVehicle) =>
+// // //         allVehicles.push({ ...userVehicle, source: "user" }),
+// // //       );
+
+// // //       console.log(`📊 Total vehicles to display: ${allVehicles.length}`);
+// // //       setVehicles(allVehicles);
+// // //     } catch (error) {
+// // //       console.error("Error fetching vehicles:", error);
+// // //       setError("Failed to load vehicles. Please try again.");
+// // //     } finally {
+// // //       setLoading(false);
+// // //     }
+// // //   };
+
+// // //   const toggleWishlist = (vehicleId, e) => {
+// // //     e.stopPropagation();
+// // //     const newWishlist = new Set(wishlist);
+// // //     newWishlist.has(vehicleId)
+// // //       ? newWishlist.delete(vehicleId)
+// // //       : newWishlist.add(vehicleId);
+// // //     setWishlist(newWishlist);
+// // //   };
+
+// // //   const filteredVehicles = vehicles.filter((vehicle) => {
+// // //     const matchesFilter =
+// // //       activeFilter === "All vehicles" ||
+// // //       vehicle.carType?.toLowerCase() === activeFilter.toLowerCase();
+// // //     const matchesSearch =
+// // //       searchQuery === "" ||
+// // //       vehicle.carName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+// // //       vehicle.carType?.toLowerCase().includes(searchQuery.toLowerCase());
+// // //     return matchesFilter && matchesSearch;
+// // //   });
+
+// // //   const getVehicleImage = (vehicle) => {
+// // //     if (vehicle.photos?.length > 0) {
+// // //       const extraView = vehicle.photos.find(
+// // //         (photo) => photo.label === "Extra View",
+// // //       );
+// // //       const photo = extraView || vehicle.photos[0];
+// // //       const folder = vehicle.source === "user" ? "user-vehicles" : "vehicles";
+// // //       return `http://localhost:5000/uploads/${folder}/${photo.filename}`;
+// // //     }
+// // //     return null;
+// // //   };
+
+// // //   const handleViewDetails = (vehicle) => {
+// // //     setSelectedVehicle(vehicle);
+// // //     setShowDetailsModal(true);
+// // //   };
+
+// // //   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
+
+// // //   const CarCard = ({ vehicle }) => {
+// // //     const imageUrl = getVehicleImage(vehicle);
+// // //     const isWishlisted = wishlist.has(vehicle._id);
+
+// // //     return (
+// // //       <div
+// // //         className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer hover:-translate-y-1"
+// // //         onClick={() => handleViewDetails(vehicle)}
+// // //       >
+// // //         {/* Wishlist Button */}
+// // //         <button
+// // //           onClick={(e) => toggleWishlist(vehicle._id, e)}
+// // //           className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white hover:scale-110 transition-all duration-300"
+// // //         >
+// // //           <FaHeart
+// // //             className={`text-base ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-400"}`}
+// // //           />
+// // //         </button>
+
+// // //         {/* Status Badge */}
+// // //         <div className="absolute top-3 left-3 z-10">
+// // //           <span
+// // //             className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${vehicle.status === "Available" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}
+// // //           >
+// // //             {vehicle.status}
+// // //           </span>
+// // //         </div>
+
+// // //         {/* Image */}
+// // //         <div className="h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 relative">
+// // //           {imageUrl ? (
+// // //             <img
+// // //               src={imageUrl}
+// // //               alt={vehicle.carName}
+// // //               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+// // //             />
+// // //           ) : (
+// // //             <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+// // //               <FaCar className="text-6xl text-gray-300" />
+// // //               <span className="text-xs text-gray-400">No image available</span>
+// // //             </div>
+// // //           )}
+// // //           {/* Gradient overlay at bottom */}
+// // //           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+// // //         </div>
+
+// // //         {/* Card Body */}
+// // //         <div className="p-5">
+// // //           {/* Name + Type */}
+// // //           <div className="flex items-start justify-between gap-2 mb-2">
+// // //             <h3 className="text-lg font-bold text-gray-900 leading-tight truncate">
+// // //               {vehicle.carName}
+// // //             </h3>
+// // //             <span className="flex-shrink-0 px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full border border-blue-100">
+// // //               {vehicle.carType}
+// // //             </span>
+// // //           </div>
+
+// // //           {/* Location + Rating row */}
+// // //           <div className="flex items-center justify-between mb-4">
+// // //             <div className="flex items-center text-gray-400 text-xs gap-1">
+// // //               <FaMapMarkerAlt size={10} />
+// // //               <span>Kathmandu, Nepal</span>
+// // //             </div>
+// // //             <div className="flex items-center gap-1">
+// // //               {[...Array(5)].map((_, i) => (
+// // //                 <FaStar
+// // //                   key={i}
+// // //                   className={`text-xs ${i < 4 ? "text-yellow-400" : "text-gray-200"}`}
+// // //                 />
+// // //               ))}
+// // //               <span className="text-xs text-gray-400 ml-1">4.8</span>
+// // //             </div>
+// // //           </div>
+
+// // //           {/* Specs row */}
+// // //           <div className="flex items-center gap-4 py-3 px-3 bg-gray-50 rounded-xl mb-4">
+// // //             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+// // //               <FaCogs size={12} className="text-blue-500" />
+// // //               <span className="font-medium">{vehicle.gearType}</span>
+// // //             </div>
+// // //             <div className="w-px h-3 bg-gray-300" />
+// // //             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+// // //               <FaChair size={12} className="text-blue-500" />
+// // //               <span className="font-medium">{vehicle.seats} Seats</span>
+// // //             </div>
+// // //             <div className="w-px h-3 bg-gray-300" />
+// // //             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+// // //               <FaSnowflake size={12} className="text-blue-500" />
+// // //               <span className="font-medium">
+// // //                 {vehicle.airCondition === "Yes" ? "AC" : "No AC"}
+// // //               </span>
+// // //             </div>
+// // //           </div>
+
+// // //           {/* Price + CTA */}
+// // //           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+// // //             <div>
+// // //               <p className="text-xs text-gray-400 mb-0.5">Daily rate</p>
+// // //               <div className="flex items-baseline gap-1">
+// // //                 <span className="text-xl font-bold text-gray-900">
+// // //                   रु {vehicle.ratePerDay?.toLocaleString()}
+// // //                 </span>
+// // //                 <span className="text-xs text-gray-400">/day</span>
+// // //               </div>
+// // //             </div>
+// // //             <button
+// // //               onClick={(e) => {
+// // //                 e.stopPropagation();
+// // //                 handleViewDetails(vehicle);
+// // //               }}
+// // //               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
+// // //             >
+// // //               View Details
+// // //             </button>
+// // //           </div>
+// // //         </div>
+// // //       </div>
+// // //     );
+// // //   };
+
+// // //   return (
+// // //     <div className="min-h-screen bg-gray-50">
+// // //       {/* Header */}
+// // //       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
+// // //         <div className="container mx-auto px-6 py-4">
+// // //           <div className="flex items-center justify-between">
+// // //             {/* Logo */}
+// // //             {/* <div
+// // //               className="flex items-center gap-3 cursor-pointer"
+// // //               onClick={() => navigate("/")}
+// // //             >
+// // //               <div className="p-2.5 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg">
+// // //                 <FaCar className="text-white text-2xl" />
+// // //               </div>
+// // //               <div>
+// // //                 <h1 className="text-2xl font-bold text-gray-900">
+// // //                   Rent<span className="text-blue-600">Ride</span>
+// // //                 </h1>
+// // //                 <p className="text-xs text-gray-500 -mt-1">
+// // //                   Premium Car Rentals
+// // //                 </p>
+// // //               </div>
+// // //             </div> */}
+// // //             <div
+// // //               className="flex items-center gap-3 cursor-pointer"
+// // //               onClick={() => navigate("/")}
+// // //             >
+// // //               <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// // //                 <FaCar className="text-white text-2xl" />
+// // //               </div>
+// // //               <div>
+// // //                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// // //                   Rent<span className="text-gray-800">Ride</span>
+// // //                 </h1>
+// // //                 <p className="text-xs text-gray-500 -mt-1">
+// // //                   Premium Car Rentals
+// // //                 </p>
+// // //               </div>
+// // //             </div>
+
+// // //             {/* Search Bar */}
+// // //             <div className="hidden md:block flex-1 max-w-xl mx-8">
+// // //               <div className="relative">
+// // //                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// // //                   <FaSearch className="text-gray-400" />
+// // //                 </div>
+// // //                 <input
+// // //                   type="text"
+// // //                   placeholder="Search by car name or type..."
+// // //                   value={searchQuery}
+// // //                   onChange={(e) => setSearchQuery(e.target.value)}
+// // //                   className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // //                 />
+// // //               </div>
+// // //             </div>
+
+// // //             {/* Navigation */}
+// // //             <nav className="hidden lg:flex items-center space-x-8">
+// // //               <a
+// // //                 href="#vehicles"
+// // //                 className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+// // //               >
+// // //                 Browse
+// // //                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
+// // //               </a>
+// // //               <a
+// // //                 href="#how-it-works"
+// // //                 className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+// // //               >
+// // //                 How It Works
+// // //                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
+// // //               </a>
+// // //               <a
+// // //                 href="#contact"
+// // //                 className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+// // //               >
+// // //                 Contact
+// // //                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
+// // //               </a>
+// // //             </nav>
+
+// // //             {/* User Actions with Profile Photo */}
+// // //             <div className="flex items-center gap-4">
+// // //               <button
+// // //                 className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg"
+// // //                 onClick={() => navigate("/profiledetails")}
+// // //               >
+// // //                 Book Now
+// // //               </button>
+// // //               {userLoading ? (
+// // //                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+// // //               ) : userProfile && getProfilePhotoUrl() ? (
+// // //                 <div
+// // //                   onClick={() => navigate("/profiledetails")}
+// // //                   className="cursor-pointer"
+// // //                 >
+// // //                   <img
+// // //                     src={getProfilePhotoUrl()}
+// // //                     alt="Profile"
+// // //                     className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+// // //                     onError={(e) => {
+// // //                       e.target.style.display = "none";
+// // //                       const parent = e.target.parentElement;
+// // //                       if (parent) {
+// // //                         const avatar = document.createElement("div");
+// // //                         avatar.className =
+// // //                           "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg cursor-pointer";
+// // //                         avatar.textContent = getUserInitial();
+// // //                         parent.innerHTML = "";
+// // //                         parent.appendChild(avatar);
+// // //                       }
+// // //                     }}
+// // //                   />
+// // //                 </div>
+// // //               ) : (
+// // //                 <div
+// // //                   onClick={() => navigate("/profiledetails")}
+// // //                   className="cursor-pointer"
+// // //                 >
+// // //                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+// // //                     {getUserInitial()}
+// // //                   </div>
+// // //                 </div>
+// // //               )}
+// // //             </div>
+// // //           </div>
+
+// // //           {/* Mobile Search */}
+// // //           <div className="md:hidden mt-4">
+// // //             <div className="relative">
+// // //               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// // //                 <FaSearch className="text-gray-400" />
+// // //               </div>
+// // //               <input
+// // //                 type="text"
+// // //                 placeholder="Search vehicles..."
+// // //                 value={searchQuery}
+// // //                 onChange={(e) => setSearchQuery(e.target.value)}
+// // //                 className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // //               />
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //       </header>
+
+// // //       {/* Hero Section */}
+// // //       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+// // //         <div className="absolute inset-0">
+// // //           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10"></div>
+// // //           <div
+// // //             className="absolute inset-0 z-0"
+// // //             style={{
+// // //               backgroundImage:
+// // //                 'url("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
+// // //               backgroundSize: "cover",
+// // //               backgroundPosition: "center",
+// // //             }}
+// // //           ></div>
+// // //         </div>
+// // //         <div className="container mx-auto px-6 py-24 md:py-32 relative z-20">
+// // //           <div className="max-w-2xl">
+// // //             <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+// // //               🎉 Premium Service Since 2024
+// // //             </span>
+// // //             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+// // //               Drive Your <span className="text-blue-400">Dream Car</span> in
+// // //               Kathmandu
+// // //             </h1>
+// // //             <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-xl">
+// // //               Experience luxury and convenience with our premium car rental
+// // //               service. Book online in minutes.
+// // //             </p>
+// // //             <div className="flex flex-col sm:flex-row gap-4">
+// // //               <button
+// // //                 onClick={() =>
+// // //                   document
+// // //                     .getElementById("vehicles")
+// // //                     .scrollIntoView({ behavior: "smooth" })
+// // //                 }
+// // //                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all"
+// // //               >
+// // //                 Explore Cars
+// // //               </button>
+// // //               <button
+// // //                 onClick={() =>
+// // //                   document
+// // //                     .getElementById("how-it-works")
+// // //                     .scrollIntoView({ behavior: "smooth" })
+// // //                 }
+// // //                 className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-xl hover:bg-white/20"
+// // //               >
+// // //                 How It Works
+// // //               </button>
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //         <div className="relative z-20">
+// // //           <div className="container mx-auto px-6 -mb-12">
+// // //             <div className="bg-white rounded-2xl shadow-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-gray-100">
+// // //               <div className="text-center px-6">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // //                   10K+
+// // //                 </div>
+// // //                 <div className="text-gray-500 text-sm">Happy Customers</div>
+// // //               </div>
+// // //               <div className="text-center px-6">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // //                   200+
+// // //                 </div>
+// // //                 <div className="text-gray-500 text-sm">Premium Vehicles</div>
+// // //               </div>
+// // //               <div className="text-center px-6">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">15+</div>
+// // //                 <div className="text-gray-500 text-sm">Cities</div>
+// // //               </div>
+// // //               <div className="text-center px-6">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // //                   24/7
+// // //                 </div>
+// // //                 <div className="text-gray-500 text-sm">Support</div>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Features Section */}
+// // //       <section
+// // //         id="how-it-works"
+// // //         className="py-20 bg-gradient-to-b from-white to-gray-50"
+// // //       >
+// // //         <div className="container mx-auto px-6">
+// // //           <div className="text-center mb-12">
+// // //             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
+// // //               WHY CHOOSE US
+// // //             </span>
+// // //             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+// // //               The Best Rental Experience
+// // //             </h2>
+// // //             <p className="text-gray-500 max-w-xl mx-auto text-base">
+// // //               We combine technology with personalized service to deliver an
+// // //               exceptional car rental experience
+// // //             </p>
+// // //           </div>
+// // //           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+// // //             {features.map((feature, index) => (
+// // //               <div
+// // //                 key={index}
+// // //                 className="group bg-white p-7 rounded-2xl shadow-md hover:shadow-xl transition-all duration-400 border border-gray-100 hover:-translate-y-1 relative overflow-hidden"
+// // //               >
+// // //                 {/* subtle corner accent */}
+// // //                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-gray-50 to-transparent rounded-bl-3xl pointer-events-none" />
+// // //                 <div
+// // //                   className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.gradient} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}
+// // //                 >
+// // //                   <div className="text-white">{feature.icon}</div>
+// // //                 </div>
+// // //                 <h3 className="text-lg font-bold text-gray-900 mb-2">
+// // //                   {feature.title}
+// // //                 </h3>
+// // //                 <p className="text-gray-500 text-sm leading-relaxed">
+// // //                   {feature.description}
+// // //                 </p>
+// // //               </div>
+// // //             ))}
+// // //           </div>
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Choose Your Ride Section */}
+// // //       <section id="vehicles" className="py-20 bg-gray-50">
+// // //         <div className="container mx-auto px-6">
+// // //           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
+// // //             <div>
+// // //               <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-3">
+// // //                 FLEET COLLECTION
+// // //               </span>
+// // //               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+// // //                 Choose Your Perfect Ride
+// // //               </h2>
+// // //               <p className="text-gray-500 mt-2 text-base">
+// // //                 Select from our premium collection of vehicles
+// // //               </p>
+// // //             </div>
+// // //             <div className="flex items-center gap-3 bg-white rounded-2xl px-6 py-4 shadow-md border border-gray-100">
+// // //               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+// // //                 <FaCar className="text-blue-600" />
+// // //               </div>
+// // //               <div>
+// // //                 <div className="text-2xl font-bold text-gray-900 leading-none">
+// // //                   {filteredVehicles.length}
+// // //                 </div>
+// // //                 <div className="text-gray-500 text-xs">Cars Available</div>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+
+// // //           <div className="flex flex-wrap gap-2 mb-10">
+// // //             {filters.map((filter) => (
+// // //               <button
+// // //                 key={filter}
+// // //                 onClick={() => setActiveFilter(filter)}
+// // //                 className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+// // //                   activeFilter === filter
+// // //                     ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105"
+// // //                     : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-blue-200 hover:text-blue-600"
+// // //                 }`}
+// // //               >
+// // //                 {filter}
+// // //               </button>
+// // //             ))}
+// // //           </div>
+
+// // //           {loading && (
+// // //             <div className="text-center py-24">
+// // //               <div className="relative w-16 h-16 mx-auto mb-5">
+// // //                 <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+// // //                 <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+// // //                 <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
+// // //               </div>
+// // //               <p className="text-gray-500 font-medium">
+// // //                 Loading premium vehicles...
+// // //               </p>
+// // //             </div>
+// // //           )}
+// // //           {error && !loading && (
+// // //             <div className="text-center py-24">
+// // //               <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+// // //                 <span className="text-4xl">⚠️</span>
+// // //               </div>
+// // //               <h3 className="text-xl font-semibold text-gray-800 mb-2">
+// // //                 Something went wrong
+// // //               </h3>
+// // //               <p className="text-gray-500 mb-6">{error}</p>
+// // //               <button
+// // //                 onClick={fetchAllVehicles}
+// // //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+// // //               >
+// // //                 Try Again
+// // //               </button>
+// // //             </div>
+// // //           )}
+
+// // //           {!loading && !error && filteredVehicles.length > 0 && (
+// // //             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+// // //               {filteredVehicles.map((vehicle) => (
+// // //                 <CarCard key={vehicle._id} vehicle={vehicle} />
+// // //               ))}
+// // //             </div>
+// // //           )}
+
+// // //           {!loading && !error && filteredVehicles.length === 0 && (
+// // //             <div className="text-center py-24">
+// // //               <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
+// // //                 <FaCar className="text-4xl text-blue-300" />
+// // //               </div>
+// // //               <h3 className="text-xl font-semibold text-gray-900 mb-2">
+// // //                 No vehicles found
+// // //               </h3>
+// // //               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+// // //                 {searchQuery
+// // //                   ? `No results for "${searchQuery}"`
+// // //                   : "No vehicles available in this category"}
+// // //               </p>
+// // //               <button
+// // //                 onClick={() => {
+// // //                   setActiveFilter("All vehicles");
+// // //                   setSearchQuery("");
+// // //                 }}
+// // //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+// // //               >
+// // //                 View All Vehicles
+// // //               </button>
+// // //             </div>
+// // //           )}
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Vehicle Details Modal */}
+// // //       {showDetailsModal && selectedVehicle && (
+// // //         <div className="fixed inset-0 z-[100]">
+// // //           <div
+// // //             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+// // //             onClick={() => setShowDetailsModal(false)}
+// // //           ></div>
+// // //           <div className="absolute inset-0 flex items-center justify-center p-4">
+// // //             <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+// // //               <div className="sticky top-0 bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center z-10">
+// // //                 <div>
+// // //                   <h2 className="text-2xl font-bold text-gray-900">
+// // //                     {selectedVehicle.carName}
+// // //                   </h2>
+// // //                   <div className="flex items-center gap-2 mt-2">
+// // //                     <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100">
+// // //                       {selectedVehicle.carType}
+// // //                     </span>
+// // //                     <span
+// // //                       className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedVehicle.status === "Available" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"}`}
+// // //                     >
+// // //                       {selectedVehicle.status}
+// // //                     </span>
+// // //                     {selectedVehicle.carNumber && (
+// // //                       <span className="text-gray-400 text-xs">
+// // //                         #{selectedVehicle.carNumber}
+// // //                       </span>
+// // //                     )}
+// // //                   </div>
+// // //                 </div>
+// // //                 <button
+// // //                   onClick={() => setShowDetailsModal(false)}
+// // //                   className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-red-50 hover:text-red-500 rounded-full transition-all duration-200 text-gray-500 text-xl font-light"
+// // //                 >
+// // //                   ×
+// // //                 </button>
+// // //               </div>
+// // //               <div className="p-8">
+// // //                 {/* Gallery */}
+// // //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+// // //                   {selectedVehicle.photos &&
+// // //                   selectedVehicle.photos.length > 0 ? (
+// // //                     selectedVehicle.photos.map((photo, index) => (
+// // //                       <div
+// // //                         key={index}
+// // //                         className={`${index === 0 ? "lg:col-span-2" : ""}`}
+// // //                       >
+// // //                         <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+// // //                           <img
+// // //                             src={`http://localhost:5000/uploads/${selectedVehicle.source === "user" ? "user-vehicles" : "vehicles"}/${photo.filename}`}
+// // //                             alt={photo.label}
+// // //                             className="w-full h-full object-cover"
+// // //                           />
+// // //                           <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm backdrop-blur-sm">
+// // //                             {photo.label}
+// // //                           </div>
+// // //                         </div>
+// // //                       </div>
+// // //                     ))
+// // //                   ) : (
+// // //                     <div className="lg:col-span-3 h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+// // //                       <FaCar className="text-8xl text-gray-300" />
+// // //                     </div>
+// // //                   )}
+// // //                 </div>
+
+// // //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+// // //                   {/* Left Column - Specifications */}
+// // //                   <div className="lg:col-span-2">
+// // //                     <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// // //                       Specifications
+// // //                     </h3>
+// // //                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+// // //                       {[
+// // //                         {
+// // //                           icon: FaCogs,
+// // //                           label: "Transmission",
+// // //                           value: selectedVehicle.gearType,
+// // //                         },
+// // //                         {
+// // //                           icon: FaChair,
+// // //                           label: "Seats",
+// // //                           value: `${selectedVehicle.seats} Persons`,
+// // //                         },
+// // //                         {
+// // //                           icon: FaSnowflake,
+// // //                           label: "Air Conditioning",
+// // //                           value: selectedVehicle.airCondition,
+// // //                         },
+// // //                         {
+// // //                           icon: FaUser,
+// // //                           label: "Driver",
+// // //                           value: selectedVehicle.driverName || "Not Included",
+// // //                         },
+// // //                         {
+// // //                           icon: FaPhone,
+// // //                           label: "Contact",
+// // //                           value: selectedVehicle.phoneNumber,
+// // //                         },
+// // //                         {
+// // //                           icon: FaCalendarAlt,
+// // //                           label: "Booking Type",
+// // //                           value: selectedVehicle.bookingType,
+// // //                         },
+// // //                       ].map((spec, index) => (
+// // //                         <div
+// // //                           key={index}
+// // //                           className="flex items-center p-4 bg-gray-50 rounded-xl"
+// // //                         >
+// // //                           <div className="p-3 bg-white rounded-lg shadow-sm mr-4">
+// // //                             <spec.icon className="text-blue-600" />
+// // //                           </div>
+// // //                           <div>
+// // //                             <p className="text-sm text-gray-500">
+// // //                               {spec.label}
+// // //                             </p>
+// // //                             <p className="font-semibold text-gray-900">
+// // //                               {spec.value}
+// // //                             </p>
+// // //                           </div>
+// // //                         </div>
+// // //                       ))}
+// // //                     </div>
+// // //                     {selectedVehicle.features &&
+// // //                       selectedVehicle.features.length > 0 && (
+// // //                         <div className="mt-10">
+// // //                           <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// // //                             Features & Amenities
+// // //                           </h3>
+// // //                           <div className="flex flex-wrap gap-3">
+// // //                             {selectedVehicle.features.map((feature, index) => (
+// // //                               <span
+// // //                                 key={index}
+// // //                                 className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium"
+// // //                               >
+// // //                                 {feature}
+// // //                               </span>
+// // //                             ))}
+// // //                           </div>
+// // //                         </div>
+// // //                       )}
+// // //                     {selectedVehicle.description && (
+// // //                       <div className="mt-10">
+// // //                         <h3 className="text-2xl font-bold text-gray-900 mb-4">
+// // //                           Description
+// // //                         </h3>
+// // //                         <p className="text-gray-600 leading-relaxed">
+// // //                           {selectedVehicle.description}
+// // //                         </p>
+// // //                       </div>
+// // //                     )}
+// // //                   </div>
+
+// // //                   {/* Right Column - Pricing & Booking */}
+// // //                   <div className="lg:col-span-1">
+// // //                     <div className="sticky top-24 bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg">
+// // //                       <div className="text-center mb-6">
+// // //                         <p className="text-gray-500 mb-2">Daily Rate</p>
+// // //                         <div className="flex items-baseline justify-center">
+// // //                           <span className="text-5xl font-bold text-gray-900">
+// // //                             रु{selectedVehicle.ratePerDay}
+// // //                           </span>
+// // //                           <span className="text-gray-500 ml-2">/day</span>
+// // //                         </div>
+// // //                       </div>
+// // //                       <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+// // //                         <div className="flex items-start">
+// // //                           <FaInfoCircle className="text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+// // //                           <div>
+// // //                             <h4 className="font-semibold text-blue-800 mb-1">
+// // //                               Complete Price Breakdown
+// // //                             </h4>
+// // //                             <p className="text-sm text-blue-700">
+// // //                               Full price calculation including optional extras,
+// // //                               service fee, and taxes will be shown during
+// // //                               booking.
+// // //                             </p>
+// // //                           </div>
+// // //                         </div>
+// // //                       </div>
+// // //                       <button
+// // //                         onClick={() => {
+// // //                           handleBookNow(selectedVehicle);
+// // //                           setShowDetailsModal(false);
+// // //                         }}
+// // //                         className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-green-500/30 hover:scale-105 transition-all duration-300"
+// // //                       >
+// // //                         Book This Vehicle
+// // //                       </button>
+// // //                       <div className="mt-6 text-center">
+// // //                         <p className="text-gray-500 text-sm">
+// // //                           • Free cancellation • 24/7 support • Instant
+// // //                           confirmation
+// // //                         </p>
+// // //                       </div>
+// // //                     </div>
+// // //                   </div>
+// // //                 </div>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //       )}
+
+// // //       {/* CTA Section */}
+// // //       {/* CTA Section */}
+// // //       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900"></section>
+// // //       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900">
+// // //         <div className="container mx-auto px-6 text-center">
+// // //           <span className="inline-block px-4 py-1.5 bg-white/10 text-white rounded-full text-sm font-semibold mb-6 backdrop-blur-sm border border-white/20">
+// // //             🚗 Start Your Journey Today
+// // //           </span>
+// // //           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+// // //             Ready for Your Next Adventure?
+// // //           </h2>
+// // //           <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
+// // //             Join thousands of satisfied customers who trust RentRide for their
+// // //             travel needs
+// // //           </p>
+// // //           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+// // //             <button
+// // //               onClick={() => navigate("/profiledetails")}
+// // //               className="px-10 py-4 bg-white text-gray-900 font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+// // //             >
+// // //               Start Booking Now
+// // //             </button>
+// // //             <button className="px-10 py-4 bg-transparent border-2 border-white/50 text-white font-bold rounded-xl hover:bg-white/10 hover:border-white transition-all duration-300">
+// // //               Contact Support
+// // //             </button>
+// // //           </div>
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Footer with Newsletter */}
+// // //       <footer id="contact" className="bg-gray-900 text-white pt-20 pb-8">
+// // //         <div className="container mx-auto px-6">
+// // //           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+// // //             <div>
+// // //               <div className="flex items-center gap-3 mb-6">
+// // //                 <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// // //                   <FaCar className="text-white text-2xl" />
+// // //                 </div>
+// // //                 <div>
+// // //                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// // //                     Rent<span className="text-white">Ride</span>
+// // //                   </h1>
+// // //                   <p className="text-xs text-gray-400 -mt-1">
+// // //                     Premium Car Rental
+// // //                   </p>
+// // //                 </div>
+// // //               </div>
+// // //               <p className="text-gray-400 mb-6 text-sm leading-relaxed">
+// // //                 Premium car rental service in Kathmandu. Experience luxury,
+// // //                 reliability, and exceptional service.
+// // //               </p>
+// // //             </div>
+// // //             <div>
+// // //               <h4 className="text-lg font-bold mb-6 text-white">Quick Links</h4>
+// // //               <ul className="space-y-3">
+// // //                 {["Browse Cars", "How It Works", "About Us", "Contact"].map(
+// // //                   (item, index) => (
+// // //                     <li key={index}>
+// // //                       <a
+// // //                         href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+// // //                         className="text-gray-400 hover:text-white hover:translate-x-1 inline-flex transition-all duration-200 text-sm"
+// // //                       >
+// // //                         {item}
+// // //                       </a>
+// // //                     </li>
+// // //                   ),
+// // //                 )}
+// // //               </ul>
+// // //             </div>
+// // //             <div>
+// // //               <h4 className="text-lg font-bold mb-6 text-white">
+// // //                 Contact Info
+// // //               </h4>
+// // //               <ul className="text-gray-400 space-y-4 text-sm">
+// // //                 <li className="flex items-start gap-3">
+// // //                   <FaMapMarkerAlt className="mt-1 text-blue-400 flex-shrink-0" />
+// // //                   <span>Kathmandu, Nepal</span>
+// // //                 </li>
+// // //                 <li className="flex items-center gap-3">
+// // //                   <FaPhone className="text-blue-400 flex-shrink-0" />
+// // //                   <span>+977 9844177965</span>
+// // //                 </li>
+// // //                 <li className="flex items-center gap-3">
+// // //                   <FaClock className="text-blue-400 flex-shrink-0" />
+// // //                   <span>24/7 Support</span>
+// // //                 </li>
+// // //               </ul>
+// // //             </div>
+// // //             <div>
+// // //               <h4 className="text-lg font-bold mb-6 text-white">Newsletter</h4>
+// // //               <p className="text-gray-400 mb-4 text-sm">
+// // //                 Subscribe for exclusive deals and updates
+// // //               </p>
+// // //               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+// // //                 <div className="flex rounded-xl overflow-hidden border border-gray-700 focus-within:border-blue-500 transition-colors">
+// // //                   <input
+// // //                     type="email"
+// // //                     placeholder="Your email"
+// // //                     value={subscriberEmail}
+// // //                     onChange={(e) => setSubscriberEmail(e.target.value)}
+// // //                     className="flex-1 px-4 py-3 bg-gray-800 text-white text-sm focus:outline-none placeholder-gray-500"
+// // //                   />
+// // //                   <button
+// // //                     type="submit"
+// // //                     className="px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold hover:opacity-90 transition-opacity flex items-center gap-1 text-sm"
+// // //                   >
+// // //                     <FaEnvelope size={13} />
+// // //                   </button>
+// // //                 </div>
+// // //                 {subscribeMessage && (
+// // //                   <p
+// // //                     className={`text-xs ${subscribeStatus === "success" ? "text-green-400" : subscribeStatus === "error" ? "text-red-400" : "text-blue-400"}`}
+// // //                   >
+// // //                     {subscribeMessage}
+// // //                   </p>
+// // //                 )}
+// // //               </form>
+// // //             </div>
+// // //           </div>
+// // //           <div className="border-t border-gray-800 pt-8 text-center">
+// // //             <p className="text-gray-500 text-sm">
+// // //               &copy; {new Date().getFullYear()} RentRide. All rights reserved.
+// // //             </p>
+// // //             <p className="text-gray-600 text-xs mt-2">
+// // //               Premium car rental service in Kathmandu
+// // //             </p>
+// // //           </div>
+// // //         </div>
+// // //       </footer>
+// // //     </div>
+// // //   );
+// // // };
+
+// // // export default RentRideHome;
+
+// // // import React, { useState, useEffect } from "react";
+// // // import {
+// // //   FaCar,
+// // //   FaUserCircle,
+// // //   FaCheckCircle,
+// // //   FaShieldAlt,
+// // //   FaCogs,
+// // //   FaSnowflake,
+// // //   FaUser,
+// // //   FaPhone,
+// // //   FaChair,
+// // //   FaStar,
+// // //   FaHeart,
+// // //   FaMapMarkerAlt,
+// // //   FaClock,
+// // //   FaSearch,
+// // //   FaCalendarAlt,
+// // //   FaCreditCard,
+// // //   FaInfoCircle,
+// // //   FaEnvelope,
+// // // } from "react-icons/fa";
+// // // import { useNavigate } from "react-router-dom";
+// // // import axios from "axios";
+
+// // // const API_URL = "http://localhost:5000/api";
+
+// // // const axiosInstance = axios.create({
+// // //   baseURL: API_URL,
+// // //   timeout: 10000,
+// // // });
+
+// // // axiosInstance.interceptors.request.use((config) => {
+// // //   const token = localStorage.getItem("token");
+// // //   if (token) config.headers.Authorization = `Bearer ${token}`;
+// // //   return config;
+// // // });
+
+// // // const RentRideHome = () => {
+// // //   const [activeFilter, setActiveFilter] = useState("All vehicles");
+// // //   const [vehicles, setVehicles] = useState([]);
+// // //   const [loading, setLoading] = useState(true);
+// // //   const [error, setError] = useState("");
+// // //   const [selectedVehicle, setSelectedVehicle] = useState(null);
+// // //   const [showDetailsModal, setShowDetailsModal] = useState(false);
+// // //   const [searchQuery, setSearchQuery] = useState("");
+// // //   const [wishlist, setWishlist] = useState(new Set());
+// // //   const [userProfile, setUserProfile] = useState(null);
+// // //   const [userLoading, setUserLoading] = useState(true);
+// // //   const [subscriberEmail, setSubscriberEmail] = useState("");
+// // //   const [subscribeMessage, setSubscribeMessage] = useState("");
+// // //   const [subscribeStatus, setSubscribeStatus] = useState(null);
+// // //   const navigate = useNavigate();
+
+// // //   const filters = [
+// // //     "All vehicles",
+// // //     "Sedan",
+// // //     "SUV",
+// // //     "Hatchback",
+// // //     "MPV",
+// // //     "Coupe",
+// // //     "Convertible",
+// // //     "Pickup",
+// // //     "Minivan",
+// // //     "Electric",
+// // //   ];
+
+// // //   const features = [
+// // //     {
+// // //       icon: <FaCar className="text-3xl" />,
+// // //       title: "Wide Selection",
+// // //       description: "Choose from premium vehicles for every need",
+// // //       gradient: "from-blue-500 to-cyan-400",
+// // //     },
+// // //     {
+// // //       icon: <FaCheckCircle className="text-3xl" />,
+// // //       title: "Easy Booking",
+// // //       description: "Book in 3 simple steps, 24/7 availability",
+// // //       gradient: "from-green-500 to-emerald-400",
+// // //     },
+// // //     {
+// // //       icon: <FaShieldAlt className="text-3xl" />,
+// // //       title: "Fully Insured",
+// // //       description: "Comprehensive coverage for peace of mind",
+// // //       gradient: "from-purple-500 to-pink-400",
+// // //     },
+// // //     {
+// // //       icon: <FaCreditCard className="text-3xl" />,
+// // //       title: "Flexible Payment",
+// // //       description: "Multiple payment options available",
+// // //       gradient: "from-orange-500 to-yellow-400",
+// // //     },
+// // //   ];
+
+// // //   // Fetch user profile
+// // //   const fetchUserProfile = async () => {
+// // //     try {
+// // //       const token = localStorage.getItem("token");
+// // //       if (!token) {
+// // //         setUserLoading(false);
+// // //         return;
+// // //       }
+// // //       const response = await axiosInstance.get("/profile");
+// // //       if (response.data.success) setUserProfile(response.data.user);
+// // //     } catch (error) {
+// // //       console.error("Error fetching profile:", error);
+// // //     } finally {
+// // //       setUserLoading(false);
+// // //     }
+// // //   };
+
+// // //   const getProfilePhotoUrl = () =>
+// // //     userProfile?.profilePhoto
+// // //       ? `http://localhost:5000/uploads/profiles/${userProfile.profilePhoto}`
+// // //       : null;
+// // //   const getUserInitial = () =>
+// // //     userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : "U";
+
+// // //   // Handle newsletter subscription
+// // //   const handleSubscribe = async (e) => {
+// // //     e.preventDefault();
+// // //     if (!subscriberEmail) {
+// // //       setSubscribeMessage("Please enter your email address");
+// // //       setSubscribeStatus("error");
+// // //       setTimeout(() => setSubscribeMessage(""), 3000);
+// // //       return;
+// // //     }
+
+// // //     setSubscribeMessage("Subscribing...");
+// // //     setSubscribeStatus("loading");
+
+// // //     try {
+// // //       const response = await axios.post(`${API_URL}/subscribe`, {
+// // //         email: subscriberEmail,
+// // //       });
+// // //       if (response.data.success) {
+// // //         setSubscribeMessage(
+// // //           "✅ Thank you for subscribing! You'll receive exclusive updates.",
+// // //         );
+// // //         setSubscribeStatus("success");
+// // //         setSubscriberEmail("");
+// // //       }
+// // //     } catch (error) {
+// // //       setSubscribeMessage(
+// // //         error.response?.data?.message ||
+// // //           "❌ Subscription failed. Please try again.",
+// // //       );
+// // //       setSubscribeStatus("error");
+// // //     }
+// // //     setTimeout(() => setSubscribeMessage(""), 5000);
+// // //   };
+
+// // //   // Fetch vehicles
+// // //   useEffect(() => {
+// // //     fetchAllVehicles();
+// // //     fetchUserProfile();
+// // //   }, []);
+
+// // //   // const fetchAllVehicles = async () => {
+// // //   //   try {
+// // //   //     setLoading(true);
+// // //   //     setError("");
+
+// // //   //     // Fetch admin vehicles
+// // //   //     const adminResponse = await axios.get(
+// // //   //       "http://localhost:5000/api/vehicles",
+// // //   //       { timeout: 10000 },
+// // //   //     );
+
+// // //   //     // Fetch user vehicles from public endpoint
+// // //   //     let userVehicles = [];
+// // //   //     try {
+// // //   //       const userResponse = await axios.get(
+// // //   //         "http://localhost:5000/api/user-vehicles/public/active",
+// // //   //         { timeout: 10000 },
+// // //   //       );
+// // //   //       if (userResponse.data.success) userVehicles = userResponse.data.data;
+// // //   //     } catch (userError) {
+// // //   //       console.log("Could not fetch user vehicles:", userError.message);
+// // //   //     }
+
+// // //   //     // Get current user ID from token (if logged in)
+// // //   //     let currentUserId = null;
+// // //   //     const token = localStorage.getItem("token");
+// // //   //     if (token) {
+// // //   //       try {
+// // //   //         // Decode JWT token to get user ID
+// // //   //         const tokenParts = token.split(".");
+// // //   //         if (tokenParts.length === 3) {
+// // //   //           const payload = JSON.parse(atob(tokenParts[1]));
+// // //   //           currentUserId = payload.id || payload.userId;
+// // //   //           console.log("Current user ID from token:", currentUserId);
+// // //   //         }
+// // //   //       } catch (decodeError) {
+// // //   //         console.error("Error decoding token:", decodeError);
+// // //   //       }
+// // //   //     }
+
+// // //   //     // Filter out vehicles that belong to the current user
+// // //   //     const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// // //   //       // If no user is logged in, show all user vehicles
+// // //   //       if (!currentUserId) return true;
+
+// // //   //       // Check if this vehicle belongs to the current user
+// // //   //       const vehicleOwnerId = vehicle.owner || vehicle.userId;
+
+// // //   //       // Only show vehicles that are NOT owned by the current user
+// // //   //       const isNotOwnVehicle = vehicleOwnerId !== currentUserId;
+
+// // //   //       if (!isNotOwnVehicle) {
+// // //   //         console.log(
+// // //   //           `Filtering out own vehicle: ${vehicle.carName} (Owner: ${vehicleOwnerId})`,
+// // //   //         );
+// // //   //       }
+
+// // //   //       return isNotOwnVehicle;
+// // //   //     });
+
+// // //   //     console.log(
+// // //   //       `Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded own vehicles)`,
+// // //   //     );
+
+// // //   //     let allVehicles = [];
+// // //   //     if (adminResponse.data && Array.isArray(adminResponse.data))
+// // //   //       allVehicles = [...adminResponse.data];
+// // //   //     else if (
+// // //   //       adminResponse.data?.data &&
+// // //   //       Array.isArray(adminResponse.data.data)
+// // //   //     )
+// // //   //       allVehicles = [...adminResponse.data.data];
+
+// // //   //     // Add filtered user vehicles (excluding own)
+// // //   //     filteredUserVehicles.forEach((userVehicle) =>
+// // //   //       allVehicles.push({ ...userVehicle, source: "user" }),
+// // //   //     );
+
+// // //   //     setVehicles(allVehicles);
+// // //   //   } catch (error) {
+// // //   //     console.error("Error fetching vehicles:", error);
+// // //   //     setError("Failed to load vehicles. Please try again.");
+// // //   //   } finally {
+// // //   //     setLoading(false);
+// // //   //   }
+// // //   // };
+
+// // //   const fetchAllVehicles = async () => {
+// // //     try {
+// // //       setLoading(true);
+// // //       setError("");
+
+// // //       // Fetch admin vehicles
+// // //       const adminResponse = await axios.get(
+// // //         "http://localhost:5000/api/vehicles",
+// // //         { timeout: 10000 },
+// // //       );
+
+// // //       // Get token for authenticated requests
+// // //       const token = localStorage.getItem("token");
+
+// // //       // Fetch user vehicles from public endpoint WITH token if available
+// // //       let userVehicles = [];
+// // //       try {
+// // //         const headers = token ? { Authorization: `Bearer ${token}` } : {};
+// // //         const userResponse = await axios.get(
+// // //           "http://localhost:5000/api/user-vehicles/public/active",
+// // //           {
+// // //             timeout: 10000,
+// // //             headers: headers, // Send token to backend so it can filter own vehicles
+// // //           },
+// // //         );
+// // //         if (userResponse.data.success) userVehicles = userResponse.data.data;
+// // //       } catch (userError) {
+// // //         console.log("Could not fetch user vehicles:", userError.message);
+// // //       }
+
+// // //       // Get current user ID from token (if logged in) - for frontend filtering as backup
+// // //       let currentUserId = null;
+// // //       if (token) {
+// // //         try {
+// // //           // Decode JWT token to get user ID
+// // //           const tokenParts = token.split(".");
+// // //           if (tokenParts.length === 3) {
+// // //             const payload = JSON.parse(atob(tokenParts[1]));
+// // //             currentUserId = payload.id || payload.userId;
+// // //             console.log("Current user ID from token:", currentUserId);
+// // //           }
+// // //         } catch (decodeError) {
+// // //           console.error("Error decoding token:", decodeError);
+// // //         }
+// // //       }
+
+// // //       // Frontend filtering as backup (backend should already filter, but double-check)
+// // //       const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// // //         // If no user is logged in, show all user vehicles
+// // //         if (!currentUserId) return true;
+
+// // //         // Check if this vehicle belongs to the current user
+// // //         const vehicleOwnerId = vehicle.userId || vehicle.owner || vehicle.user;
+
+// // //         // Convert both to strings for comparison
+// // //         const ownerIdStr = vehicleOwnerId?.toString();
+// // //         const currentUserIdStr = currentUserId?.toString();
+
+// // //         // Only show vehicles that are NOT owned by the current user
+// // //         const isNotOwnVehicle = ownerIdStr !== currentUserIdStr;
+
+// // //         if (!isNotOwnVehicle) {
+// // //           console.log(
+// // //             `🚫 Filtering out own vehicle: ${vehicle.carName} (Owner: ${ownerIdStr})`,
+// // //           );
+// // //         }
+
+// // //         return isNotOwnVehicle;
+// // //       });
+
+// // //       console.log(
+// // //         `✅ Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded ${userVehicles.length - filteredUserVehicles.length} own vehicles)`,
+// // //       );
+
+// // //       // Combine admin and user vehicles
+// // //       let allVehicles = [];
+
+// // //       // Add admin vehicles
+// // //       if (adminResponse.data && Array.isArray(adminResponse.data)) {
+// // //         allVehicles = [...adminResponse.data];
+// // //       } else if (
+// // //         adminResponse.data?.data &&
+// // //         Array.isArray(adminResponse.data.data)
+// // //       ) {
+// // //         allVehicles = [...adminResponse.data.data];
+// // //       }
+
+// // //       // Add filtered user vehicles (excluding own)
+// // //       filteredUserVehicles.forEach((userVehicle) =>
+// // //         allVehicles.push({ ...userVehicle, source: "user" }),
+// // //       );
+
+// // //       console.log(`📊 Total vehicles to display: ${allVehicles.length}`);
+// // //       setVehicles(allVehicles);
+// // //     } catch (error) {
+// // //       console.error("Error fetching vehicles:", error);
+// // //       setError("Failed to load vehicles. Please try again.");
+// // //     } finally {
+// // //       setLoading(false);
+// // //     }
+// // //   };
+
+// // //   const toggleWishlist = (vehicleId, e) => {
+// // //     e.stopPropagation();
+// // //     const newWishlist = new Set(wishlist);
+// // //     newWishlist.has(vehicleId)
+// // //       ? newWishlist.delete(vehicleId)
+// // //       : newWishlist.add(vehicleId);
+// // //     setWishlist(newWishlist);
+// // //   };
+
+// // //   const filteredVehicles = vehicles.filter((vehicle) => {
+// // //     const matchesFilter =
+// // //       activeFilter === "All vehicles" ||
+// // //       vehicle.carType?.toLowerCase() === activeFilter.toLowerCase();
+// // //     const matchesSearch =
+// // //       searchQuery === "" ||
+// // //       vehicle.carName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+// // //       vehicle.carType?.toLowerCase().includes(searchQuery.toLowerCase());
+// // //     return matchesFilter && matchesSearch;
+// // //   });
+
+// // //   const getVehicleImage = (vehicle) => {
+// // //     if (vehicle.photos?.length > 0) {
+// // //       const extraView = vehicle.photos.find(
+// // //         (photo) => photo.label === "Extra View",
+// // //       );
+// // //       const photo = extraView || vehicle.photos[0];
+// // //       const folder = vehicle.source === "user" ? "user-vehicles" : "vehicles";
+// // //       return `http://localhost:5000/uploads/${folder}/${photo.filename}`;
+// // //     }
+// // //     return null;
+// // //   };
+
+// // //   const handleViewDetails = (vehicle) => {
+// // //     setSelectedVehicle(vehicle);
+// // //     setShowDetailsModal(true);
+// // //   };
+
+// // //   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
+
+// // //   const CarCard = ({ vehicle }) => {
+// // //     const imageUrl = getVehicleImage(vehicle);
+// // //     const isWishlisted = wishlist.has(vehicle._id);
+
+// // //     return (
+// // //       <div
+// // //         className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer"
+// // //         onClick={() => handleViewDetails(vehicle)}
+// // //       >
+// // //         <button
+// // //           onClick={(e) => toggleWishlist(vehicle._id, e)}
+// // //           className="absolute top-4 right-4 z-10 p-2.5 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-white hover:scale-110 transition-transform duration-300"
+// // //         >
+// // //           <FaHeart
+// // //             className={`text-lg ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-400"}`}
+// // //           />
+// // //         </button>
+// // //         <div className="absolute top-4 left-4 z-10">
+// // //           <span
+// // //             className={`px-3 py-1.5 rounded-full text-xs font-semibold ${vehicle.status === "Available" ? "bg-green-500/90 text-white" : "bg-red-500/90 text-white"}`}
+// // //           >
+// // //             {vehicle.status}
+// // //           </span>
+// // //         </div>
+// // //         <div className="h-56 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+// // //           {imageUrl ? (
+// // //             <img
+// // //               src={imageUrl}
+// // //               alt={vehicle.carName}
+// // //               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+// // //             />
+// // //           ) : (
+// // //             <div className="w-full h-full flex items-center justify-center">
+// // //               <FaCar className="text-7xl text-gray-300" />
+// // //             </div>
+// // //           )}
+// // //         </div>
+// // //         <div className="p-6">
+// // //           <div className="flex justify-between items-start mb-4">
+// // //             <div className="flex-1">
+// // //               <div className="flex items-center gap-2 mb-1">
+// // //                 <h3 className="text-xl font-bold text-gray-800 truncate">
+// // //                   {vehicle.carName}
+// // //                 </h3>
+// // //                 <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+// // //                   {vehicle.carType}
+// // //                 </span>
+// // //               </div>
+// // //               <div className="flex items-center text-gray-500 text-sm mb-3">
+// // //                 <FaMapMarkerAlt className="mr-1.5" />
+// // //                 <span>Kathmandu, Nepal</span>
+// // //               </div>
+// // //               <div className="flex items-center gap-1 mb-4">
+// // //                 {[...Array(5)].map((_, i) => (
+// // //                   <FaStar
+// // //                     key={i}
+// // //                     className={`text-sm ${i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+// // //                   />
+// // //                 ))}
+// // //                 <span className="text-gray-500 text-sm ml-2">4.8 (128)</span>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+// // //           <div className="grid grid-cols-2 gap-3 mb-6">
+// // //             <div className="flex items-center gap-2">
+// // //               <div className="p-2 bg-gray-50 rounded-lg">
+// // //                 <FaCogs className="text-gray-600" />
+// // //               </div>
+// // //               <div>
+// // //                 <p className="text-xs text-gray-500">Transmission</p>
+// // //                 <p className="font-medium text-gray-800">{vehicle.gearType}</p>
+// // //               </div>
+// // //             </div>
+// // //             <div className="flex items-center gap-2">
+// // //               <div className="p-2 bg-gray-50 rounded-lg">
+// // //                 <FaChair className="text-gray-600" />
+// // //               </div>
+// // //               <div>
+// // //                 <p className="text-xs text-gray-500">Seats</p>
+// // //                 <p className="font-medium text-gray-800">{vehicle.seats}</p>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+// // //           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+// // //             <div>
+// // //               <p className="text-xs text-gray-500">Daily rate</p>
+// // //               <div className="flex items-baseline">
+// // //                 <span className="text-2xl font-bold text-gray-800">
+// // //                   रु {vehicle.ratePerDay}
+// // //                 </span>
+// // //                 <span className="text-gray-500 text-sm ml-1">/day</span>
+// // //               </div>
+// // //             </div>
+// // //             <button
+// // //               onClick={(e) => {
+// // //                 e.stopPropagation();
+// // //                 handleViewDetails(vehicle);
+// // //               }}
+// // //               className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+// // //             >
+// // //               View Details
+// // //             </button>
+// // //           </div>
+// // //         </div>
+// // //       </div>
+// // //     );
+// // //   };
+
+// // //   return (
+// // //     <div className="min-h-screen bg-gray-50">
+// // //       {/* Header */}
+// // //       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
+// // //         <div className="container mx-auto px-6 py-4">
+// // //           <div className="flex items-center justify-between">
+// // //             {/* Logo */}
+// // //             {/* <div
+// // //               className="flex items-center gap-3 cursor-pointer"
+// // //               onClick={() => navigate("/")}
+// // //             >
+// // //               <div className="p-2.5 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg">
+// // //                 <FaCar className="text-white text-2xl" />
+// // //               </div>
+// // //               <div>
+// // //                 <h1 className="text-2xl font-bold text-gray-900">
+// // //                   Rent<span className="text-blue-600">Ride</span>
+// // //                 </h1>
+// // //                 <p className="text-xs text-gray-500 -mt-1">
+// // //                   Premium Car Rentals
+// // //                 </p>
+// // //               </div>
+// // //             </div> */}
+// // //             <div
+// // //               className="flex items-center gap-3 cursor-pointer"
+// // //               onClick={() => navigate("/")}
+// // //             >
+// // //               <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// // //                 <FaCar className="text-white text-2xl" />
+// // //               </div>
+// // //               <div>
+// // //                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// // //                   Rent<span className="text-gray-800">Ride</span>
+// // //                 </h1>
+// // //                 <p className="text-xs text-gray-500 -mt-1">
+// // //                   Premium Car Rentals
+// // //                 </p>
+// // //               </div>
+// // //             </div>
+
+// // //             {/* Search Bar */}
+// // //             <div className="hidden md:block flex-1 max-w-xl mx-8">
+// // //               <div className="relative">
+// // //                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// // //                   <FaSearch className="text-gray-400" />
+// // //                 </div>
+// // //                 <input
+// // //                   type="text"
+// // //                   placeholder="Search by car name or type..."
+// // //                   value={searchQuery}
+// // //                   onChange={(e) => setSearchQuery(e.target.value)}
+// // //                   className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // //                 />
+// // //               </div>
+// // //             </div>
+
+// // //             {/* Navigation */}
+// // //             <nav className="hidden lg:flex items-center space-x-8">
+// // //               <a
+// // //                 href="#vehicles"
+// // //                 className="text-gray-700 hover:text-blue-600 font-medium"
+// // //               >
+// // //                 Browse
+// // //               </a>
+// // //               <a
+// // //                 href="#how-it-works"
+// // //                 className="text-gray-700 hover:text-blue-600 font-medium"
+// // //               >
+// // //                 How It Works
+// // //               </a>
+// // //               <a
+// // //                 href="#contact"
+// // //                 className="text-gray-700 hover:text-blue-600 font-medium"
+// // //               >
+// // //                 Contact
+// // //               </a>
+// // //             </nav>
+
+// // //             {/* User Actions with Profile Photo */}
+// // //             <div className="flex items-center gap-4">
+// // //               <button
+// // //                 className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg"
+// // //                 onClick={() => navigate("/profiledetails")}
+// // //               >
+// // //                 Book Now
+// // //               </button>
+// // //               {userLoading ? (
+// // //                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+// // //               ) : userProfile && getProfilePhotoUrl() ? (
+// // //                 <div
+// // //                   onClick={() => navigate("/profiledetails")}
+// // //                   className="cursor-pointer"
+// // //                 >
+// // //                   <img
+// // //                     src={getProfilePhotoUrl()}
+// // //                     alt="Profile"
+// // //                     className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+// // //                     onError={(e) => {
+// // //                       e.target.style.display = "none";
+// // //                       const parent = e.target.parentElement;
+// // //                       if (parent) {
+// // //                         const avatar = document.createElement("div");
+// // //                         avatar.className =
+// // //                           "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg cursor-pointer";
+// // //                         avatar.textContent = getUserInitial();
+// // //                         parent.innerHTML = "";
+// // //                         parent.appendChild(avatar);
+// // //                       }
+// // //                     }}
+// // //                   />
+// // //                 </div>
+// // //               ) : (
+// // //                 <div
+// // //                   onClick={() => navigate("/profiledetails")}
+// // //                   className="cursor-pointer"
+// // //                 >
+// // //                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+// // //                     {getUserInitial()}
+// // //                   </div>
+// // //                 </div>
+// // //               )}
+// // //             </div>
+// // //           </div>
+
+// // //           {/* Mobile Search */}
+// // //           <div className="md:hidden mt-4">
+// // //             <div className="relative">
+// // //               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// // //                 <FaSearch className="text-gray-400" />
+// // //               </div>
+// // //               <input
+// // //                 type="text"
+// // //                 placeholder="Search vehicles..."
+// // //                 value={searchQuery}
+// // //                 onChange={(e) => setSearchQuery(e.target.value)}
+// // //                 className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // //               />
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //       </header>
+
+// // //       {/* Hero Section */}
+// // //       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+// // //         <div className="absolute inset-0">
+// // //           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10"></div>
+// // //           <div
+// // //             className="absolute inset-0 z-0"
+// // //             style={{
+// // //               backgroundImage:
+// // //                 'url("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
+// // //               backgroundSize: "cover",
+// // //               backgroundPosition: "center",
+// // //             }}
+// // //           ></div>
+// // //         </div>
+// // //         <div className="container mx-auto px-6 py-24 md:py-32 relative z-20">
+// // //           <div className="max-w-2xl">
+// // //             <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+// // //               🎉 Premium Service Since 2024
+// // //             </span>
+// // //             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+// // //               Drive Your <span className="text-blue-400">Dream Car</span> in
+// // //               Kathmandu
+// // //             </h1>
+// // //             <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-xl">
+// // //               Experience luxury and convenience with our premium car rental
+// // //               service. Book online in minutes.
+// // //             </p>
+// // //             <div className="flex flex-col sm:flex-row gap-4">
+// // //               <button
+// // //                 onClick={() =>
+// // //                   document
+// // //                     .getElementById("vehicles")
+// // //                     .scrollIntoView({ behavior: "smooth" })
+// // //                 }
+// // //                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all"
+// // //               >
+// // //                 Explore Cars
+// // //               </button>
+// // //               <button
+// // //                 onClick={() =>
+// // //                   document
+// // //                     .getElementById("how-it-works")
+// // //                     .scrollIntoView({ behavior: "smooth" })
+// // //                 }
+// // //                 className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-xl hover:bg-white/20"
+// // //               >
+// // //                 How It Works
+// // //               </button>
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //         <div className="relative z-20">
+// // //           <div className="container mx-auto px-6 -mb-12">
+// // //             <div className="bg-white rounded-2xl shadow-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+// // //               <div className="text-center">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // //                   10K+
+// // //                 </div>
+// // //                 <div className="text-gray-600 text-sm">Happy Customers</div>
+// // //               </div>
+// // //               <div className="text-center">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // //                   200+
+// // //                 </div>
+// // //                 <div className="text-gray-600 text-sm">Premium Vehicles</div>
+// // //               </div>
+// // //               <div className="text-center">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">15+</div>
+// // //                 <div className="text-gray-600 text-sm">Cities</div>
+// // //               </div>
+// // //               <div className="text-center">
+// // //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// // //                   24/7
+// // //                 </div>
+// // //                 <div className="text-gray-600 text-sm">Support</div>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Features Section */}
+// // //       <section
+// // //         id="how-it-works"
+// // //         className="py-20 bg-gradient-to-b from-white to-gray-50"
+// // //       >
+// // //         <div className="container mx-auto px-6">
+// // //           <div className="text-center mb-16">
+// // //             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
+// // //               WHY CHOOSE US
+// // //             </span>
+// // //             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+// // //               The Best Rental Experience
+// // //             </h2>
+// // //             <p className="text-gray-600 max-w-2xl mx-auto">
+// // //               We combine technology with personalized service to deliver an
+// // //               exceptional car rental experience
+// // //             </p>
+// // //           </div>
+// // //           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+// // //             {features.map((feature, index) => (
+// // //               <div
+// // //                 key={index}
+// // //                 className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100"
+// // //               >
+// // //                 <div
+// // //                   className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 group-hover:scale-110 transition-transform`}
+// // //                 >
+// // //                   <div className="text-white">{feature.icon}</div>
+// // //                 </div>
+// // //                 <h3 className="text-xl font-bold text-gray-900 mb-3">
+// // //                   {feature.title}
+// // //                 </h3>
+// // //                 <p className="text-gray-600">{feature.description}</p>
+// // //               </div>
+// // //             ))}
+// // //           </div>
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Choose Your Ride Section */}
+// // //       <section id="vehicles" className="py-20 bg-gray-50">
+// // //         <div className="container mx-auto px-6">
+// // //           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+// // //             <div>
+// // //               <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
+// // //                 FLEET COLLECTION
+// // //               </span>
+// // //               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+// // //                 Choose Your Perfect Ride
+// // //               </h2>
+// // //               <p className="text-gray-600 mt-2">
+// // //                 Select from our premium collection of vehicles
+// // //               </p>
+// // //             </div>
+// // //             <div className="flex items-center gap-4">
+// // //               <div className="text-right">
+// // //                 <div className="text-2xl font-bold text-gray-900">
+// // //                   {filteredVehicles.length}
+// // //                 </div>
+// // //                 <div className="text-gray-600 text-sm">Available Cars</div>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+
+// // //           <div className="flex flex-wrap gap-3 mb-12">
+// // //             {filters.map((filter) => (
+// // //               <button
+// // //                 key={filter}
+// // //                 onClick={() => setActiveFilter(filter)}
+// // //                 className={`px-5 py-2.5 rounded-full transition-all duration-300 ${activeFilter === filter ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg" : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"}`}
+// // //               >
+// // //                 {filter}
+// // //               </button>
+// // //             ))}
+// // //           </div>
+
+// // //           {loading && (
+// // //             <div className="text-center py-20">
+// // //               <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+// // //               <p className="text-gray-600">Loading premium vehicles...</p>
+// // //             </div>
+// // //           )}
+// // //           {error && !loading && (
+// // //             <div className="text-center py-20">
+// // //               <div className="text-red-500 text-5xl mb-4">⚠️</div>
+// // //               <h3 className="text-xl font-semibold mb-2">
+// // //                 Something went wrong
+// // //               </h3>
+// // //               <p className="text-gray-600 mb-6">{error}</p>
+// // //               <button
+// // //                 onClick={fetchAllVehicles}
+// // //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg"
+// // //               >
+// // //                 Try Again
+// // //               </button>
+// // //             </div>
+// // //           )}
+
+// // //           {!loading && !error && filteredVehicles.length > 0 && (
+// // //             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+// // //               {filteredVehicles.map((vehicle) => (
+// // //                 <CarCard key={vehicle._id} vehicle={vehicle} />
+// // //               ))}
+// // //             </div>
+// // //           )}
+
+// // //           {!loading && !error && filteredVehicles.length === 0 && (
+// // //             <div className="text-center py-20">
+// // //               <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl">
+// // //                 <FaCar className="text-6xl text-gray-400" />
+// // //               </div>
+// // //               <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+// // //                 No vehicles found
+// // //               </h3>
+// // //               <p className="text-gray-600 mb-6">
+// // //                 {searchQuery
+// // //                   ? `No results for "${searchQuery}"`
+// // //                   : "No vehicles available in this category"}
+// // //               </p>
+// // //               <button
+// // //                 onClick={() => {
+// // //                   setActiveFilter("All vehicles");
+// // //                   setSearchQuery("");
+// // //                 }}
+// // //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg"
+// // //               >
+// // //                 View All Vehicles
+// // //               </button>
+// // //             </div>
+// // //           )}
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Vehicle Details Modal */}
+// // //       {showDetailsModal && selectedVehicle && (
+// // //         <div className="fixed inset-0 z-[100]">
+// // //           <div
+// // //             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+// // //             onClick={() => setShowDetailsModal(false)}
+// // //           ></div>
+// // //           <div className="absolute inset-0 flex items-center justify-center p-4">
+// // //             <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+// // //               <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
+// // //                 <div>
+// // //                   <h2 className="text-3xl font-bold text-gray-900">
+// // //                     {selectedVehicle.carName}
+// // //                   </h2>
+// // //                   <div className="flex items-center gap-3 mt-2">
+// // //                     <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+// // //                       {selectedVehicle.carType}
+// // //                     </span>
+// // //                     <span
+// // //                       className={`px-3 py-1 rounded-full text-sm font-medium ${selectedVehicle.status === "Available" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
+// // //                     >
+// // //                       {selectedVehicle.status}
+// // //                     </span>
+// // //                     <span className="text-gray-500">
+// // //                       {selectedVehicle.carNumber}
+// // //                     </span>
+// // //                   </div>
+// // //                 </div>
+// // //                 <button
+// // //                   onClick={() => setShowDetailsModal(false)}
+// // //                   className="p-3 hover:bg-gray-100 rounded-full transition-colors"
+// // //                 >
+// // //                   <span className="text-2xl text-gray-500">×</span>
+// // //                 </button>
+// // //               </div>
+// // //               <div className="p-8">
+// // //                 {/* Gallery */}
+// // //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+// // //                   {selectedVehicle.photos &&
+// // //                   selectedVehicle.photos.length > 0 ? (
+// // //                     selectedVehicle.photos.map((photo, index) => (
+// // //                       <div
+// // //                         key={index}
+// // //                         className={`${index === 0 ? "lg:col-span-2" : ""}`}
+// // //                       >
+// // //                         <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+// // //                           <img
+// // //                             src={`http://localhost:5000/uploads/${selectedVehicle.source === "user" ? "user-vehicles" : "vehicles"}/${photo.filename}`}
+// // //                             alt={photo.label}
+// // //                             className="w-full h-full object-cover"
+// // //                           />
+// // //                           <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm backdrop-blur-sm">
+// // //                             {photo.label}
+// // //                           </div>
+// // //                         </div>
+// // //                       </div>
+// // //                     ))
+// // //                   ) : (
+// // //                     <div className="lg:col-span-3 h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+// // //                       <FaCar className="text-8xl text-gray-300" />
+// // //                     </div>
+// // //                   )}
+// // //                 </div>
+
+// // //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+// // //                   {/* Left Column - Specifications */}
+// // //                   <div className="lg:col-span-2">
+// // //                     <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// // //                       Specifications
+// // //                     </h3>
+// // //                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+// // //                       {[
+// // //                         {
+// // //                           icon: FaCogs,
+// // //                           label: "Transmission",
+// // //                           value: selectedVehicle.gearType,
+// // //                         },
+// // //                         {
+// // //                           icon: FaChair,
+// // //                           label: "Seats",
+// // //                           value: `${selectedVehicle.seats} Persons`,
+// // //                         },
+// // //                         {
+// // //                           icon: FaSnowflake,
+// // //                           label: "Air Conditioning",
+// // //                           value: selectedVehicle.airCondition,
+// // //                         },
+// // //                         {
+// // //                           icon: FaUser,
+// // //                           label: "Driver",
+// // //                           value: selectedVehicle.driverName || "Not Included",
+// // //                         },
+// // //                         {
+// // //                           icon: FaPhone,
+// // //                           label: "Contact",
+// // //                           value: selectedVehicle.phoneNumber,
+// // //                         },
+// // //                         {
+// // //                           icon: FaCalendarAlt,
+// // //                           label: "Booking Type",
+// // //                           value: selectedVehicle.bookingType,
+// // //                         },
+// // //                       ].map((spec, index) => (
+// // //                         <div
+// // //                           key={index}
+// // //                           className="flex items-center p-4 bg-gray-50 rounded-xl"
+// // //                         >
+// // //                           <div className="p-3 bg-white rounded-lg shadow-sm mr-4">
+// // //                             <spec.icon className="text-blue-600" />
+// // //                           </div>
+// // //                           <div>
+// // //                             <p className="text-sm text-gray-500">
+// // //                               {spec.label}
+// // //                             </p>
+// // //                             <p className="font-semibold text-gray-900">
+// // //                               {spec.value}
+// // //                             </p>
+// // //                           </div>
+// // //                         </div>
+// // //                       ))}
+// // //                     </div>
+// // //                     {selectedVehicle.features &&
+// // //                       selectedVehicle.features.length > 0 && (
+// // //                         <div className="mt-10">
+// // //                           <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// // //                             Features & Amenities
+// // //                           </h3>
+// // //                           <div className="flex flex-wrap gap-3">
+// // //                             {selectedVehicle.features.map((feature, index) => (
+// // //                               <span
+// // //                                 key={index}
+// // //                                 className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium"
+// // //                               >
+// // //                                 {feature}
+// // //                               </span>
+// // //                             ))}
+// // //                           </div>
+// // //                         </div>
+// // //                       )}
+// // //                     {selectedVehicle.description && (
+// // //                       <div className="mt-10">
+// // //                         <h3 className="text-2xl font-bold text-gray-900 mb-4">
+// // //                           Description
+// // //                         </h3>
+// // //                         <p className="text-gray-600 leading-relaxed">
+// // //                           {selectedVehicle.description}
+// // //                         </p>
+// // //                       </div>
+// // //                     )}
+// // //                   </div>
+
+// // //                   {/* Right Column - Pricing & Booking */}
+// // //                   <div className="lg:col-span-1">
+// // //                     <div className="sticky top-24 bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg">
+// // //                       <div className="text-center mb-6">
+// // //                         <p className="text-gray-500 mb-2">Daily Rate</p>
+// // //                         <div className="flex items-baseline justify-center">
+// // //                           <span className="text-5xl font-bold text-gray-900">
+// // //                             रु{selectedVehicle.ratePerDay}
+// // //                           </span>
+// // //                           <span className="text-gray-500 ml-2">/day</span>
+// // //                         </div>
+// // //                       </div>
+// // //                       <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+// // //                         <div className="flex items-start">
+// // //                           <FaInfoCircle className="text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+// // //                           <div>
+// // //                             <h4 className="font-semibold text-blue-800 mb-1">
+// // //                               Complete Price Breakdown
+// // //                             </h4>
+// // //                             <p className="text-sm text-blue-700">
+// // //                               Full price calculation including optional extras,
+// // //                               service fee, and taxes will be shown during
+// // //                               booking.
+// // //                             </p>
+// // //                           </div>
+// // //                         </div>
+// // //                       </div>
+// // //                       <button
+// // //                         onClick={() => {
+// // //                           handleBookNow(selectedVehicle);
+// // //                           setShowDetailsModal(false);
+// // //                         }}
+// // //                         className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-green-500/30 hover:scale-105 transition-all duration-300"
+// // //                       >
+// // //                         Book This Vehicle
+// // //                       </button>
+// // //                       <div className="mt-6 text-center">
+// // //                         <p className="text-gray-500 text-sm">
+// // //                           • Free cancellation • 24/7 support • Instant
+// // //                           confirmation
+// // //                         </p>
+// // //                       </div>
+// // //                     </div>
+// // //                   </div>
+// // //                 </div>
+// // //               </div>
+// // //             </div>
+// // //           </div>
+// // //         </div>
+// // //       )}
+
+// // //       {/* CTA Section */}
+// // //       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900">
+// // //         <div className="container mx-auto px-6 text-center">
+// // //           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+// // //             Ready for Your Next Adventure?
+// // //           </h2>
+// // //           <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto">
+// // //             Join thousands of satisfied customers who trust RentRide for their
+// // //             travel needs
+// // //           </p>
+// // //           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+// // //             <button
+// // //               onClick={() => navigate("/profiledetails")}
+// // //               className="px-10 py-4 bg-white text-gray-900 font-bold rounded-xl hover:shadow-2xl transition-all"
+// // //             >
+// // //               Start Booking Now
+// // //             </button>
+// // //             <button className="px-10 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10">
+// // //               Contact Support
+// // //             </button>
+// // //           </div>
+// // //         </div>
+// // //       </section>
+
+// // //       {/* Footer with Newsletter */}
+// // //       <footer className="bg-gray-900 text-white pt-20 pb-8">
+// // //         <div className="container mx-auto px-6">
+// // //           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+// // //             <div>
+// // //               {/* <div className="flex items-center gap-3 mb-6">
+// // //                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg">
+// // //                   <FaCar className="text-white" />
+// // //                 </div>
+// // //                 <h3 className="text-2xl font-bold">
+// // //                   Rent<span className="text-blue-400">Ride</span>
+// // //                 </h3>
+// // //               </div> */}
+
+// // //               <div className="flex items-center gap-3 mb-6">
+// // //                 <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// // //                   <FaCar className="text-white text-2xl" />
+// // //                 </div>
+// // //                 <div>
+// // //                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// // //                     Rent<span className="text-white">Ride</span>
+// // //                   </h1>
+// // //                   <p className="text-xs text-gray-400 -mt-1">
+// // //                     Premium Car Rental
+// // //                   </p>
+// // //                 </div>
+// // //               </div>
+// // //               <p className="text-gray-400 mb-6">
+// // //                 Premium car rental service in Kathmandu. Experience luxury,
+// // //                 reliability, and exceptional service.
+// // //               </p>
+// // //             </div>
+// // //             <div>
+// // //               <h4 className="text-lg font-bold mb-6">Quick Links</h4>
+// // //               <ul className="space-y-3">
+// // //                 {["Browse Cars", "How It Works", "About Us", "Contact"].map(
+// // //                   (item, index) => (
+// // //                     <li key={index}>
+// // //                       <a
+// // //                         href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+// // //                         className="text-gray-400 hover:text-white"
+// // //                       >
+// // //                         {item}
+// // //                       </a>
+// // //                     </li>
+// // //                   ),
+// // //                 )}
+// // //               </ul>
+// // //             </div>
+// // //             <div>
+// // //               <h4 className="text-lg font-bold mb-6">Contact Info</h4>
+// // //               <ul className="text-gray-400 space-y-4">
+// // //                 <li className="flex items-start">
+// // //                   <FaMapMarkerAlt className="mr-3 mt-1 text-blue-400" />
+// // //                   <span>Kathmandu, Nepal</span>
+// // //                 </li>
+// // //                 <li className="flex items-center">
+// // //                   <FaPhone className="mr-3 text-blue-400" />
+// // //                   <span>+977 9844177965</span>
+// // //                 </li>
+// // //                 <li className="flex items-center">
+// // //                   <FaClock className="mr-3 text-blue-400" />
+// // //                   <span>24/7 Support</span>
+// // //                 </li>
+// // //               </ul>
+// // //             </div>
+// // //             <div>
+// // //               <h4 className="text-lg font-bold mb-6">Newsletter</h4>
+// // //               <p className="text-gray-400 mb-4">
+// // //                 Subscribe for exclusive deals and updates
+// // //               </p>
+// // //               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+// // //                 <div className="flex">
+// // //                   <input
+// // //                     type="email"
+// // //                     placeholder="Your email"
+// // //                     value={subscriberEmail}
+// // //                     onChange={(e) => setSubscriberEmail(e.target.value)}
+// // //                     className="flex-1 px-4 py-3 bg-gray-800 border-0 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+// // //                   />
+// // //                   <button
+// // //                     type="submit"
+// // //                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-r-lg hover:opacity-90 transition-opacity"
+// // //                   >
+// // //                     <FaEnvelope />
+// // //                   </button>
+// // //                 </div>
+// // //                 {subscribeMessage && (
+// // //                   <p
+// // //                     className={`text-sm ${subscribeStatus === "success" ? "text-green-400" : subscribeStatus === "error" ? "text-red-400" : "text-blue-400"}`}
+// // //                   >
+// // //                     {subscribeMessage}
+// // //                   </p>
+// // //                 )}
+// // //               </form>
+// // //             </div>
+// // //           </div>
+// // //           <div className="border-t border-gray-800 pt-8 text-center">
+// // //             <p className="text-gray-500">
+// // //               &copy; {new Date().getFullYear()} RentRide. All rights reserved.
+// // //             </p>
+// // //             <p className="text-gray-500 text-sm mt-2">
+// // //               Premium car rental service in Kathmandu
+// // //             </p>
+// // //           </div>
+// // //         </div>
+// // //       </footer>
+// // //     </div>
+// // //   );
+// // // };
+
+// // // export default RentRideHome;
+
+// // import React, { useState, useEffect } from "react";
+// // import {
+// //   FaCar,
+// //   FaUserCircle,
+// //   FaCheckCircle,
+// //   FaShieldAlt,
+// //   FaCogs,
+// //   FaSnowflake,
+// //   FaUser,
+// //   FaPhone,
+// //   FaChair,
+// //   FaStar,
+// //   FaHeart,
+// //   FaMapMarkerAlt,
+// //   FaClock,
+// //   FaSearch,
+// //   FaCalendarAlt,
+// //   FaCreditCard,
+// //   FaInfoCircle,
+// //   FaEnvelope,
+// // } from "react-icons/fa";
+// // import { useNavigate } from "react-router-dom";
+// // import axios from "axios";
+// // import BikesSection from "./BikesSection";
+
+// // const API_URL = "http://localhost:5000/api";
+
+// // const axiosInstance = axios.create({
+// //   baseURL: API_URL,
+// //   timeout: 10000,
+// // });
+
+// // axiosInstance.interceptors.request.use((config) => {
+// //   const token = localStorage.getItem("token");
+// //   if (token) config.headers.Authorization = `Bearer ${token}`;
+// //   return config;
+// // });
+
+// // const RentRideHome = () => {
+// //   const [activeFilter, setActiveFilter] = useState("All vehicles");
+// //   const [vehicles, setVehicles] = useState([]);
+// //   const [loading, setLoading] = useState(true);
+// //   const [error, setError] = useState("");
+// //   const [selectedVehicle, setSelectedVehicle] = useState(null);
+// //   const [showDetailsModal, setShowDetailsModal] = useState(false);
+// //   const [searchQuery, setSearchQuery] = useState("");
+// //   const [wishlist, setWishlist] = useState(new Set());
+// //   const [userProfile, setUserProfile] = useState(null);
+// //   const [userLoading, setUserLoading] = useState(true);
+// //   const [subscriberEmail, setSubscriberEmail] = useState("");
+// //   const [subscribeMessage, setSubscribeMessage] = useState("");
+// //   const [subscribeStatus, setSubscribeStatus] = useState(null);
+// //   const navigate = useNavigate();
+
+// //   const filters = [
+// //     "All vehicles",
+// //     "Sedan",
+// //     "SUV",
+// //     "Hatchback",
+// //     "MPV",
+// //     "Coupe",
+// //     "Convertible",
+// //     "Pickup",
+// //     "Minivan",
+// //     "Electric",
+// //   ];
+
+// //   const features = [
+// //     {
+// //       icon: <FaCar className="text-3xl" />,
+// //       title: "Wide Selection",
+// //       description: "Choose from premium vehicles for every need",
+// //       gradient: "from-blue-500 to-cyan-400",
+// //     },
+// //     {
+// //       icon: <FaCheckCircle className="text-3xl" />,
+// //       title: "Easy Booking",
+// //       description: "Book in 3 simple steps, 24/7 availability",
+// //       gradient: "from-green-500 to-emerald-400",
+// //     },
+// //     {
+// //       icon: <FaShieldAlt className="text-3xl" />,
+// //       title: "Fully Insured",
+// //       description: "Comprehensive coverage for peace of mind",
+// //       gradient: "from-purple-500 to-pink-400",
+// //     },
+// //     {
+// //       icon: <FaCreditCard className="text-3xl" />,
+// //       title: "Flexible Payment",
+// //       description: "Multiple payment options available",
+// //       gradient: "from-orange-500 to-yellow-400",
+// //     },
+// //   ];
+
+// //   // Fetch user profile
+// //   const fetchUserProfile = async () => {
+// //     try {
+// //       const token = localStorage.getItem("token");
+// //       if (!token) {
+// //         setUserLoading(false);
+// //         return;
+// //       }
+// //       const response = await axiosInstance.get("/profile");
+// //       if (response.data.success) setUserProfile(response.data.user);
+// //     } catch (error) {
+// //       console.error("Error fetching profile:", error);
+// //     } finally {
+// //       setUserLoading(false);
+// //     }
+// //   };
+
+// //   const getProfilePhotoUrl = () =>
+// //     userProfile?.profilePhoto
+// //       ? `http://localhost:5000/uploads/profiles/${userProfile.profilePhoto}`
+// //       : null;
+// //   const getUserInitial = () =>
+// //     userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : "U";
+
+// //   // Handle newsletter subscription
+// //   const handleSubscribe = async (e) => {
+// //     e.preventDefault();
+// //     if (!subscriberEmail) {
+// //       setSubscribeMessage("Please enter your email address");
+// //       setSubscribeStatus("error");
+// //       setTimeout(() => setSubscribeMessage(""), 3000);
+// //       return;
+// //     }
+
+// //     setSubscribeMessage("Subscribing...");
+// //     setSubscribeStatus("loading");
+
+// //     try {
+// //       const response = await axios.post(`${API_URL}/subscribe`, {
+// //         email: subscriberEmail,
+// //       });
+// //       if (response.data.success) {
+// //         setSubscribeMessage(
+// //           "✅ Thank you for subscribing! You'll receive exclusive updates.",
+// //         );
+// //         setSubscribeStatus("success");
+// //         setSubscriberEmail("");
+// //       }
+// //     } catch (error) {
+// //       setSubscribeMessage(
+// //         error.response?.data?.message ||
+// //           "❌ Subscription failed. Please try again.",
+// //       );
+// //       setSubscribeStatus("error");
+// //     }
+// //     setTimeout(() => setSubscribeMessage(""), 5000);
+// //   };
+
+// //   // Fetch vehicles
+// //   useEffect(() => {
+// //     fetchAllVehicles();
+// //     fetchUserProfile();
+// //   }, []);
+
+// //   // const fetchAllVehicles = async () => {
+// //   //   try {
+// //   //     setLoading(true);
+// //   //     setError("");
+
+// //   //     // Fetch admin vehicles
+// //   //     const adminResponse = await axios.get(
+// //   //       "http://localhost:5000/api/vehicles",
+// //   //       { timeout: 10000 },
+// //   //     );
+
+// //   //     // Fetch user vehicles from public endpoint
+// //   //     let userVehicles = [];
+// //   //     try {
+// //   //       const userResponse = await axios.get(
+// //   //         "http://localhost:5000/api/user-vehicles/public/active",
+// //   //         { timeout: 10000 },
+// //   //       );
+// //   //       if (userResponse.data.success) userVehicles = userResponse.data.data;
+// //   //     } catch (userError) {
+// //   //       console.log("Could not fetch user vehicles:", userError.message);
+// //   //     }
+
+// //   //     // Get current user ID from token (if logged in)
+// //   //     let currentUserId = null;
+// //   //     const token = localStorage.getItem("token");
+// //   //     if (token) {
+// //   //       try {
+// //   //         // Decode JWT token to get user ID
+// //   //         const tokenParts = token.split(".");
+// //   //         if (tokenParts.length === 3) {
+// //   //           const payload = JSON.parse(atob(tokenParts[1]));
+// //   //           currentUserId = payload.id || payload.userId;
+// //   //           console.log("Current user ID from token:", currentUserId);
+// //   //         }
+// //   //       } catch (decodeError) {
+// //   //         console.error("Error decoding token:", decodeError);
+// //   //       }
+// //   //     }
+
+// //   //     // Filter out vehicles that belong to the current user
+// //   //     const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// //   //       // If no user is logged in, show all user vehicles
+// //   //       if (!currentUserId) return true;
+
+// //   //       // Check if this vehicle belongs to the current user
+// //   //       const vehicleOwnerId = vehicle.owner || vehicle.userId;
+
+// //   //       // Only show vehicles that are NOT owned by the current user
+// //   //       const isNotOwnVehicle = vehicleOwnerId !== currentUserId;
+
+// //   //       if (!isNotOwnVehicle) {
+// //   //         console.log(
+// //   //           `Filtering out own vehicle: ${vehicle.carName} (Owner: ${vehicleOwnerId})`,
+// //   //         );
+// //   //       }
+
+// //   //       return isNotOwnVehicle;
+// //   //     });
+
+// //   //     console.log(
+// //   //       `Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded own vehicles)`,
+// //   //     );
+
+// //   //     let allVehicles = [];
+// //   //     if (adminResponse.data && Array.isArray(adminResponse.data))
+// //   //       allVehicles = [...adminResponse.data];
+// //   //     else if (
+// //   //       adminResponse.data?.data &&
+// //   //       Array.isArray(adminResponse.data.data)
+// //   //     )
+// //   //       allVehicles = [...adminResponse.data.data];
+
+// //   //     // Add filtered user vehicles (excluding own)
+// //   //     filteredUserVehicles.forEach((userVehicle) =>
+// //   //       allVehicles.push({ ...userVehicle, source: "user" }),
+// //   //     );
+
+// //   //     setVehicles(allVehicles);
+// //   //   } catch (error) {
+// //   //     console.error("Error fetching vehicles:", error);
+// //   //     setError("Failed to load vehicles. Please try again.");
+// //   //   } finally {
+// //   //     setLoading(false);
+// //   //   }
+// //   // };
+
+// //   const fetchAllVehicles = async () => {
+// //     try {
+// //       setLoading(true);
+// //       setError("");
+
+// //       // Fetch admin vehicles
+// //       const adminResponse = await axios.get(
+// //         "http://localhost:5000/api/vehicles",
+// //         { timeout: 10000 },
+// //       );
+
+// //       // Get token for authenticated requests
+// //       const token = localStorage.getItem("token");
+
+// //       // Fetch user vehicles from public endpoint WITH token if available
+// //       let userVehicles = [];
+// //       try {
+// //         const headers = token ? { Authorization: `Bearer ${token}` } : {};
+// //         const userResponse = await axios.get(
+// //           "http://localhost:5000/api/user-vehicles/public/active",
+// //           {
+// //             timeout: 10000,
+// //             headers: headers, // Send token to backend so it can filter own vehicles
+// //           },
+// //         );
+// //         if (userResponse.data.success) userVehicles = userResponse.data.data;
+// //       } catch (userError) {
+// //         console.log("Could not fetch user vehicles:", userError.message);
+// //       }
+
+// //       // Get current user ID from token (if logged in) - for frontend filtering as backup
+// //       let currentUserId = null;
+// //       if (token) {
+// //         try {
+// //           // Decode JWT token to get user ID
+// //           const tokenParts = token.split(".");
+// //           if (tokenParts.length === 3) {
+// //             const payload = JSON.parse(atob(tokenParts[1]));
+// //             currentUserId = payload.id || payload.userId;
+// //             console.log("Current user ID from token:", currentUserId);
+// //           }
+// //         } catch (decodeError) {
+// //           console.error("Error decoding token:", decodeError);
+// //         }
+// //       }
+
+// //       // Frontend filtering as backup (backend should already filter, but double-check)
+// //       const filteredUserVehicles = userVehicles.filter((vehicle) => {
+// //         // If no user is logged in, show all user vehicles
+// //         if (!currentUserId) return true;
+
+// //         // Check if this vehicle belongs to the current user
+// //         const vehicleOwnerId = vehicle.userId || vehicle.owner || vehicle.user;
+
+// //         // Convert both to strings for comparison
+// //         const ownerIdStr = vehicleOwnerId?.toString();
+// //         const currentUserIdStr = currentUserId?.toString();
+
+// //         // Only show vehicles that are NOT owned by the current user
+// //         const isNotOwnVehicle = ownerIdStr !== currentUserIdStr;
+
+// //         if (!isNotOwnVehicle) {
+// //           console.log(
+// //             `🚫 Filtering out own vehicle: ${vehicle.carName} (Owner: ${ownerIdStr})`,
+// //           );
+// //         }
+
+// //         return isNotOwnVehicle;
+// //       });
+
+// //       console.log(
+// //         `✅ Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded ${userVehicles.length - filteredUserVehicles.length} own vehicles)`,
+// //       );
+
+// //       // Combine admin and user vehicles
+// //       let allVehicles = [];
+
+// //       // Add admin vehicles
+// //       if (adminResponse.data && Array.isArray(adminResponse.data)) {
+// //         allVehicles = [...adminResponse.data];
+// //       } else if (
+// //         adminResponse.data?.data &&
+// //         Array.isArray(adminResponse.data.data)
+// //       ) {
+// //         allVehicles = [...adminResponse.data.data];
+// //       }
+
+// //       // Add filtered user vehicles (excluding own)
+// //       filteredUserVehicles.forEach((userVehicle) =>
+// //         allVehicles.push({ ...userVehicle, source: "user" }),
+// //       );
+
+// //       console.log(`📊 Total vehicles to display: ${allVehicles.length}`);
+// //       setVehicles(allVehicles);
+// //     } catch (error) {
+// //       console.error("Error fetching vehicles:", error);
+// //       setError("Failed to load vehicles. Please try again.");
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   const toggleWishlist = (vehicleId, e) => {
+// //     e.stopPropagation();
+// //     const newWishlist = new Set(wishlist);
+// //     newWishlist.has(vehicleId)
+// //       ? newWishlist.delete(vehicleId)
+// //       : newWishlist.add(vehicleId);
+// //     setWishlist(newWishlist);
+// //   };
+
+// //   const filteredVehicles = vehicles.filter((vehicle) => {
+// //     const matchesFilter =
+// //       activeFilter === "All vehicles" ||
+// //       vehicle.carType?.toLowerCase() === activeFilter.toLowerCase();
+// //     const matchesSearch =
+// //       searchQuery === "" ||
+// //       vehicle.carName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+// //       vehicle.carType?.toLowerCase().includes(searchQuery.toLowerCase());
+// //     return matchesFilter && matchesSearch;
+// //   });
+
+// //   const getVehicleImage = (vehicle) => {
+// //     if (vehicle.photos?.length > 0) {
+// //       const extraView = vehicle.photos.find(
+// //         (photo) => photo.label === "Extra View",
+// //       );
+// //       const photo = extraView || vehicle.photos[0];
+// //       const folder = vehicle.source === "user" ? "user-vehicles" : "vehicles";
+// //       return `http://localhost:5000/uploads/${folder}/${photo.filename}`;
+// //     }
+// //     return null;
+// //   };
+
+// //   const handleViewDetails = (vehicle) => {
+// //     setSelectedVehicle(vehicle);
+// //     setShowDetailsModal(true);
+// //   };
+
+// //   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
+
+// //   const CarCard = ({ vehicle }) => {
+// //     const imageUrl = getVehicleImage(vehicle);
+// //     const isWishlisted = wishlist.has(vehicle._id);
+
+// //     return (
+// //       <div
+// //         className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer hover:-translate-y-1"
+// //         onClick={() => handleViewDetails(vehicle)}
+// //       >
+// //         {/* Wishlist Button */}
+// //         <button
+// //           onClick={(e) => toggleWishlist(vehicle._id, e)}
+// //           className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white hover:scale-110 transition-all duration-300"
+// //         >
+// //           <FaHeart
+// //             className={`text-base ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-400"}`}
+// //           />
+// //         </button>
+
+// //         {/* Status Badge */}
+// //         <div className="absolute top-3 left-3 z-10">
+// //           <span
+// //             className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${vehicle.status === "Available" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}
+// //           >
+// //             {vehicle.status}
+// //           </span>
+// //         </div>
+
+// //         {/* Image */}
+// //         <div className="h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 relative">
+// //           {imageUrl ? (
+// //             <img
+// //               src={imageUrl}
+// //               alt={vehicle.carName}
+// //               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+// //             />
+// //           ) : (
+// //             <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+// //               <FaCar className="text-6xl text-gray-300" />
+// //               <span className="text-xs text-gray-400">No image available</span>
+// //             </div>
+// //           )}
+// //           {/* Gradient overlay at bottom */}
+// //           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+// //         </div>
+
+// //         {/* Card Body */}
+// //         <div className="p-5">
+// //           {/* Name + Type */}
+// //           <div className="flex items-start justify-between gap-2 mb-2">
+// //             <h3 className="text-lg font-bold text-gray-900 leading-tight truncate">
+// //               {vehicle.carName}
+// //             </h3>
+// //             <span className="flex-shrink-0 px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full border border-blue-100">
+// //               {vehicle.carType}
+// //             </span>
+// //           </div>
+
+// //           {/* Location + Rating row */}
+// //           <div className="flex items-center justify-between mb-4">
+// //             <div className="flex items-center text-gray-400 text-xs gap-1">
+// //               <FaMapMarkerAlt size={10} />
+// //               <span>Kathmandu, Nepal</span>
+// //             </div>
+// //             <div className="flex items-center gap-1">
+// //               {[...Array(5)].map((_, i) => (
+// //                 <FaStar
+// //                   key={i}
+// //                   className={`text-xs ${i < 4 ? "text-yellow-400" : "text-gray-200"}`}
+// //                 />
+// //               ))}
+// //               <span className="text-xs text-gray-400 ml-1">4.8</span>
+// //             </div>
+// //           </div>
+
+// //           {/* Specs row */}
+// //           <div className="flex items-center gap-4 py-3 px-3 bg-gray-50 rounded-xl mb-4">
+// //             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+// //               <FaCogs size={12} className="text-blue-500" />
+// //               <span className="font-medium">{vehicle.gearType}</span>
+// //             </div>
+// //             <div className="w-px h-3 bg-gray-300" />
+// //             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+// //               <FaChair size={12} className="text-blue-500" />
+// //               <span className="font-medium">{vehicle.seats} Seats</span>
+// //             </div>
+// //             <div className="w-px h-3 bg-gray-300" />
+// //             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+// //               <FaSnowflake size={12} className="text-blue-500" />
+// //               <span className="font-medium">
+// //                 {vehicle.airCondition === "Yes" ? "AC" : "No AC"}
+// //               </span>
+// //             </div>
+// //           </div>
+
+// //           {/* Price + CTA */}
+// //           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+// //             <div>
+// //               <p className="text-xs text-gray-400 mb-0.5">Daily rate</p>
+// //               <div className="flex items-baseline gap-1">
+// //                 <span className="text-xl font-bold text-gray-900">
+// //                   रु {vehicle.ratePerDay?.toLocaleString()}
+// //                 </span>
+// //                 <span className="text-xs text-gray-400">/day</span>
+// //               </div>
+// //             </div>
+// //             <button
+// //               onClick={(e) => {
+// //                 e.stopPropagation();
+// //                 handleViewDetails(vehicle);
+// //               }}
+// //               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
+// //             >
+// //               View Details
+// //             </button>
+// //           </div>
+// //         </div>
+// //       </div>
+// //     );
+// //   };
+
+// //   return (
+// //     <div className="min-h-screen bg-gray-50">
+// //       {/* Header */}
+// //       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
+// //         <div className="container mx-auto px-6 py-4">
+// //           <div className="flex items-center justify-between">
+// //             {/* Logo */}
+// //             {/* <div
+// //               className="flex items-center gap-3 cursor-pointer"
+// //               onClick={() => navigate("/")}
+// //             >
+// //               <div className="p-2.5 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg">
+// //                 <FaCar className="text-white text-2xl" />
+// //               </div>
+// //               <div>
+// //                 <h1 className="text-2xl font-bold text-gray-900">
+// //                   Rent<span className="text-blue-600">Ride</span>
+// //                 </h1>
+// //                 <p className="text-xs text-gray-500 -mt-1">
+// //                   Premium Car Rentals
+// //                 </p>
+// //               </div>
+// //             </div> */}
+// //             <div
+// //               className="flex items-center gap-3 cursor-pointer"
+// //               onClick={() => navigate("/")}
+// //             >
+// //               <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// //                 <FaCar className="text-white text-2xl" />
+// //               </div>
+// //               <div>
+// //                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// //                   Rent<span className="text-gray-800">Ride</span>
+// //                 </h1>
+// //                 <p className="text-xs text-gray-500 -mt-1">
+// //                   Premium Car Rentals
+// //                 </p>
+// //               </div>
+// //             </div>
+
+// //             {/* Search Bar */}
+// //             <div className="hidden md:block flex-1 max-w-xl mx-8">
+// //               <div className="relative">
+// //                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// //                   <FaSearch className="text-gray-400" />
+// //                 </div>
+// //                 <input
+// //                   type="text"
+// //                   placeholder="Search by car name or type..."
+// //                   value={searchQuery}
+// //                   onChange={(e) => setSearchQuery(e.target.value)}
+// //                   className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// //                 />
+// //               </div>
+// //             </div>
+
+// //             {/* Navigation */}
+// //             <nav className="hidden lg:flex items-center space-x-8">
+// //               <a
+// //                 href="#vehicles"
+// //                 className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+// //               >
+// //                 Browse
+// //                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
+// //               </a>
+// //               <a
+// //                 href="#how-it-works"
+// //                 className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+// //               >
+// //                 How It Works
+// //                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
+// //               </a>
+// //               <a
+// //                 href="#contact"
+// //                 className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+// //               >
+// //                 Contact
+// //                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
+// //               </a>
+// //             </nav>
+
+// //             {/* User Actions with Profile Photo */}
+// //             <div className="flex items-center gap-4">
+// //               <button
+// //                 className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg"
+// //                 onClick={() => navigate("/profiledetails")}
+// //               >
+// //                 Book Now
+// //               </button>
+// //               {userLoading ? (
+// //                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+// //               ) : userProfile && getProfilePhotoUrl() ? (
+// //                 <div
+// //                   onClick={() => navigate("/profiledetails")}
+// //                   className="cursor-pointer"
+// //                 >
+// //                   <img
+// //                     src={getProfilePhotoUrl()}
+// //                     alt="Profile"
+// //                     className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
+// //                     onError={(e) => {
+// //                       e.target.style.display = "none";
+// //                       const parent = e.target.parentElement;
+// //                       if (parent) {
+// //                         const avatar = document.createElement("div");
+// //                         avatar.className =
+// //                           "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg cursor-pointer";
+// //                         avatar.textContent = getUserInitial();
+// //                         parent.innerHTML = "";
+// //                         parent.appendChild(avatar);
+// //                       }
+// //                     }}
+// //                   />
+// //                 </div>
+// //               ) : (
+// //                 <div
+// //                   onClick={() => navigate("/profiledetails")}
+// //                   className="cursor-pointer"
+// //                 >
+// //                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
+// //                     {getUserInitial()}
+// //                   </div>
+// //                 </div>
+// //               )}
+// //             </div>
+// //           </div>
+
+// //           {/* Mobile Search */}
+// //           <div className="md:hidden mt-4">
+// //             <div className="relative">
+// //               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+// //                 <FaSearch className="text-gray-400" />
+// //               </div>
+// //               <input
+// //                 type="text"
+// //                 placeholder="Search vehicles..."
+// //                 value={searchQuery}
+// //                 onChange={(e) => setSearchQuery(e.target.value)}
+// //                 className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+// //               />
+// //             </div>
+// //           </div>
+// //         </div>
+// //       </header>
+
+// //       {/* Hero Section */}
+// //       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+// //         <div className="absolute inset-0">
+// //           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10"></div>
+// //           <div
+// //             className="absolute inset-0 z-0"
+// //             style={{
+// //               backgroundImage:
+// //                 'url("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
+// //               backgroundSize: "cover",
+// //               backgroundPosition: "center",
+// //             }}
+// //           ></div>
+// //         </div>
+// //         <div className="container mx-auto px-6 py-24 md:py-32 relative z-20">
+// //           <div className="max-w-2xl">
+// //             <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+// //               🎉 Premium Service Since 2024
+// //             </span>
+// //             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+// //               Drive Your <span className="text-blue-400">Dream Car</span> in
+// //               Kathmandu
+// //             </h1>
+// //             <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-xl">
+// //               Experience luxury and convenience with our premium car rental
+// //               service. Book online in minutes.
+// //             </p>
+// //             <div className="flex flex-col sm:flex-row gap-4">
+// //               <button
+// //                 onClick={() =>
+// //                   document
+// //                     .getElementById("vehicles")
+// //                     .scrollIntoView({ behavior: "smooth" })
+// //                 }
+// //                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all"
+// //               >
+// //                 Explore Cars
+// //               </button>
+// //               <button
+// //                 onClick={() =>
+// //                   document
+// //                     .getElementById("how-it-works")
+// //                     .scrollIntoView({ behavior: "smooth" })
+// //                 }
+// //                 className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-xl hover:bg-white/20"
+// //               >
+// //                 How It Works
+// //               </button>
+// //             </div>
+// //           </div>
+// //         </div>
+// //         <div className="relative z-20">
+// //           <div className="container mx-auto px-6 -mb-12">
+// //             <div className="bg-white rounded-2xl shadow-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-gray-100">
+// //               <div className="text-center px-6">
+// //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// //                   10K+
+// //                 </div>
+// //                 <div className="text-gray-500 text-sm">Happy Customers</div>
+// //               </div>
+// //               <div className="text-center px-6">
+// //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// //                   200+
+// //                 </div>
+// //                 <div className="text-gray-500 text-sm">Premium Vehicles</div>
+// //               </div>
+// //               <div className="text-center px-6">
+// //                 <div className="text-3xl font-bold text-gray-900 mb-1">15+</div>
+// //                 <div className="text-gray-500 text-sm">Cities</div>
+// //               </div>
+// //               <div className="text-center px-6">
+// //                 <div className="text-3xl font-bold text-gray-900 mb-1">
+// //                   24/7
+// //                 </div>
+// //                 <div className="text-gray-500 text-sm">Support</div>
+// //               </div>
+// //             </div>
+// //           </div>
+// //         </div>
+// //       </section>
+
+// //       {/* Features Section */}
+// //       <section
+// //         id="how-it-works"
+// //         className="py-20 bg-gradient-to-b from-white to-gray-50"
+// //       >
+// //         <div className="container mx-auto px-6">
+// //           <div className="text-center mb-12">
+// //             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
+// //               WHY CHOOSE US
+// //             </span>
+// //             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+// //               The Best Rental Experience
+// //             </h2>
+// //             <p className="text-gray-500 max-w-xl mx-auto text-base">
+// //               We combine technology with personalized service to deliver an
+// //               exceptional car rental experience
+// //             </p>
+// //           </div>
+// //           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+// //             {features.map((feature, index) => (
+// //               <div
+// //                 key={index}
+// //                 className="group bg-white p-7 rounded-2xl shadow-md hover:shadow-xl transition-all duration-400 border border-gray-100 hover:-translate-y-1 relative overflow-hidden"
+// //               >
+// //                 {/* subtle corner accent */}
+// //                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-gray-50 to-transparent rounded-bl-3xl pointer-events-none" />
+// //                 <div
+// //                   className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.gradient} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}
+// //                 >
+// //                   <div className="text-white">{feature.icon}</div>
+// //                 </div>
+// //                 <h3 className="text-lg font-bold text-gray-900 mb-2">
+// //                   {feature.title}
+// //                 </h3>
+// //                 <p className="text-gray-500 text-sm leading-relaxed">
+// //                   {feature.description}
+// //                 </p>
+// //               </div>
+// //             ))}
+// //           </div>
+// //         </div>
+// //       </section>
+
+// //       {/* Choose Your Ride Section */}
+// //       <section id="vehicles" className="py-20 bg-gray-50">
+// //         <div className="container mx-auto px-6">
+// //           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
+// //             <div>
+// //               <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-3">
+// //                 FLEET COLLECTION
+// //               </span>
+// //               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+// //                 Choose Your Perfect Ride
+// //               </h2>
+// //               <p className="text-gray-500 mt-2 text-base">
+// //                 Select from our premium collection of vehicles
+// //               </p>
+// //             </div>
+// //             <div className="flex items-center gap-3 bg-white rounded-2xl px-6 py-4 shadow-md border border-gray-100">
+// //               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+// //                 <FaCar className="text-blue-600" />
+// //               </div>
+// //               <div>
+// //                 <div className="text-2xl font-bold text-gray-900 leading-none">
+// //                   {filteredVehicles.length}
+// //                 </div>
+// //                 <div className="text-gray-500 text-xs">Cars Available</div>
+// //               </div>
+// //             </div>
+// //           </div>
+
+// //           <div className="flex flex-wrap gap-2 mb-10">
+// //             {filters.map((filter) => (
+// //               <button
+// //                 key={filter}
+// //                 onClick={() => setActiveFilter(filter)}
+// //                 className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+// //                   activeFilter === filter
+// //                     ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105"
+// //                     : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-blue-200 hover:text-blue-600"
+// //                 }`}
+// //               >
+// //                 {filter}
+// //               </button>
+// //             ))}
+// //           </div>
+
+// //           {loading && (
+// //             <div className="text-center py-24">
+// //               <div className="relative w-16 h-16 mx-auto mb-5">
+// //                 <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+// //                 <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+// //                 <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
+// //               </div>
+// //               <p className="text-gray-500 font-medium">
+// //                 Loading premium vehicles...
+// //               </p>
+// //             </div>
+// //           )}
+// //           {error && !loading && (
+// //             <div className="text-center py-24">
+// //               <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+// //                 <span className="text-4xl">⚠️</span>
+// //               </div>
+// //               <h3 className="text-xl font-semibold text-gray-800 mb-2">
+// //                 Something went wrong
+// //               </h3>
+// //               <p className="text-gray-500 mb-6">{error}</p>
+// //               <button
+// //                 onClick={fetchAllVehicles}
+// //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+// //               >
+// //                 Try Again
+// //               </button>
+// //             </div>
+// //           )}
+
+// //           {!loading && !error && filteredVehicles.length > 0 && (
+// //             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+// //               {filteredVehicles.map((vehicle) => (
+// //                 <CarCard key={vehicle._id} vehicle={vehicle} />
+// //               ))}
+// //             </div>
+// //           )}
+
+// //           {!loading && !error && filteredVehicles.length === 0 && (
+// //             <div className="text-center py-24">
+// //               <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
+// //                 <FaCar className="text-4xl text-blue-300" />
+// //               </div>
+// //               <h3 className="text-xl font-semibold text-gray-900 mb-2">
+// //                 No vehicles found
+// //               </h3>
+// //               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+// //                 {searchQuery
+// //                   ? `No results for "${searchQuery}"`
+// //                   : "No vehicles available in this category"}
+// //               </p>
+// //               <button
+// //                 onClick={() => {
+// //                   setActiveFilter("All vehicles");
+// //                   setSearchQuery("");
+// //                 }}
+// //                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+// //               >
+// //                 View All Vehicles
+// //               </button>
+// //             </div>
+// //           )}
+// //         </div>
+// //       </section>
+
+// //       {/* Bikes Section */}
+// //       <BikesSection isLoggedIn={true} />
+
+// //       {/* Vehicle Details Modal */}
+// //       {showDetailsModal && selectedVehicle && (
+// //         <div className="fixed inset-0 z-[100]">
+// //           <div
+// //             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+// //             onClick={() => setShowDetailsModal(false)}
+// //           ></div>
+// //           <div className="absolute inset-0 flex items-center justify-center p-4">
+// //             <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+// //               <div className="sticky top-0 bg-white border-b border-gray-100 px-8 py-5 flex justify-between items-center z-10">
+// //                 <div>
+// //                   <h2 className="text-2xl font-bold text-gray-900">
+// //                     {selectedVehicle.carName}
+// //                   </h2>
+// //                   <div className="flex items-center gap-2 mt-2">
+// //                     <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100">
+// //                       {selectedVehicle.carType}
+// //                     </span>
+// //                     <span
+// //                       className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedVehicle.status === "Available" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"}`}
+// //                     >
+// //                       {selectedVehicle.status}
+// //                     </span>
+// //                     {selectedVehicle.carNumber && (
+// //                       <span className="text-gray-400 text-xs">
+// //                         #{selectedVehicle.carNumber}
+// //                       </span>
+// //                     )}
+// //                   </div>
+// //                 </div>
+// //                 <button
+// //                   onClick={() => setShowDetailsModal(false)}
+// //                   className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-red-50 hover:text-red-500 rounded-full transition-all duration-200 text-gray-500 text-xl font-light"
+// //                 >
+// //                   ×
+// //                 </button>
+// //               </div>
+// //               <div className="p-8">
+// //                 {/* Gallery */}
+// //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+// //                   {selectedVehicle.photos &&
+// //                   selectedVehicle.photos.length > 0 ? (
+// //                     selectedVehicle.photos.map((photo, index) => (
+// //                       <div
+// //                         key={index}
+// //                         className={`${index === 0 ? "lg:col-span-2" : ""}`}
+// //                       >
+// //                         <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+// //                           <img
+// //                             src={`http://localhost:5000/uploads/${selectedVehicle.source === "user" ? "user-vehicles" : "vehicles"}/${photo.filename}`}
+// //                             alt={photo.label}
+// //                             className="w-full h-full object-cover"
+// //                           />
+// //                           <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm backdrop-blur-sm">
+// //                             {photo.label}
+// //                           </div>
+// //                         </div>
+// //                       </div>
+// //                     ))
+// //                   ) : (
+// //                     <div className="lg:col-span-3 h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+// //                       <FaCar className="text-8xl text-gray-300" />
+// //                     </div>
+// //                   )}
+// //                 </div>
+
+// //                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+// //                   {/* Left Column - Specifications */}
+// //                   <div className="lg:col-span-2">
+// //                     <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// //                       Specifications
+// //                     </h3>
+// //                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+// //                       {[
+// //                         {
+// //                           icon: FaCogs,
+// //                           label: "Transmission",
+// //                           value: selectedVehicle.gearType,
+// //                         },
+// //                         {
+// //                           icon: FaChair,
+// //                           label: "Seats",
+// //                           value: `${selectedVehicle.seats} Persons`,
+// //                         },
+// //                         {
+// //                           icon: FaSnowflake,
+// //                           label: "Air Conditioning",
+// //                           value: selectedVehicle.airCondition,
+// //                         },
+// //                         {
+// //                           icon: FaUser,
+// //                           label: "Driver",
+// //                           value: selectedVehicle.driverName || "Not Included",
+// //                         },
+// //                         {
+// //                           icon: FaPhone,
+// //                           label: "Contact",
+// //                           value: selectedVehicle.phoneNumber,
+// //                         },
+// //                         {
+// //                           icon: FaCalendarAlt,
+// //                           label: "Booking Type",
+// //                           value: selectedVehicle.bookingType,
+// //                         },
+// //                       ].map((spec, index) => (
+// //                         <div
+// //                           key={index}
+// //                           className="flex items-center p-4 bg-gray-50 rounded-xl"
+// //                         >
+// //                           <div className="p-3 bg-white rounded-lg shadow-sm mr-4">
+// //                             <spec.icon className="text-blue-600" />
+// //                           </div>
+// //                           <div>
+// //                             <p className="text-sm text-gray-500">
+// //                               {spec.label}
+// //                             </p>
+// //                             <p className="font-semibold text-gray-900">
+// //                               {spec.value}
+// //                             </p>
+// //                           </div>
+// //                         </div>
+// //                       ))}
+// //                     </div>
+// //                     {selectedVehicle.features &&
+// //                       selectedVehicle.features.length > 0 && (
+// //                         <div className="mt-10">
+// //                           <h3 className="text-2xl font-bold text-gray-900 mb-6">
+// //                             Features & Amenities
+// //                           </h3>
+// //                           <div className="flex flex-wrap gap-3">
+// //                             {selectedVehicle.features.map((feature, index) => (
+// //                               <span
+// //                                 key={index}
+// //                                 className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium"
+// //                               >
+// //                                 {feature}
+// //                               </span>
+// //                             ))}
+// //                           </div>
+// //                         </div>
+// //                       )}
+// //                     {selectedVehicle.description && (
+// //                       <div className="mt-10">
+// //                         <h3 className="text-2xl font-bold text-gray-900 mb-4">
+// //                           Description
+// //                         </h3>
+// //                         <p className="text-gray-600 leading-relaxed">
+// //                           {selectedVehicle.description}
+// //                         </p>
+// //                       </div>
+// //                     )}
+// //                   </div>
+
+// //                   {/* Right Column - Pricing & Booking */}
+// //                   <div className="lg:col-span-1">
+// //                     <div className="sticky top-24 bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg">
+// //                       <div className="text-center mb-6">
+// //                         <p className="text-gray-500 mb-2">Daily Rate</p>
+// //                         <div className="flex items-baseline justify-center">
+// //                           <span className="text-5xl font-bold text-gray-900">
+// //                             रु{selectedVehicle.ratePerDay}
+// //                           </span>
+// //                           <span className="text-gray-500 ml-2">/day</span>
+// //                         </div>
+// //                       </div>
+// //                       <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+// //                         <div className="flex items-start">
+// //                           <FaInfoCircle className="text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
+// //                           <div>
+// //                             <h4 className="font-semibold text-blue-800 mb-1">
+// //                               Complete Price Breakdown
+// //                             </h4>
+// //                             <p className="text-sm text-blue-700">
+// //                               Full price calculation including optional extras,
+// //                               service fee, and taxes will be shown during
+// //                               booking.
+// //                             </p>
+// //                           </div>
+// //                         </div>
+// //                       </div>
+// //                       <button
+// //                         onClick={() => {
+// //                           handleBookNow(selectedVehicle);
+// //                           setShowDetailsModal(false);
+// //                         }}
+// //                         className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-green-500/30 hover:scale-105 transition-all duration-300"
+// //                       >
+// //                         Book This Vehicle
+// //                       </button>
+// //                       <div className="mt-6 text-center">
+// //                         <p className="text-gray-500 text-sm">
+// //                           • Free cancellation • 24/7 support • Instant
+// //                           confirmation
+// //                         </p>
+// //                       </div>
+// //                     </div>
+// //                   </div>
+// //                 </div>
+// //               </div>
+// //             </div>
+// //           </div>
+// //         </div>
+// //       )}
+
+// //       {/* CTA Section */}
+// //       {/* CTA Section */}
+// //       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900"></section>
+// //       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900">
+// //         <div className="container mx-auto px-6 text-center">
+// //           <span className="inline-block px-4 py-1.5 bg-white/10 text-white rounded-full text-sm font-semibold mb-6 backdrop-blur-sm border border-white/20">
+// //             🚗 Start Your Journey Today
+// //           </span>
+// //           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+// //             Ready for Your Next Adventure?
+// //           </h2>
+// //           <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
+// //             Join thousands of satisfied customers who trust RentRide for their
+// //             travel needs
+// //           </p>
+// //           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+// //             <button
+// //               onClick={() => navigate("/profiledetails")}
+// //               className="px-10 py-4 bg-white text-gray-900 font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+// //             >
+// //               Start Booking Now
+// //             </button>
+// //             <button className="px-10 py-4 bg-transparent border-2 border-white/50 text-white font-bold rounded-xl hover:bg-white/10 hover:border-white transition-all duration-300">
+// //               Contact Support
+// //             </button>
+// //           </div>
+// //         </div>
+// //       </section>
+
+// //       {/* Footer with Newsletter */}
+// //       <footer id="contact" className="bg-gray-900 text-white pt-20 pb-8">
+// //         <div className="container mx-auto px-6">
+// //           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+// //             <div>
+// //               <div className="flex items-center gap-3 mb-6">
+// //                 <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
+// //                   <FaCar className="text-white text-2xl" />
+// //                 </div>
+// //                 <div>
+// //                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+// //                     Rent<span className="text-white">Ride</span>
+// //                   </h1>
+// //                   <p className="text-xs text-gray-400 -mt-1">
+// //                     Premium Car Rental
+// //                   </p>
+// //                 </div>
+// //               </div>
+// //               <p className="text-gray-400 mb-6 text-sm leading-relaxed">
+// //                 Premium car rental service in Kathmandu. Experience luxury,
+// //                 reliability, and exceptional service.
+// //               </p>
+// //             </div>
+// //             <div>
+// //               <h4 className="text-lg font-bold mb-6 text-white">Quick Links</h4>
+// //               <ul className="space-y-3">
+// //                 {["Browse Cars", "How It Works", "About Us", "Contact"].map(
+// //                   (item, index) => (
+// //                     <li key={index}>
+// //                       <a
+// //                         href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+// //                         className="text-gray-400 hover:text-white hover:translate-x-1 inline-flex transition-all duration-200 text-sm"
+// //                       >
+// //                         {item}
+// //                       </a>
+// //                     </li>
+// //                   ),
+// //                 )}
+// //               </ul>
+// //             </div>
+// //             <div>
+// //               <h4 className="text-lg font-bold mb-6 text-white">
+// //                 Contact Info
+// //               </h4>
+// //               <ul className="text-gray-400 space-y-4 text-sm">
+// //                 <li className="flex items-start gap-3">
+// //                   <FaMapMarkerAlt className="mt-1 text-blue-400 flex-shrink-0" />
+// //                   <span>Kathmandu, Nepal</span>
+// //                 </li>
+// //                 <li className="flex items-center gap-3">
+// //                   <FaPhone className="text-blue-400 flex-shrink-0" />
+// //                   <span>+977 9844177965</span>
+// //                 </li>
+// //                 <li className="flex items-center gap-3">
+// //                   <FaClock className="text-blue-400 flex-shrink-0" />
+// //                   <span>24/7 Support</span>
+// //                 </li>
+// //               </ul>
+// //             </div>
+// //             <div>
+// //               <h4 className="text-lg font-bold mb-6 text-white">Newsletter</h4>
+// //               <p className="text-gray-400 mb-4 text-sm">
+// //                 Subscribe for exclusive deals and updates
+// //               </p>
+// //               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+// //                 <div className="flex rounded-xl overflow-hidden border border-gray-700 focus-within:border-blue-500 transition-colors">
+// //                   <input
+// //                     type="email"
+// //                     placeholder="Your email"
+// //                     value={subscriberEmail}
+// //                     onChange={(e) => setSubscriberEmail(e.target.value)}
+// //                     className="flex-1 px-4 py-3 bg-gray-800 text-white text-sm focus:outline-none placeholder-gray-500"
+// //                   />
+// //                   <button
+// //                     type="submit"
+// //                     className="px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold hover:opacity-90 transition-opacity flex items-center gap-1 text-sm"
+// //                   >
+// //                     <FaEnvelope size={13} />
+// //                   </button>
+// //                 </div>
+// //                 {subscribeMessage && (
+// //                   <p
+// //                     className={`text-xs ${subscribeStatus === "success" ? "text-green-400" : subscribeStatus === "error" ? "text-red-400" : "text-blue-400"}`}
+// //                   >
+// //                     {subscribeMessage}
+// //                   </p>
+// //                 )}
+// //               </form>
+// //             </div>
+// //           </div>
+// //           <div className="border-t border-gray-800 pt-8 text-center">
+// //             <p className="text-gray-500 text-sm">
+// //               &copy; {new Date().getFullYear()} RentRide. All rights reserved.
+// //             </p>
+// //             <p className="text-gray-600 text-xs mt-2">
+// //               Premium car rental service in Kathmandu
+// //             </p>
+// //           </div>
+// //         </div>
+// //       </footer>
+// //     </div>
+// //   );
+// // };
+
+// // export default RentRideHome;
+
 // // import React, { useState, useEffect } from "react";
 // // import {
 // //   FaCar,
@@ -1206,10 +6033,10 @@
 //   FaCreditCard,
 //   FaInfoCircle,
 //   FaEnvelope,
+//   FaMotorcycle,
 // } from "react-icons/fa";
 // import { useNavigate } from "react-router-dom";
 // import axios from "axios";
-// import BikesSection from "./BikesSection";
 
 // const API_URL = "http://localhost:5000/api";
 
@@ -1240,6 +6067,17 @@
 //   const [subscribeStatus, setSubscribeStatus] = useState(null);
 //   const navigate = useNavigate();
 
+//   // Tab state
+//   const [activeTab, setActiveTab] = useState("cars");
+
+//   // Bikes state
+//   const [bikes, setBikes] = useState([]);
+//   const [bikesLoading, setBikesLoading] = useState(true);
+//   const [bikeFilter, setBikeFilter] = useState("All");
+//   const [bikeSearchQuery, setBikeSearchQuery] = useState("");
+//   const [selectedBike, setSelectedBike] = useState(null);
+//   const [showBikeModal, setShowBikeModal] = useState(false);
+
 //   const filters = [
 //     "All vehicles",
 //     "Sedan",
@@ -1252,6 +6090,40 @@
 //     "Minivan",
 //     "Electric",
 //   ];
+
+//   const bikeTypes = [
+//     "All",
+//     "Sports",
+//     "Cruiser",
+//     "Touring",
+//     "Scooter",
+//     "Electric",
+//     "Dirt Bike",
+//     "Standard",
+//   ];
+
+//   // Fetch bikes
+//   const fetchBikes = async () => {
+//     try {
+//       setBikesLoading(true);
+//       const res = await axios.get(`${API_URL}/bikes`);
+//       if (res.data.success) setBikes(res.data.data);
+//     } catch (err) {
+//       console.error("Failed to fetch bikes:", err);
+//     } finally {
+//       setBikesLoading(false);
+//     }
+//   };
+
+//   // Filtered bikes
+//   const filteredBikes = bikes.filter((bike) => {
+//     const matchesType = bikeFilter === "All" || bike.bikeType === bikeFilter;
+//     const matchesSearch =
+//       bikeSearchQuery === "" ||
+//       bike.bikeName?.toLowerCase().includes(bikeSearchQuery.toLowerCase()) ||
+//       bike.brand?.toLowerCase().includes(bikeSearchQuery.toLowerCase());
+//     return matchesType && matchesSearch;
+//   });
 
 //   const features = [
 //     {
@@ -1342,6 +6214,7 @@
 //   useEffect(() => {
 //     fetchAllVehicles();
 //     fetchUserProfile();
+//     fetchBikes();
 //   }, []);
 
 //   // const fetchAllVehicles = async () => {
@@ -1571,6 +6444,114 @@
 //   };
 
 //   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
+
+//   const getBikeImage = (bike) => {
+//     if (bike.photos?.length > 0) {
+//       const front =
+//         bike.photos.find((p) => p.label === "Front View") || bike.photos[0];
+//       return `http://localhost:5000/uploads/bikes/${front.filename}`;
+//     }
+//     return null;
+//   };
+
+//   const BikeCard = ({ bike }) => {
+//     const imageUrl = getBikeImage(bike);
+//     const isAvailable = bike.status === "Available";
+//     return (
+//       <div
+//         className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer hover:-translate-y-1"
+//         onClick={() => {
+//           setSelectedBike(bike);
+//           setShowBikeModal(true);
+//         }}
+//       >
+//         <div className="absolute top-3 left-3 z-10">
+//           <span
+//             className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${
+//               isAvailable
+//                 ? "bg-green-500 text-white"
+//                 : bike.status === "Booked"
+//                   ? "bg-blue-500 text-white"
+//                   : "bg-yellow-500 text-white"
+//             }`}
+//           >
+//             {bike.status}
+//           </span>
+//         </div>
+//         <div className="h-52 overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 relative">
+//           {imageUrl ? (
+//             <img
+//               src={imageUrl}
+//               alt={bike.bikeName}
+//               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+//             />
+//           ) : (
+//             <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+//               <FaMotorcycle className="text-6xl text-purple-200" />
+//             </div>
+//           )}
+//           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+//         </div>
+//         <div className="p-5">
+//           <div className="flex items-start justify-between gap-2 mb-2">
+//             <h3 className="text-lg font-bold text-gray-900 leading-tight truncate">
+//               {bike.bikeName}
+//             </h3>
+//             <span className="flex-shrink-0 px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-semibold rounded-full border border-purple-100">
+//               {bike.bikeType}
+//             </span>
+//           </div>
+//           <p className="text-xs text-gray-400 mb-3">
+//             {bike.brand} {bike.model}
+//           </p>
+//           <div className="flex items-center gap-3 py-3 px-3 bg-gray-50 rounded-xl mb-4">
+//             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+//               <FaCogs size={12} className="text-purple-500" />
+//               <span className="font-medium">{bike.transmission}</span>
+//             </div>
+//             <div className="w-px h-3 bg-gray-300" />
+//             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+//               <FaCalendarAlt size={12} className="text-purple-500" />
+//               <span className="font-medium">{bike.year}</span>
+//             </div>
+//             {bike.engineCapacity && (
+//               <>
+//                 <div className="w-px h-3 bg-gray-300" />
+//                 <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+//                   <span className="font-medium">{bike.engineCapacity}</span>
+//                 </div>
+//               </>
+//             )}
+//           </div>
+//           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+//             <div>
+//               <p className="text-xs text-gray-400 mb-0.5">Daily rate</p>
+//               <div className="flex items-baseline gap-1">
+//                 <span className="text-xl font-bold text-gray-900">
+//                   रु {bike.ratePerDay?.toLocaleString()}
+//                 </span>
+//                 <span className="text-xs text-gray-400">/day</span>
+//               </div>
+//             </div>
+//             <button
+//               onClick={(e) => {
+//                 e.stopPropagation();
+//                 if (isAvailable) navigate(`/bike-booking/${bike._id}`);
+//               }}
+//               disabled={!isAvailable}
+//               className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
+//                 isAvailable
+//                   ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25"
+//                   : "bg-gray-100 text-gray-400 cursor-not-allowed"
+//               }`}
+//             >
+//               {isAvailable ? "Book Now" : bike.status}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   };
 
 //   const CarCard = ({ vehicle }) => {
 //     const imageUrl = getVehicleImage(vehicle);
@@ -1962,114 +6943,376 @@
 //         </div>
 //       </section>
 
-//       {/* Choose Your Ride Section */}
+//       {/* ═══════════════════════════════════════════════════════
+//            FLEET SECTION — Tabbed Cars / Bikes
+//       ═══════════════════════════════════════════════════════ */}
 //       <section id="vehicles" className="py-20 bg-gray-50">
 //         <div className="container mx-auto px-6">
-//           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
-//             <div>
-//               <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-3">
-//                 FLEET COLLECTION
-//               </span>
-//               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-//                 Choose Your Perfect Ride
-//               </h2>
-//               <p className="text-gray-500 mt-2 text-base">
-//                 Select from our premium collection of vehicles
-//               </p>
-//             </div>
-//             <div className="flex items-center gap-3 bg-white rounded-2xl px-6 py-4 shadow-md border border-gray-100">
-//               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-//                 <FaCar className="text-blue-600" />
-//               </div>
-//               <div>
-//                 <div className="text-2xl font-bold text-gray-900 leading-none">
-//                   {filteredVehicles.length}
-//                 </div>
-//                 <div className="text-gray-500 text-xs">Cars Available</div>
-//               </div>
-//             </div>
+//           {/* Section Header */}
+//           <div className="text-center mb-12">
+//             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-3">
+//               FLEET COLLECTION
+//             </span>
+//             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-3">
+//               Choose Your Perfect Ride
+//             </h2>
+//             <p className="text-gray-500 text-base max-w-xl mx-auto">
+//               Browse our premium cars or explore our bike collection
+//             </p>
 //           </div>
 
-//           <div className="flex flex-wrap gap-2 mb-10">
-//             {filters.map((filter) => (
+//           {/* ── Tab Switcher ── */}
+//           <div className="flex justify-center mb-10">
+//             <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-lg border border-gray-100 gap-1">
 //               <button
-//                 key={filter}
-//                 onClick={() => setActiveFilter(filter)}
-//                 className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-//                   activeFilter === filter
-//                     ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105"
-//                     : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-blue-200 hover:text-blue-600"
+//                 onClick={() => setActiveTab("cars")}
+//                 className={`flex items-center gap-2.5 px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+//                   activeTab === "cars"
+//                     ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
+//                     : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
 //                 }`}
 //               >
-//                 {filter}
+//                 <FaCar
+//                   className={
+//                     activeTab === "cars" ? "text-white" : "text-blue-400"
+//                   }
+//                   size={16}
+//                 />
+//                 <span>Cars</span>
+//                 {!loading && (
+//                   <span
+//                     className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+//                       activeTab === "cars"
+//                         ? "bg-white/20 text-white"
+//                         : "bg-blue-100 text-blue-600"
+//                     }`}
+//                   >
+//                     {vehicles.length}
+//                   </span>
+//                 )}
 //               </button>
-//             ))}
+//               <button
+//                 onClick={() => setActiveTab("bikes")}
+//                 className={`flex items-center gap-2.5 px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+//                   activeTab === "bikes"
+//                     ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-[1.02]"
+//                     : "text-gray-500 hover:text-purple-600 hover:bg-purple-50"
+//                 }`}
+//               >
+//                 <FaMotorcycle
+//                   className={
+//                     activeTab === "bikes" ? "text-white" : "text-purple-400"
+//                   }
+//                   size={16}
+//                 />
+//                 <span>Bikes</span>
+//                 {!bikesLoading && (
+//                   <span
+//                     className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+//                       activeTab === "bikes"
+//                         ? "bg-white/20 text-white"
+//                         : "bg-purple-100 text-purple-600"
+//                     }`}
+//                   >
+//                     {bikes.length}
+//                   </span>
+//                 )}
+//               </button>
+//             </div>
 //           </div>
 
-//           {loading && (
-//             <div className="text-center py-24">
-//               <div className="relative w-16 h-16 mx-auto mb-5">
-//                 <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-//                 <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-//                 <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
+//           {/* ── CARS TAB ── */}
+//           {activeTab === "cars" && (
+//             <div>
+//               {/* Car type filter pills */}
+//               <div className="flex flex-wrap gap-2 mb-8 justify-center">
+//                 {filters.map((filter) => (
+//                   <button
+//                     key={filter}
+//                     onClick={() => setActiveFilter(filter)}
+//                     className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+//                       activeFilter === filter
+//                         ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105"
+//                         : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-blue-200 hover:text-blue-600"
+//                     }`}
+//                   >
+//                     {filter}
+//                   </button>
+//                 ))}
 //               </div>
-//               <p className="text-gray-500 font-medium">
-//                 Loading premium vehicles...
-//               </p>
-//             </div>
-//           )}
-//           {error && !loading && (
-//             <div className="text-center py-24">
-//               <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-//                 <span className="text-4xl">⚠️</span>
-//               </div>
-//               <h3 className="text-xl font-semibold text-gray-800 mb-2">
-//                 Something went wrong
-//               </h3>
-//               <p className="text-gray-500 mb-6">{error}</p>
-//               <button
-//                 onClick={fetchAllVehicles}
-//                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-//               >
-//                 Try Again
-//               </button>
+
+//               {loading && (
+//                 <div className="text-center py-24">
+//                   <div className="relative w-16 h-16 mx-auto mb-5">
+//                     <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+//                     <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+//                     <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
+//                   </div>
+//                   <p className="text-gray-500 font-medium">
+//                     Loading premium vehicles...
+//                   </p>
+//                 </div>
+//               )}
+//               {error && !loading && (
+//                 <div className="text-center py-24">
+//                   <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+//                     <span className="text-4xl">⚠️</span>
+//                   </div>
+//                   <h3 className="text-xl font-semibold text-gray-800 mb-2">
+//                     Something went wrong
+//                   </h3>
+//                   <p className="text-gray-500 mb-6">{error}</p>
+//                   <button
+//                     onClick={fetchAllVehicles}
+//                     className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+//                   >
+//                     Try Again
+//                   </button>
+//                 </div>
+//               )}
+//               {!loading && !error && filteredVehicles.length > 0 && (
+//                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+//                   {filteredVehicles.map((vehicle) => (
+//                     <CarCard key={vehicle._id} vehicle={vehicle} />
+//                   ))}
+//                 </div>
+//               )}
+//               {!loading && !error && filteredVehicles.length === 0 && (
+//                 <div className="text-center py-24">
+//                   <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
+//                     <FaCar className="text-4xl text-blue-300" />
+//                   </div>
+//                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
+//                     No vehicles found
+//                   </h3>
+//                   <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+//                     {searchQuery
+//                       ? `No results for "${searchQuery}"`
+//                       : "No vehicles available in this category"}
+//                   </p>
+//                   <button
+//                     onClick={() => {
+//                       setActiveFilter("All vehicles");
+//                       setSearchQuery("");
+//                     }}
+//                     className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+//                   >
+//                     View All Vehicles
+//                   </button>
+//                 </div>
+//               )}
 //             </div>
 //           )}
 
-//           {!loading && !error && filteredVehicles.length > 0 && (
-//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-//               {filteredVehicles.map((vehicle) => (
-//                 <CarCard key={vehicle._id} vehicle={vehicle} />
-//               ))}
-//             </div>
-//           )}
-
-//           {!loading && !error && filteredVehicles.length === 0 && (
-//             <div className="text-center py-24">
-//               <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
-//                 <FaCar className="text-4xl text-blue-300" />
+//           {/* ── BIKES TAB ── */}
+//           {activeTab === "bikes" && (
+//             <div>
+//               {/* Bike type filter pills */}
+//               <div className="flex flex-wrap gap-2 mb-8 justify-center">
+//                 {bikeTypes.map((type) => (
+//                   <button
+//                     key={type}
+//                     onClick={() => setBikeFilter(type)}
+//                     className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+//                       bikeFilter === type
+//                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 scale-105"
+//                         : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-purple-200 hover:text-purple-600"
+//                     }`}
+//                   >
+//                     {type}
+//                   </button>
+//                 ))}
 //               </div>
-//               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-//                 No vehicles found
-//               </h3>
-//               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-//                 {searchQuery
-//                   ? `No results for "${searchQuery}"`
-//                   : "No vehicles available in this category"}
-//               </p>
-//               <button
-//                 onClick={() => {
-//                   setActiveFilter("All vehicles");
-//                   setSearchQuery("");
-//                 }}
-//                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-//               >
-//                 View All Vehicles
-//               </button>
+
+//               {bikesLoading && (
+//                 <div className="text-center py-24">
+//                   <div className="relative w-16 h-16 mx-auto mb-5">
+//                     <div className="absolute inset-0 border-4 border-purple-100 rounded-full"></div>
+//                     <div className="absolute inset-0 border-4 border-t-purple-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+//                     <FaMotorcycle className="absolute inset-0 m-auto text-purple-400 text-lg" />
+//                   </div>
+//                   <p className="text-gray-500 font-medium">Loading bikes...</p>
+//                 </div>
+//               )}
+
+//               {!bikesLoading && filteredBikes.length > 0 && (
+//                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+//                   {filteredBikes.map((bike) => (
+//                     <BikeCard key={bike._id} bike={bike} />
+//                   ))}
+//                 </div>
+//               )}
+
+//               {!bikesLoading && filteredBikes.length === 0 && (
+//                 <div className="text-center py-24">
+//                   <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-purple-50 rounded-3xl">
+//                     <FaMotorcycle className="text-4xl text-purple-300" />
+//                   </div>
+//                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
+//                     No bikes found
+//                   </h3>
+//                   <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+//                     {bikeSearchQuery
+//                       ? `No results for "${bikeSearchQuery}"`
+//                       : "No bikes available in this category"}
+//                   </p>
+//                   <button
+//                     onClick={() => {
+//                       setBikeFilter("All");
+//                       setBikeSearchQuery("");
+//                     }}
+//                     className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+//                   >
+//                     View All Bikes
+//                   </button>
+//                 </div>
+//               )}
 //             </div>
 //           )}
 //         </div>
 //       </section>
+
+//       {/* Bike Detail Modal */}
+//       {showBikeModal && selectedBike && (
+//         <div className="fixed inset-0 z-[100]">
+//           <div
+//             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+//             onClick={() => setShowBikeModal(false)}
+//           ></div>
+//           <div className="absolute inset-0 flex items-center justify-center p-4">
+//             <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+//               <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-3xl">
+//                 <div>
+//                   <h2 className="text-2xl font-bold text-gray-900">
+//                     {selectedBike.bikeName}
+//                   </h2>
+//                   <div className="flex items-center gap-2 mt-1">
+//                     <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+//                       {selectedBike.bikeType}
+//                     </span>
+//                     <span
+//                       className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${selectedBike.status === "Available" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+//                     >
+//                       {selectedBike.status}
+//                     </span>
+//                   </div>
+//                 </div>
+//                 <button
+//                   onClick={() => setShowBikeModal(false)}
+//                   className="p-2 hover:bg-gray-100 rounded-full transition"
+//                 >
+//                   <span className="text-2xl text-gray-500">×</span>
+//                 </button>
+//               </div>
+//               <div className="p-6">
+//                 {selectedBike.photos?.length > 0 ? (
+//                   <div className="grid grid-cols-3 gap-3 mb-6">
+//                     {selectedBike.photos.map((photo, idx) => (
+//                       <div
+//                         key={idx}
+//                         className={`${idx === 0 ? "col-span-2" : ""} relative rounded-2xl overflow-hidden`}
+//                         style={{ height: idx === 0 ? "220px" : "104px" }}
+//                       >
+//                         <img
+//                           src={`http://localhost:5000/uploads/bikes/${photo.filename}`}
+//                           alt={photo.label}
+//                           className="w-full h-full object-cover"
+//                         />
+//                         <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+//                           {photo.label}
+//                         </div>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 ) : (
+//                   <div className="h-48 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl flex items-center justify-center mb-6">
+//                     <FaMotorcycle className="text-7xl text-purple-200" />
+//                   </div>
+//                 )}
+//                 <div className="grid grid-cols-2 gap-3 mb-5">
+//                   {[
+//                     { label: "Brand", value: selectedBike.brand },
+//                     { label: "Model", value: selectedBike.model },
+//                     { label: "Year", value: selectedBike.year },
+//                     { label: "Engine", value: selectedBike.engineCapacity },
+//                     { label: "Fuel", value: selectedBike.fuelType },
+//                     { label: "Transmission", value: selectedBike.transmission },
+//                     { label: "Mileage", value: selectedBike.mileage },
+//                     { label: "Contact", value: selectedBike.phoneNumber },
+//                   ]
+//                     .filter((s) => s.value)
+//                     .map((spec, i) => (
+//                       <div
+//                         key={i}
+//                         className="flex flex-col p-3 bg-gray-50 rounded-xl"
+//                       >
+//                         <p className="text-xs text-gray-400 mb-0.5">
+//                           {spec.label}
+//                         </p>
+//                         <p className="text-sm font-semibold text-gray-800">
+//                           {spec.value}
+//                         </p>
+//                       </div>
+//                     ))}
+//                 </div>
+//                 {selectedBike.features?.length > 0 && (
+//                   <div className="mb-5">
+//                     <p className="text-sm font-bold text-gray-700 mb-2">
+//                       Features
+//                     </p>
+//                     <div className="flex flex-wrap gap-2">
+//                       {selectedBike.features.map((f, i) => (
+//                         <span
+//                           key={i}
+//                           className="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-lg"
+//                         >
+//                           {f}
+//                         </span>
+//                       ))}
+//                     </div>
+//                   </div>
+//                 )}
+//                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-2xl p-5">
+//                   <div className="flex items-center justify-between mb-4">
+//                     <div>
+//                       <p className="text-gray-500 text-sm">Daily Rate</p>
+//                       <p className="text-3xl font-black text-gray-900">
+//                         रु{selectedBike.ratePerDay}
+//                         <span className="text-sm font-normal text-gray-400">
+//                           /day
+//                         </span>
+//                       </p>
+//                     </div>
+//                     {selectedBike.ratePerWeek && (
+//                       <div className="text-right">
+//                         <p className="text-gray-400 text-xs">Weekly</p>
+//                         <p className="text-lg font-bold text-purple-600">
+//                           रु{selectedBike.ratePerWeek}
+//                         </p>
+//                       </div>
+//                     )}
+//                   </div>
+//                   {selectedBike.status === "Available" ? (
+//                     <button
+//                       onClick={() => {
+//                         navigate(`/bike-booking/${selectedBike._id}`);
+//                         setShowBikeModal(false);
+//                       }}
+//                       className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+//                     >
+//                       Book This Bike
+//                     </button>
+//                   ) : (
+//                     <div className="w-full py-3 bg-gray-100 text-gray-400 font-semibold rounded-xl text-center text-sm">
+//                       Currently {selectedBike.status}
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
 
 //       {/* Vehicle Details Modal */}
 //       {showDetailsModal && selectedVehicle && (
@@ -2410,1194 +7653,6 @@
 
 // export default RentRideHome;
 
-// import React, { useState, useEffect } from "react";
-// import {
-//   FaCar,
-//   FaUserCircle,
-//   FaCheckCircle,
-//   FaShieldAlt,
-//   FaCogs,
-//   FaSnowflake,
-//   FaUser,
-//   FaPhone,
-//   FaChair,
-//   FaStar,
-//   FaHeart,
-//   FaMapMarkerAlt,
-//   FaClock,
-//   FaSearch,
-//   FaCalendarAlt,
-//   FaCreditCard,
-//   FaInfoCircle,
-//   FaEnvelope,
-// } from "react-icons/fa";
-// import { useNavigate } from "react-router-dom";
-// import axios from "axios";
-
-// const API_URL = "http://localhost:5000/api";
-
-// const axiosInstance = axios.create({
-//   baseURL: API_URL,
-//   timeout: 10000,
-// });
-
-// axiosInstance.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
-
-// const RentRideHome = () => {
-//   const [activeFilter, setActiveFilter] = useState("All vehicles");
-//   const [vehicles, setVehicles] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-//   const [selectedVehicle, setSelectedVehicle] = useState(null);
-//   const [showDetailsModal, setShowDetailsModal] = useState(false);
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [wishlist, setWishlist] = useState(new Set());
-//   const [userProfile, setUserProfile] = useState(null);
-//   const [userLoading, setUserLoading] = useState(true);
-//   const [subscriberEmail, setSubscriberEmail] = useState("");
-//   const [subscribeMessage, setSubscribeMessage] = useState("");
-//   const [subscribeStatus, setSubscribeStatus] = useState(null);
-//   const navigate = useNavigate();
-
-//   const filters = [
-//     "All vehicles",
-//     "Sedan",
-//     "SUV",
-//     "Hatchback",
-//     "MPV",
-//     "Coupe",
-//     "Convertible",
-//     "Pickup",
-//     "Minivan",
-//     "Electric",
-//   ];
-
-//   const features = [
-//     {
-//       icon: <FaCar className="text-3xl" />,
-//       title: "Wide Selection",
-//       description: "Choose from premium vehicles for every need",
-//       gradient: "from-blue-500 to-cyan-400",
-//     },
-//     {
-//       icon: <FaCheckCircle className="text-3xl" />,
-//       title: "Easy Booking",
-//       description: "Book in 3 simple steps, 24/7 availability",
-//       gradient: "from-green-500 to-emerald-400",
-//     },
-//     {
-//       icon: <FaShieldAlt className="text-3xl" />,
-//       title: "Fully Insured",
-//       description: "Comprehensive coverage for peace of mind",
-//       gradient: "from-purple-500 to-pink-400",
-//     },
-//     {
-//       icon: <FaCreditCard className="text-3xl" />,
-//       title: "Flexible Payment",
-//       description: "Multiple payment options available",
-//       gradient: "from-orange-500 to-yellow-400",
-//     },
-//   ];
-
-//   // Fetch user profile
-//   const fetchUserProfile = async () => {
-//     try {
-//       const token = localStorage.getItem("token");
-//       if (!token) {
-//         setUserLoading(false);
-//         return;
-//       }
-//       const response = await axiosInstance.get("/profile");
-//       if (response.data.success) setUserProfile(response.data.user);
-//     } catch (error) {
-//       console.error("Error fetching profile:", error);
-//     } finally {
-//       setUserLoading(false);
-//     }
-//   };
-
-//   const getProfilePhotoUrl = () =>
-//     userProfile?.profilePhoto
-//       ? `http://localhost:5000/uploads/profiles/${userProfile.profilePhoto}`
-//       : null;
-//   const getUserInitial = () =>
-//     userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : "U";
-
-//   // Handle newsletter subscription
-//   const handleSubscribe = async (e) => {
-//     e.preventDefault();
-//     if (!subscriberEmail) {
-//       setSubscribeMessage("Please enter your email address");
-//       setSubscribeStatus("error");
-//       setTimeout(() => setSubscribeMessage(""), 3000);
-//       return;
-//     }
-
-//     setSubscribeMessage("Subscribing...");
-//     setSubscribeStatus("loading");
-
-//     try {
-//       const response = await axios.post(`${API_URL}/subscribe`, {
-//         email: subscriberEmail,
-//       });
-//       if (response.data.success) {
-//         setSubscribeMessage(
-//           "✅ Thank you for subscribing! You'll receive exclusive updates.",
-//         );
-//         setSubscribeStatus("success");
-//         setSubscriberEmail("");
-//       }
-//     } catch (error) {
-//       setSubscribeMessage(
-//         error.response?.data?.message ||
-//           "❌ Subscription failed. Please try again.",
-//       );
-//       setSubscribeStatus("error");
-//     }
-//     setTimeout(() => setSubscribeMessage(""), 5000);
-//   };
-
-//   // Fetch vehicles
-//   useEffect(() => {
-//     fetchAllVehicles();
-//     fetchUserProfile();
-//   }, []);
-
-//   // const fetchAllVehicles = async () => {
-//   //   try {
-//   //     setLoading(true);
-//   //     setError("");
-
-//   //     // Fetch admin vehicles
-//   //     const adminResponse = await axios.get(
-//   //       "http://localhost:5000/api/vehicles",
-//   //       { timeout: 10000 },
-//   //     );
-
-//   //     // Fetch user vehicles from public endpoint
-//   //     let userVehicles = [];
-//   //     try {
-//   //       const userResponse = await axios.get(
-//   //         "http://localhost:5000/api/user-vehicles/public/active",
-//   //         { timeout: 10000 },
-//   //       );
-//   //       if (userResponse.data.success) userVehicles = userResponse.data.data;
-//   //     } catch (userError) {
-//   //       console.log("Could not fetch user vehicles:", userError.message);
-//   //     }
-
-//   //     // Get current user ID from token (if logged in)
-//   //     let currentUserId = null;
-//   //     const token = localStorage.getItem("token");
-//   //     if (token) {
-//   //       try {
-//   //         // Decode JWT token to get user ID
-//   //         const tokenParts = token.split(".");
-//   //         if (tokenParts.length === 3) {
-//   //           const payload = JSON.parse(atob(tokenParts[1]));
-//   //           currentUserId = payload.id || payload.userId;
-//   //           console.log("Current user ID from token:", currentUserId);
-//   //         }
-//   //       } catch (decodeError) {
-//   //         console.error("Error decoding token:", decodeError);
-//   //       }
-//   //     }
-
-//   //     // Filter out vehicles that belong to the current user
-//   //     const filteredUserVehicles = userVehicles.filter((vehicle) => {
-//   //       // If no user is logged in, show all user vehicles
-//   //       if (!currentUserId) return true;
-
-//   //       // Check if this vehicle belongs to the current user
-//   //       const vehicleOwnerId = vehicle.owner || vehicle.userId;
-
-//   //       // Only show vehicles that are NOT owned by the current user
-//   //       const isNotOwnVehicle = vehicleOwnerId !== currentUserId;
-
-//   //       if (!isNotOwnVehicle) {
-//   //         console.log(
-//   //           `Filtering out own vehicle: ${vehicle.carName} (Owner: ${vehicleOwnerId})`,
-//   //         );
-//   //       }
-
-//   //       return isNotOwnVehicle;
-//   //     });
-
-//   //     console.log(
-//   //       `Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded own vehicles)`,
-//   //     );
-
-//   //     let allVehicles = [];
-//   //     if (adminResponse.data && Array.isArray(adminResponse.data))
-//   //       allVehicles = [...adminResponse.data];
-//   //     else if (
-//   //       adminResponse.data?.data &&
-//   //       Array.isArray(adminResponse.data.data)
-//   //     )
-//   //       allVehicles = [...adminResponse.data.data];
-
-//   //     // Add filtered user vehicles (excluding own)
-//   //     filteredUserVehicles.forEach((userVehicle) =>
-//   //       allVehicles.push({ ...userVehicle, source: "user" }),
-//   //     );
-
-//   //     setVehicles(allVehicles);
-//   //   } catch (error) {
-//   //     console.error("Error fetching vehicles:", error);
-//   //     setError("Failed to load vehicles. Please try again.");
-//   //   } finally {
-//   //     setLoading(false);
-//   //   }
-//   // };
-
-//   const fetchAllVehicles = async () => {
-//     try {
-//       setLoading(true);
-//       setError("");
-
-//       // Fetch admin vehicles
-//       const adminResponse = await axios.get(
-//         "http://localhost:5000/api/vehicles",
-//         { timeout: 10000 },
-//       );
-
-//       // Get token for authenticated requests
-//       const token = localStorage.getItem("token");
-
-//       // Fetch user vehicles from public endpoint WITH token if available
-//       let userVehicles = [];
-//       try {
-//         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-//         const userResponse = await axios.get(
-//           "http://localhost:5000/api/user-vehicles/public/active",
-//           {
-//             timeout: 10000,
-//             headers: headers, // Send token to backend so it can filter own vehicles
-//           },
-//         );
-//         if (userResponse.data.success) userVehicles = userResponse.data.data;
-//       } catch (userError) {
-//         console.log("Could not fetch user vehicles:", userError.message);
-//       }
-
-//       // Get current user ID from token (if logged in) - for frontend filtering as backup
-//       let currentUserId = null;
-//       if (token) {
-//         try {
-//           // Decode JWT token to get user ID
-//           const tokenParts = token.split(".");
-//           if (tokenParts.length === 3) {
-//             const payload = JSON.parse(atob(tokenParts[1]));
-//             currentUserId = payload.id || payload.userId;
-//             console.log("Current user ID from token:", currentUserId);
-//           }
-//         } catch (decodeError) {
-//           console.error("Error decoding token:", decodeError);
-//         }
-//       }
-
-//       // Frontend filtering as backup (backend should already filter, but double-check)
-//       const filteredUserVehicles = userVehicles.filter((vehicle) => {
-//         // If no user is logged in, show all user vehicles
-//         if (!currentUserId) return true;
-
-//         // Check if this vehicle belongs to the current user
-//         const vehicleOwnerId = vehicle.userId || vehicle.owner || vehicle.user;
-
-//         // Convert both to strings for comparison
-//         const ownerIdStr = vehicleOwnerId?.toString();
-//         const currentUserIdStr = currentUserId?.toString();
-
-//         // Only show vehicles that are NOT owned by the current user
-//         const isNotOwnVehicle = ownerIdStr !== currentUserIdStr;
-
-//         if (!isNotOwnVehicle) {
-//           console.log(
-//             `🚫 Filtering out own vehicle: ${vehicle.carName} (Owner: ${ownerIdStr})`,
-//           );
-//         }
-
-//         return isNotOwnVehicle;
-//       });
-
-//       console.log(
-//         `✅ Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded ${userVehicles.length - filteredUserVehicles.length} own vehicles)`,
-//       );
-
-//       // Combine admin and user vehicles
-//       let allVehicles = [];
-
-//       // Add admin vehicles
-//       if (adminResponse.data && Array.isArray(adminResponse.data)) {
-//         allVehicles = [...adminResponse.data];
-//       } else if (
-//         adminResponse.data?.data &&
-//         Array.isArray(adminResponse.data.data)
-//       ) {
-//         allVehicles = [...adminResponse.data.data];
-//       }
-
-//       // Add filtered user vehicles (excluding own)
-//       filteredUserVehicles.forEach((userVehicle) =>
-//         allVehicles.push({ ...userVehicle, source: "user" }),
-//       );
-
-//       console.log(`📊 Total vehicles to display: ${allVehicles.length}`);
-//       setVehicles(allVehicles);
-//     } catch (error) {
-//       console.error("Error fetching vehicles:", error);
-//       setError("Failed to load vehicles. Please try again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const toggleWishlist = (vehicleId, e) => {
-//     e.stopPropagation();
-//     const newWishlist = new Set(wishlist);
-//     newWishlist.has(vehicleId)
-//       ? newWishlist.delete(vehicleId)
-//       : newWishlist.add(vehicleId);
-//     setWishlist(newWishlist);
-//   };
-
-//   const filteredVehicles = vehicles.filter((vehicle) => {
-//     const matchesFilter =
-//       activeFilter === "All vehicles" ||
-//       vehicle.carType?.toLowerCase() === activeFilter.toLowerCase();
-//     const matchesSearch =
-//       searchQuery === "" ||
-//       vehicle.carName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//       vehicle.carType?.toLowerCase().includes(searchQuery.toLowerCase());
-//     return matchesFilter && matchesSearch;
-//   });
-
-//   const getVehicleImage = (vehicle) => {
-//     if (vehicle.photos?.length > 0) {
-//       const extraView = vehicle.photos.find(
-//         (photo) => photo.label === "Extra View",
-//       );
-//       const photo = extraView || vehicle.photos[0];
-//       const folder = vehicle.source === "user" ? "user-vehicles" : "vehicles";
-//       return `http://localhost:5000/uploads/${folder}/${photo.filename}`;
-//     }
-//     return null;
-//   };
-
-//   const handleViewDetails = (vehicle) => {
-//     setSelectedVehicle(vehicle);
-//     setShowDetailsModal(true);
-//   };
-
-//   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
-
-//   const CarCard = ({ vehicle }) => {
-//     const imageUrl = getVehicleImage(vehicle);
-//     const isWishlisted = wishlist.has(vehicle._id);
-
-//     return (
-//       <div
-//         className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer"
-//         onClick={() => handleViewDetails(vehicle)}
-//       >
-//         <button
-//           onClick={(e) => toggleWishlist(vehicle._id, e)}
-//           className="absolute top-4 right-4 z-10 p-2.5 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-white hover:scale-110 transition-transform duration-300"
-//         >
-//           <FaHeart
-//             className={`text-lg ${isWishlisted ? "text-red-500 fill-red-500" : "text-gray-400"}`}
-//           />
-//         </button>
-//         <div className="absolute top-4 left-4 z-10">
-//           <span
-//             className={`px-3 py-1.5 rounded-full text-xs font-semibold ${vehicle.status === "Available" ? "bg-green-500/90 text-white" : "bg-red-500/90 text-white"}`}
-//           >
-//             {vehicle.status}
-//           </span>
-//         </div>
-//         <div className="h-56 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-//           {imageUrl ? (
-//             <img
-//               src={imageUrl}
-//               alt={vehicle.carName}
-//               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-//             />
-//           ) : (
-//             <div className="w-full h-full flex items-center justify-center">
-//               <FaCar className="text-7xl text-gray-300" />
-//             </div>
-//           )}
-//         </div>
-//         <div className="p-6">
-//           <div className="flex justify-between items-start mb-4">
-//             <div className="flex-1">
-//               <div className="flex items-center gap-2 mb-1">
-//                 <h3 className="text-xl font-bold text-gray-800 truncate">
-//                   {vehicle.carName}
-//                 </h3>
-//                 <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
-//                   {vehicle.carType}
-//                 </span>
-//               </div>
-//               <div className="flex items-center text-gray-500 text-sm mb-3">
-//                 <FaMapMarkerAlt className="mr-1.5" />
-//                 <span>Kathmandu, Nepal</span>
-//               </div>
-//               <div className="flex items-center gap-1 mb-4">
-//                 {[...Array(5)].map((_, i) => (
-//                   <FaStar
-//                     key={i}
-//                     className={`text-sm ${i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-//                   />
-//                 ))}
-//                 <span className="text-gray-500 text-sm ml-2">4.8 (128)</span>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="grid grid-cols-2 gap-3 mb-6">
-//             <div className="flex items-center gap-2">
-//               <div className="p-2 bg-gray-50 rounded-lg">
-//                 <FaCogs className="text-gray-600" />
-//               </div>
-//               <div>
-//                 <p className="text-xs text-gray-500">Transmission</p>
-//                 <p className="font-medium text-gray-800">{vehicle.gearType}</p>
-//               </div>
-//             </div>
-//             <div className="flex items-center gap-2">
-//               <div className="p-2 bg-gray-50 rounded-lg">
-//                 <FaChair className="text-gray-600" />
-//               </div>
-//               <div>
-//                 <p className="text-xs text-gray-500">Seats</p>
-//                 <p className="font-medium text-gray-800">{vehicle.seats}</p>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-//             <div>
-//               <p className="text-xs text-gray-500">Daily rate</p>
-//               <div className="flex items-baseline">
-//                 <span className="text-2xl font-bold text-gray-800">
-//                   रु {vehicle.ratePerDay}
-//                 </span>
-//                 <span className="text-gray-500 text-sm ml-1">/day</span>
-//               </div>
-//             </div>
-//             <button
-//               onClick={(e) => {
-//                 e.stopPropagation();
-//                 handleViewDetails(vehicle);
-//               }}
-//               className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
-//             >
-//               View Details
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       {/* Header */}
-//       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm">
-//         <div className="container mx-auto px-6 py-4">
-//           <div className="flex items-center justify-between">
-//             {/* Logo */}
-//             {/* <div
-//               className="flex items-center gap-3 cursor-pointer"
-//               onClick={() => navigate("/")}
-//             >
-//               <div className="p-2.5 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg">
-//                 <FaCar className="text-white text-2xl" />
-//               </div>
-//               <div>
-//                 <h1 className="text-2xl font-bold text-gray-900">
-//                   Rent<span className="text-blue-600">Ride</span>
-//                 </h1>
-//                 <p className="text-xs text-gray-500 -mt-1">
-//                   Premium Car Rentals
-//                 </p>
-//               </div>
-//             </div> */}
-//             <div
-//               className="flex items-center gap-3 cursor-pointer"
-//               onClick={() => navigate("/")}
-//             >
-//               <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
-//                 <FaCar className="text-white text-2xl" />
-//               </div>
-//               <div>
-//                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-//                   Rent<span className="text-gray-800">Ride</span>
-//                 </h1>
-//                 <p className="text-xs text-gray-500 -mt-1">
-//                   Premium Car Rentals
-//                 </p>
-//               </div>
-//             </div>
-
-//             {/* Search Bar */}
-//             <div className="hidden md:block flex-1 max-w-xl mx-8">
-//               <div className="relative">
-//                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-//                   <FaSearch className="text-gray-400" />
-//                 </div>
-//                 <input
-//                   type="text"
-//                   placeholder="Search by car name or type..."
-//                   value={searchQuery}
-//                   onChange={(e) => setSearchQuery(e.target.value)}
-//                   className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 />
-//               </div>
-//             </div>
-
-//             {/* Navigation */}
-//             <nav className="hidden lg:flex items-center space-x-8">
-//               <a
-//                 href="#vehicles"
-//                 className="text-gray-700 hover:text-blue-600 font-medium"
-//               >
-//                 Browse
-//               </a>
-//               <a
-//                 href="#how-it-works"
-//                 className="text-gray-700 hover:text-blue-600 font-medium"
-//               >
-//                 How It Works
-//               </a>
-//               <a
-//                 href="#contact"
-//                 className="text-gray-700 hover:text-blue-600 font-medium"
-//               >
-//                 Contact
-//               </a>
-//             </nav>
-
-//             {/* User Actions with Profile Photo */}
-//             <div className="flex items-center gap-4">
-//               <button
-//                 className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg"
-//                 onClick={() => navigate("/profiledetails")}
-//               >
-//                 Book Now
-//               </button>
-//               {userLoading ? (
-//                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
-//               ) : userProfile && getProfilePhotoUrl() ? (
-//                 <div
-//                   onClick={() => navigate("/profiledetails")}
-//                   className="cursor-pointer"
-//                 >
-//                   <img
-//                     src={getProfilePhotoUrl()}
-//                     alt="Profile"
-//                     className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
-//                     onError={(e) => {
-//                       e.target.style.display = "none";
-//                       const parent = e.target.parentElement;
-//                       if (parent) {
-//                         const avatar = document.createElement("div");
-//                         avatar.className =
-//                           "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg cursor-pointer";
-//                         avatar.textContent = getUserInitial();
-//                         parent.innerHTML = "";
-//                         parent.appendChild(avatar);
-//                       }
-//                     }}
-//                   />
-//                 </div>
-//               ) : (
-//                 <div
-//                   onClick={() => navigate("/profiledetails")}
-//                   className="cursor-pointer"
-//                 >
-//                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
-//                     {getUserInitial()}
-//                   </div>
-//                 </div>
-//               )}
-//             </div>
-//           </div>
-
-//           {/* Mobile Search */}
-//           <div className="md:hidden mt-4">
-//             <div className="relative">
-//               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-//                 <FaSearch className="text-gray-400" />
-//               </div>
-//               <input
-//                 type="text"
-//                 placeholder="Search vehicles..."
-//                 value={searchQuery}
-//                 onChange={(e) => setSearchQuery(e.target.value)}
-//                 className="w-full pl-12 pr-4 py-3 bg-gray-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               />
-//             </div>
-//           </div>
-//         </div>
-//       </header>
-
-//       {/* Hero Section */}
-//       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
-//         <div className="absolute inset-0">
-//           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10"></div>
-//           <div
-//             className="absolute inset-0 z-0"
-//             style={{
-//               backgroundImage:
-//                 'url("https://images.unsplash.com/photo-1549399542-7e3f8b79c341?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
-//               backgroundSize: "cover",
-//               backgroundPosition: "center",
-//             }}
-//           ></div>
-//         </div>
-//         <div className="container mx-auto px-6 py-24 md:py-32 relative z-20">
-//           <div className="max-w-2xl">
-//             <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-//               🎉 Premium Service Since 2024
-//             </span>
-//             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-//               Drive Your <span className="text-blue-400">Dream Car</span> in
-//               Kathmandu
-//             </h1>
-//             <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-xl">
-//               Experience luxury and convenience with our premium car rental
-//               service. Book online in minutes.
-//             </p>
-//             <div className="flex flex-col sm:flex-row gap-4">
-//               <button
-//                 onClick={() =>
-//                   document
-//                     .getElementById("vehicles")
-//                     .scrollIntoView({ behavior: "smooth" })
-//                 }
-//                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all"
-//               >
-//                 Explore Cars
-//               </button>
-//               <button
-//                 onClick={() =>
-//                   document
-//                     .getElementById("how-it-works")
-//                     .scrollIntoView({ behavior: "smooth" })
-//                 }
-//                 className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-xl hover:bg-white/20"
-//               >
-//                 How It Works
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//         <div className="relative z-20">
-//           <div className="container mx-auto px-6 -mb-12">
-//             <div className="bg-white rounded-2xl shadow-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
-//               <div className="text-center">
-//                 <div className="text-3xl font-bold text-gray-900 mb-1">
-//                   10K+
-//                 </div>
-//                 <div className="text-gray-600 text-sm">Happy Customers</div>
-//               </div>
-//               <div className="text-center">
-//                 <div className="text-3xl font-bold text-gray-900 mb-1">
-//                   200+
-//                 </div>
-//                 <div className="text-gray-600 text-sm">Premium Vehicles</div>
-//               </div>
-//               <div className="text-center">
-//                 <div className="text-3xl font-bold text-gray-900 mb-1">15+</div>
-//                 <div className="text-gray-600 text-sm">Cities</div>
-//               </div>
-//               <div className="text-center">
-//                 <div className="text-3xl font-bold text-gray-900 mb-1">
-//                   24/7
-//                 </div>
-//                 <div className="text-gray-600 text-sm">Support</div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Features Section */}
-//       <section
-//         id="how-it-works"
-//         className="py-20 bg-gradient-to-b from-white to-gray-50"
-//       >
-//         <div className="container mx-auto px-6">
-//           <div className="text-center mb-16">
-//             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
-//               WHY CHOOSE US
-//             </span>
-//             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-//               The Best Rental Experience
-//             </h2>
-//             <p className="text-gray-600 max-w-2xl mx-auto">
-//               We combine technology with personalized service to deliver an
-//               exceptional car rental experience
-//             </p>
-//           </div>
-//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-//             {features.map((feature, index) => (
-//               <div
-//                 key={index}
-//                 className="group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100"
-//               >
-//                 <div
-//                   className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${feature.gradient} mb-6 group-hover:scale-110 transition-transform`}
-//                 >
-//                   <div className="text-white">{feature.icon}</div>
-//                 </div>
-//                 <h3 className="text-xl font-bold text-gray-900 mb-3">
-//                   {feature.title}
-//                 </h3>
-//                 <p className="text-gray-600">{feature.description}</p>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Choose Your Ride Section */}
-//       <section id="vehicles" className="py-20 bg-gray-50">
-//         <div className="container mx-auto px-6">
-//           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
-//             <div>
-//               <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
-//                 FLEET COLLECTION
-//               </span>
-//               <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-//                 Choose Your Perfect Ride
-//               </h2>
-//               <p className="text-gray-600 mt-2">
-//                 Select from our premium collection of vehicles
-//               </p>
-//             </div>
-//             <div className="flex items-center gap-4">
-//               <div className="text-right">
-//                 <div className="text-2xl font-bold text-gray-900">
-//                   {filteredVehicles.length}
-//                 </div>
-//                 <div className="text-gray-600 text-sm">Available Cars</div>
-//               </div>
-//             </div>
-//           </div>
-
-//           <div className="flex flex-wrap gap-3 mb-12">
-//             {filters.map((filter) => (
-//               <button
-//                 key={filter}
-//                 onClick={() => setActiveFilter(filter)}
-//                 className={`px-5 py-2.5 rounded-full transition-all duration-300 ${activeFilter === filter ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg" : "bg-white text-gray-700 hover:bg-gray-100 shadow-sm"}`}
-//               >
-//                 {filter}
-//               </button>
-//             ))}
-//           </div>
-
-//           {loading && (
-//             <div className="text-center py-20">
-//               <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-//               <p className="text-gray-600">Loading premium vehicles...</p>
-//             </div>
-//           )}
-//           {error && !loading && (
-//             <div className="text-center py-20">
-//               <div className="text-red-500 text-5xl mb-4">⚠️</div>
-//               <h3 className="text-xl font-semibold mb-2">
-//                 Something went wrong
-//               </h3>
-//               <p className="text-gray-600 mb-6">{error}</p>
-//               <button
-//                 onClick={fetchAllVehicles}
-//                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg"
-//               >
-//                 Try Again
-//               </button>
-//             </div>
-//           )}
-
-//           {!loading && !error && filteredVehicles.length > 0 && (
-//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-//               {filteredVehicles.map((vehicle) => (
-//                 <CarCard key={vehicle._id} vehicle={vehicle} />
-//               ))}
-//             </div>
-//           )}
-
-//           {!loading && !error && filteredVehicles.length === 0 && (
-//             <div className="text-center py-20">
-//               <div className="w-32 h-32 mx-auto mb-6 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl">
-//                 <FaCar className="text-6xl text-gray-400" />
-//               </div>
-//               <h3 className="text-2xl font-semibold text-gray-900 mb-3">
-//                 No vehicles found
-//               </h3>
-//               <p className="text-gray-600 mb-6">
-//                 {searchQuery
-//                   ? `No results for "${searchQuery}"`
-//                   : "No vehicles available in this category"}
-//               </p>
-//               <button
-//                 onClick={() => {
-//                   setActiveFilter("All vehicles");
-//                   setSearchQuery("");
-//                 }}
-//                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg"
-//               >
-//                 View All Vehicles
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </section>
-
-//       {/* Vehicle Details Modal */}
-//       {showDetailsModal && selectedVehicle && (
-//         <div className="fixed inset-0 z-[100]">
-//           <div
-//             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-//             onClick={() => setShowDetailsModal(false)}
-//           ></div>
-//           <div className="absolute inset-0 flex items-center justify-center p-4">
-//             <div className="bg-white rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-//               <div className="sticky top-0 bg-white border-b border-gray-200 px-8 py-6 flex justify-between items-center">
-//                 <div>
-//                   <h2 className="text-3xl font-bold text-gray-900">
-//                     {selectedVehicle.carName}
-//                   </h2>
-//                   <div className="flex items-center gap-3 mt-2">
-//                     <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
-//                       {selectedVehicle.carType}
-//                     </span>
-//                     <span
-//                       className={`px-3 py-1 rounded-full text-sm font-medium ${selectedVehicle.status === "Available" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
-//                     >
-//                       {selectedVehicle.status}
-//                     </span>
-//                     <span className="text-gray-500">
-//                       {selectedVehicle.carNumber}
-//                     </span>
-//                   </div>
-//                 </div>
-//                 <button
-//                   onClick={() => setShowDetailsModal(false)}
-//                   className="p-3 hover:bg-gray-100 rounded-full transition-colors"
-//                 >
-//                   <span className="text-2xl text-gray-500">×</span>
-//                 </button>
-//               </div>
-//               <div className="p-8">
-//                 {/* Gallery */}
-//                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-//                   {selectedVehicle.photos &&
-//                   selectedVehicle.photos.length > 0 ? (
-//                     selectedVehicle.photos.map((photo, index) => (
-//                       <div
-//                         key={index}
-//                         className={`${index === 0 ? "lg:col-span-2" : ""}`}
-//                       >
-//                         <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
-//                           <img
-//                             src={`http://localhost:5000/uploads/${selectedVehicle.source === "user" ? "user-vehicles" : "vehicles"}/${photo.filename}`}
-//                             alt={photo.label}
-//                             className="w-full h-full object-cover"
-//                           />
-//                           <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm backdrop-blur-sm">
-//                             {photo.label}
-//                           </div>
-//                         </div>
-//                       </div>
-//                     ))
-//                   ) : (
-//                     <div className="lg:col-span-3 h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
-//                       <FaCar className="text-8xl text-gray-300" />
-//                     </div>
-//                   )}
-//                 </div>
-
-//                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-//                   {/* Left Column - Specifications */}
-//                   <div className="lg:col-span-2">
-//                     <h3 className="text-2xl font-bold text-gray-900 mb-6">
-//                       Specifications
-//                     </h3>
-//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                       {[
-//                         {
-//                           icon: FaCogs,
-//                           label: "Transmission",
-//                           value: selectedVehicle.gearType,
-//                         },
-//                         {
-//                           icon: FaChair,
-//                           label: "Seats",
-//                           value: `${selectedVehicle.seats} Persons`,
-//                         },
-//                         {
-//                           icon: FaSnowflake,
-//                           label: "Air Conditioning",
-//                           value: selectedVehicle.airCondition,
-//                         },
-//                         {
-//                           icon: FaUser,
-//                           label: "Driver",
-//                           value: selectedVehicle.driverName || "Not Included",
-//                         },
-//                         {
-//                           icon: FaPhone,
-//                           label: "Contact",
-//                           value: selectedVehicle.phoneNumber,
-//                         },
-//                         {
-//                           icon: FaCalendarAlt,
-//                           label: "Booking Type",
-//                           value: selectedVehicle.bookingType,
-//                         },
-//                       ].map((spec, index) => (
-//                         <div
-//                           key={index}
-//                           className="flex items-center p-4 bg-gray-50 rounded-xl"
-//                         >
-//                           <div className="p-3 bg-white rounded-lg shadow-sm mr-4">
-//                             <spec.icon className="text-blue-600" />
-//                           </div>
-//                           <div>
-//                             <p className="text-sm text-gray-500">
-//                               {spec.label}
-//                             </p>
-//                             <p className="font-semibold text-gray-900">
-//                               {spec.value}
-//                             </p>
-//                           </div>
-//                         </div>
-//                       ))}
-//                     </div>
-//                     {selectedVehicle.features &&
-//                       selectedVehicle.features.length > 0 && (
-//                         <div className="mt-10">
-//                           <h3 className="text-2xl font-bold text-gray-900 mb-6">
-//                             Features & Amenities
-//                           </h3>
-//                           <div className="flex flex-wrap gap-3">
-//                             {selectedVehicle.features.map((feature, index) => (
-//                               <span
-//                                 key={index}
-//                                 className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium"
-//                               >
-//                                 {feature}
-//                               </span>
-//                             ))}
-//                           </div>
-//                         </div>
-//                       )}
-//                     {selectedVehicle.description && (
-//                       <div className="mt-10">
-//                         <h3 className="text-2xl font-bold text-gray-900 mb-4">
-//                           Description
-//                         </h3>
-//                         <p className="text-gray-600 leading-relaxed">
-//                           {selectedVehicle.description}
-//                         </p>
-//                       </div>
-//                     )}
-//                   </div>
-
-//                   {/* Right Column - Pricing & Booking */}
-//                   <div className="lg:col-span-1">
-//                     <div className="sticky top-24 bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg">
-//                       <div className="text-center mb-6">
-//                         <p className="text-gray-500 mb-2">Daily Rate</p>
-//                         <div className="flex items-baseline justify-center">
-//                           <span className="text-5xl font-bold text-gray-900">
-//                             रु{selectedVehicle.ratePerDay}
-//                           </span>
-//                           <span className="text-gray-500 ml-2">/day</span>
-//                         </div>
-//                       </div>
-//                       <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
-//                         <div className="flex items-start">
-//                           <FaInfoCircle className="text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-//                           <div>
-//                             <h4 className="font-semibold text-blue-800 mb-1">
-//                               Complete Price Breakdown
-//                             </h4>
-//                             <p className="text-sm text-blue-700">
-//                               Full price calculation including optional extras,
-//                               service fee, and taxes will be shown during
-//                               booking.
-//                             </p>
-//                           </div>
-//                         </div>
-//                       </div>
-//                       <button
-//                         onClick={() => {
-//                           handleBookNow(selectedVehicle);
-//                           setShowDetailsModal(false);
-//                         }}
-//                         className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:shadow-2xl hover:shadow-green-500/30 hover:scale-105 transition-all duration-300"
-//                       >
-//                         Book This Vehicle
-//                       </button>
-//                       <div className="mt-6 text-center">
-//                         <p className="text-gray-500 text-sm">
-//                           • Free cancellation • 24/7 support • Instant
-//                           confirmation
-//                         </p>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* CTA Section */}
-//       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900">
-//         <div className="container mx-auto px-6 text-center">
-//           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-//             Ready for Your Next Adventure?
-//           </h2>
-//           <p className="text-gray-300 text-xl mb-10 max-w-2xl mx-auto">
-//             Join thousands of satisfied customers who trust RentRide for their
-//             travel needs
-//           </p>
-//           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-//             <button
-//               onClick={() => navigate("/profiledetails")}
-//               className="px-10 py-4 bg-white text-gray-900 font-bold rounded-xl hover:shadow-2xl transition-all"
-//             >
-//               Start Booking Now
-//             </button>
-//             <button className="px-10 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10">
-//               Contact Support
-//             </button>
-//           </div>
-//         </div>
-//       </section>
-
-//       {/* Footer with Newsletter */}
-//       <footer className="bg-gray-900 text-white pt-20 pb-8">
-//         <div className="container mx-auto px-6">
-//           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-//             <div>
-//               {/* <div className="flex items-center gap-3 mb-6">
-//                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg">
-//                   <FaCar className="text-white" />
-//                 </div>
-//                 <h3 className="text-2xl font-bold">
-//                   Rent<span className="text-blue-400">Ride</span>
-//                 </h3>
-//               </div> */}
-
-//               <div className="flex items-center gap-3 mb-6">
-//                 <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
-//                   <FaCar className="text-white text-2xl" />
-//                 </div>
-//                 <div>
-//                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-//                     Rent<span className="text-white">Ride</span>
-//                   </h1>
-//                   <p className="text-xs text-gray-400 -mt-1">
-//                     Premium Car Rental
-//                   </p>
-//                 </div>
-//               </div>
-//               <p className="text-gray-400 mb-6">
-//                 Premium car rental service in Kathmandu. Experience luxury,
-//                 reliability, and exceptional service.
-//               </p>
-//             </div>
-//             <div>
-//               <h4 className="text-lg font-bold mb-6">Quick Links</h4>
-//               <ul className="space-y-3">
-//                 {["Browse Cars", "How It Works", "About Us", "Contact"].map(
-//                   (item, index) => (
-//                     <li key={index}>
-//                       <a
-//                         href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-//                         className="text-gray-400 hover:text-white"
-//                       >
-//                         {item}
-//                       </a>
-//                     </li>
-//                   ),
-//                 )}
-//               </ul>
-//             </div>
-//             <div>
-//               <h4 className="text-lg font-bold mb-6">Contact Info</h4>
-//               <ul className="text-gray-400 space-y-4">
-//                 <li className="flex items-start">
-//                   <FaMapMarkerAlt className="mr-3 mt-1 text-blue-400" />
-//                   <span>Kathmandu, Nepal</span>
-//                 </li>
-//                 <li className="flex items-center">
-//                   <FaPhone className="mr-3 text-blue-400" />
-//                   <span>+977 9844177965</span>
-//                 </li>
-//                 <li className="flex items-center">
-//                   <FaClock className="mr-3 text-blue-400" />
-//                   <span>24/7 Support</span>
-//                 </li>
-//               </ul>
-//             </div>
-//             <div>
-//               <h4 className="text-lg font-bold mb-6">Newsletter</h4>
-//               <p className="text-gray-400 mb-4">
-//                 Subscribe for exclusive deals and updates
-//               </p>
-//               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
-//                 <div className="flex">
-//                   <input
-//                     type="email"
-//                     placeholder="Your email"
-//                     value={subscriberEmail}
-//                     onChange={(e) => setSubscriberEmail(e.target.value)}
-//                     className="flex-1 px-4 py-3 bg-gray-800 border-0 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                   />
-//                   <button
-//                     type="submit"
-//                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-r-lg hover:opacity-90 transition-opacity"
-//                   >
-//                     <FaEnvelope />
-//                   </button>
-//                 </div>
-//                 {subscribeMessage && (
-//                   <p
-//                     className={`text-sm ${subscribeStatus === "success" ? "text-green-400" : subscribeStatus === "error" ? "text-red-400" : "text-blue-400"}`}
-//                   >
-//                     {subscribeMessage}
-//                   </p>
-//                 )}
-//               </form>
-//             </div>
-//           </div>
-//           <div className="border-t border-gray-800 pt-8 text-center">
-//             <p className="text-gray-500">
-//               &copy; {new Date().getFullYear()} RentRide. All rights reserved.
-//             </p>
-//             <p className="text-gray-500 text-sm mt-2">
-//               Premium car rental service in Kathmandu
-//             </p>
-//           </div>
-//         </div>
-//       </footer>
-//     </div>
-//   );
-// };
-
-// export default RentRideHome;
-
 import React, { useState, useEffect } from "react";
 import {
   FaCar,
@@ -3618,10 +7673,10 @@ import {
   FaCreditCard,
   FaInfoCircle,
   FaEnvelope,
+  FaMotorcycle,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import BikesSection from "./BikesSection";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -3652,6 +7707,17 @@ const RentRideHome = () => {
   const [subscribeStatus, setSubscribeStatus] = useState(null);
   const navigate = useNavigate();
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState("cars");
+
+  // Bikes state
+  const [bikes, setBikes] = useState([]);
+  const [bikesLoading, setBikesLoading] = useState(true);
+  const [bikeFilter, setBikeFilter] = useState("All");
+  const [bikeSearchQuery, setBikeSearchQuery] = useState("");
+  const [selectedBike, setSelectedBike] = useState(null);
+  const [showBikeModal, setShowBikeModal] = useState(false);
+
   const filters = [
     "All vehicles",
     "Sedan",
@@ -3664,6 +7730,40 @@ const RentRideHome = () => {
     "Minivan",
     "Electric",
   ];
+
+  const bikeTypes = [
+    "All",
+    "Sports",
+    "Cruiser",
+    "Touring",
+    "Scooter",
+    "Electric",
+    "Dirt Bike",
+    "Standard",
+  ];
+
+  // Fetch bikes
+  const fetchBikes = async () => {
+    try {
+      setBikesLoading(true);
+      const res = await axios.get(`${API_URL}/bikes`);
+      if (res.data.success) setBikes(res.data.data);
+    } catch (err) {
+      console.error("Failed to fetch bikes:", err);
+    } finally {
+      setBikesLoading(false);
+    }
+  };
+
+  // Filtered bikes
+  const filteredBikes = bikes.filter((bike) => {
+    const matchesType = bikeFilter === "All" || bike.bikeType === bikeFilter;
+    const matchesSearch =
+      bikeSearchQuery === "" ||
+      bike.bikeName?.toLowerCase().includes(bikeSearchQuery.toLowerCase()) ||
+      bike.brand?.toLowerCase().includes(bikeSearchQuery.toLowerCase());
+    return matchesType && matchesSearch;
+  });
 
   const features = [
     {
@@ -3754,110 +7854,21 @@ const RentRideHome = () => {
   useEffect(() => {
     fetchAllVehicles();
     fetchUserProfile();
+    fetchBikes();
   }, []);
-
-  // const fetchAllVehicles = async () => {
-  //   try {
-  //     setLoading(true);
-  //     setError("");
-
-  //     // Fetch admin vehicles
-  //     const adminResponse = await axios.get(
-  //       "http://localhost:5000/api/vehicles",
-  //       { timeout: 10000 },
-  //     );
-
-  //     // Fetch user vehicles from public endpoint
-  //     let userVehicles = [];
-  //     try {
-  //       const userResponse = await axios.get(
-  //         "http://localhost:5000/api/user-vehicles/public/active",
-  //         { timeout: 10000 },
-  //       );
-  //       if (userResponse.data.success) userVehicles = userResponse.data.data;
-  //     } catch (userError) {
-  //       console.log("Could not fetch user vehicles:", userError.message);
-  //     }
-
-  //     // Get current user ID from token (if logged in)
-  //     let currentUserId = null;
-  //     const token = localStorage.getItem("token");
-  //     if (token) {
-  //       try {
-  //         // Decode JWT token to get user ID
-  //         const tokenParts = token.split(".");
-  //         if (tokenParts.length === 3) {
-  //           const payload = JSON.parse(atob(tokenParts[1]));
-  //           currentUserId = payload.id || payload.userId;
-  //           console.log("Current user ID from token:", currentUserId);
-  //         }
-  //       } catch (decodeError) {
-  //         console.error("Error decoding token:", decodeError);
-  //       }
-  //     }
-
-  //     // Filter out vehicles that belong to the current user
-  //     const filteredUserVehicles = userVehicles.filter((vehicle) => {
-  //       // If no user is logged in, show all user vehicles
-  //       if (!currentUserId) return true;
-
-  //       // Check if this vehicle belongs to the current user
-  //       const vehicleOwnerId = vehicle.owner || vehicle.userId;
-
-  //       // Only show vehicles that are NOT owned by the current user
-  //       const isNotOwnVehicle = vehicleOwnerId !== currentUserId;
-
-  //       if (!isNotOwnVehicle) {
-  //         console.log(
-  //           `Filtering out own vehicle: ${vehicle.carName} (Owner: ${vehicleOwnerId})`,
-  //         );
-  //       }
-
-  //       return isNotOwnVehicle;
-  //     });
-
-  //     console.log(
-  //       `Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded own vehicles)`,
-  //     );
-
-  //     let allVehicles = [];
-  //     if (adminResponse.data && Array.isArray(adminResponse.data))
-  //       allVehicles = [...adminResponse.data];
-  //     else if (
-  //       adminResponse.data?.data &&
-  //       Array.isArray(adminResponse.data.data)
-  //     )
-  //       allVehicles = [...adminResponse.data.data];
-
-  //     // Add filtered user vehicles (excluding own)
-  //     filteredUserVehicles.forEach((userVehicle) =>
-  //       allVehicles.push({ ...userVehicle, source: "user" }),
-  //     );
-
-  //     setVehicles(allVehicles);
-  //   } catch (error) {
-  //     console.error("Error fetching vehicles:", error);
-  //     setError("Failed to load vehicles. Please try again.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchAllVehicles = async () => {
     try {
       setLoading(true);
       setError("");
 
-      // Fetch admin vehicles
       const adminResponse = await axios.get(
         "http://localhost:5000/api/vehicles",
         { timeout: 10000 },
       );
 
-      // Get token for authenticated requests
       const token = localStorage.getItem("token");
 
-      // Fetch user vehicles from public endpoint WITH token if available
       let userVehicles = [];
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -3865,7 +7876,7 @@ const RentRideHome = () => {
           "http://localhost:5000/api/user-vehicles/public/active",
           {
             timeout: 10000,
-            headers: headers, // Send token to backend so it can filter own vehicles
+            headers: headers,
           },
         );
         if (userResponse.data.success) userVehicles = userResponse.data.data;
@@ -3873,54 +7884,28 @@ const RentRideHome = () => {
         console.log("Could not fetch user vehicles:", userError.message);
       }
 
-      // Get current user ID from token (if logged in) - for frontend filtering as backup
       let currentUserId = null;
       if (token) {
         try {
-          // Decode JWT token to get user ID
           const tokenParts = token.split(".");
           if (tokenParts.length === 3) {
             const payload = JSON.parse(atob(tokenParts[1]));
             currentUserId = payload.id || payload.userId;
-            console.log("Current user ID from token:", currentUserId);
           }
         } catch (decodeError) {
           console.error("Error decoding token:", decodeError);
         }
       }
 
-      // Frontend filtering as backup (backend should already filter, but double-check)
       const filteredUserVehicles = userVehicles.filter((vehicle) => {
-        // If no user is logged in, show all user vehicles
         if (!currentUserId) return true;
-
-        // Check if this vehicle belongs to the current user
         const vehicleOwnerId = vehicle.userId || vehicle.owner || vehicle.user;
-
-        // Convert both to strings for comparison
         const ownerIdStr = vehicleOwnerId?.toString();
         const currentUserIdStr = currentUserId?.toString();
-
-        // Only show vehicles that are NOT owned by the current user
-        const isNotOwnVehicle = ownerIdStr !== currentUserIdStr;
-
-        if (!isNotOwnVehicle) {
-          console.log(
-            `🚫 Filtering out own vehicle: ${vehicle.carName} (Owner: ${ownerIdStr})`,
-          );
-        }
-
-        return isNotOwnVehicle;
+        return ownerIdStr !== currentUserIdStr;
       });
 
-      console.log(
-        `✅ Showing ${filteredUserVehicles.length} out of ${userVehicles.length} user vehicles (excluded ${userVehicles.length - filteredUserVehicles.length} own vehicles)`,
-      );
-
-      // Combine admin and user vehicles
       let allVehicles = [];
-
-      // Add admin vehicles
       if (adminResponse.data && Array.isArray(adminResponse.data)) {
         allVehicles = [...adminResponse.data];
       } else if (
@@ -3930,12 +7915,10 @@ const RentRideHome = () => {
         allVehicles = [...adminResponse.data.data];
       }
 
-      // Add filtered user vehicles (excluding own)
       filteredUserVehicles.forEach((userVehicle) =>
         allVehicles.push({ ...userVehicle, source: "user" }),
       );
 
-      console.log(`📊 Total vehicles to display: ${allVehicles.length}`);
       setVehicles(allVehicles);
     } catch (error) {
       console.error("Error fetching vehicles:", error);
@@ -3984,6 +7967,114 @@ const RentRideHome = () => {
 
   const handleBookNow = (vehicle) => navigate(`/booking/${vehicle._id}`);
 
+  const getBikeImage = (bike) => {
+    if (bike.photos?.length > 0) {
+      const front =
+        bike.photos.find((p) => p.label === "Front View") || bike.photos[0];
+      return `http://localhost:5000/uploads/bikes/${front.filename}`;
+    }
+    return null;
+  };
+
+  const BikeCard = ({ bike }) => {
+    const imageUrl = getBikeImage(bike);
+    const isAvailable = bike.status === "Available";
+    return (
+      <div
+        className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer hover:-translate-y-1"
+        onClick={() => {
+          setSelectedBike(bike);
+          setShowBikeModal(true);
+        }}
+      >
+        <div className="absolute top-3 left-3 z-10">
+          <span
+            className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${
+              isAvailable
+                ? "bg-green-500 text-white"
+                : bike.status === "Booked"
+                  ? "bg-blue-500 text-white"
+                  : "bg-yellow-500 text-white"
+            }`}
+          >
+            {bike.status}
+          </span>
+        </div>
+        <div className="h-52 overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 relative">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={bike.bikeName}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+              <FaMotorcycle className="text-6xl text-purple-200" />
+            </div>
+          )}
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+        </div>
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h3 className="text-lg font-bold text-gray-900 leading-tight truncate">
+              {bike.bikeName}
+            </h3>
+            <span className="flex-shrink-0 px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-semibold rounded-full border border-purple-100">
+              {bike.bikeType}
+            </span>
+          </div>
+          <p className="text-xs text-gray-400 mb-3">
+            {bike.brand} {bike.model}
+          </p>
+          <div className="flex items-center gap-3 py-3 px-3 bg-gray-50 rounded-xl mb-4">
+            <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+              <FaCogs size={12} className="text-purple-500" />
+              <span className="font-medium">{bike.transmission}</span>
+            </div>
+            <div className="w-px h-3 bg-gray-300" />
+            <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+              <FaCalendarAlt size={12} className="text-purple-500" />
+              <span className="font-medium">{bike.year}</span>
+            </div>
+            {bike.engineCapacity && (
+              <>
+                <div className="w-px h-3 bg-gray-300" />
+                <div className="flex items-center gap-1.5 text-gray-600 text-xs">
+                  <span className="font-medium">{bike.engineCapacity}</span>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div>
+              <p className="text-xs text-gray-400 mb-0.5">Daily rate</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold text-gray-900">
+                  रु {bike.ratePerDay?.toLocaleString()}
+                </span>
+                <span className="text-xs text-gray-400">/day</span>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isAvailable) navigate(`/bike-booking/${bike._id}`);
+              }}
+              disabled={!isAvailable}
+              className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                isAvailable
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {isAvailable ? "Book Now" : bike.status}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const CarCard = ({ vehicle }) => {
     const imageUrl = getVehicleImage(vehicle);
     const isWishlisted = wishlist.has(vehicle._id);
@@ -3993,7 +8084,6 @@ const RentRideHome = () => {
         className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer hover:-translate-y-1"
         onClick={() => handleViewDetails(vehicle)}
       >
-        {/* Wishlist Button */}
         <button
           onClick={(e) => toggleWishlist(vehicle._id, e)}
           className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-white hover:scale-110 transition-all duration-300"
@@ -4003,16 +8093,18 @@ const RentRideHome = () => {
           />
         </button>
 
-        {/* Status Badge */}
         <div className="absolute top-3 left-3 z-10">
           <span
-            className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${vehicle.status === "Available" ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}
+            className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide ${
+              vehicle.status === "Available"
+                ? "bg-green-500 text-white"
+                : "bg-red-500 text-white"
+            }`}
           >
             {vehicle.status}
           </span>
         </div>
 
-        {/* Image */}
         <div className="h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 relative">
           {imageUrl ? (
             <img
@@ -4026,13 +8118,10 @@ const RentRideHome = () => {
               <span className="text-xs text-gray-400">No image available</span>
             </div>
           )}
-          {/* Gradient overlay at bottom */}
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
         </div>
 
-        {/* Card Body */}
         <div className="p-5">
-          {/* Name + Type */}
           <div className="flex items-start justify-between gap-2 mb-2">
             <h3 className="text-lg font-bold text-gray-900 leading-tight truncate">
               {vehicle.carName}
@@ -4042,7 +8131,6 @@ const RentRideHome = () => {
             </span>
           </div>
 
-          {/* Location + Rating row */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center text-gray-400 text-xs gap-1">
               <FaMapMarkerAlt size={10} />
@@ -4059,7 +8147,6 @@ const RentRideHome = () => {
             </div>
           </div>
 
-          {/* Specs row */}
           <div className="flex items-center gap-4 py-3 px-3 bg-gray-50 rounded-xl mb-4">
             <div className="flex items-center gap-1.5 text-gray-600 text-xs">
               <FaCogs size={12} className="text-blue-500" />
@@ -4079,7 +8166,6 @@ const RentRideHome = () => {
             </div>
           </div>
 
-          {/* Price + CTA */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div>
               <p className="text-xs text-gray-400 mb-0.5">Daily rate</p>
@@ -4111,23 +8197,6 @@ const RentRideHome = () => {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo */}
-            {/* <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => navigate("/")}
-            >
-              <div className="p-2.5 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl shadow-lg">
-                <FaCar className="text-white text-2xl" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Rent<span className="text-blue-600">Ride</span>
-                </h1>
-                <p className="text-xs text-gray-500 -mt-1">
-                  Premium Car Rentals
-                </p>
-              </div>
-            </div> */}
             <div
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => navigate("/")}
@@ -4145,7 +8214,6 @@ const RentRideHome = () => {
               </div>
             </div>
 
-            {/* Search Bar */}
             <div className="hidden md:block flex-1 max-w-xl mx-8">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -4161,7 +8229,6 @@ const RentRideHome = () => {
               </div>
             </div>
 
-            {/* Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
               <a
                 href="#vehicles"
@@ -4186,7 +8253,6 @@ const RentRideHome = () => {
               </a>
             </nav>
 
-            {/* User Actions with Profile Photo */}
             <div className="flex items-center gap-4">
               <button
                 className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:shadow-lg"
@@ -4205,18 +8271,6 @@ const RentRideHome = () => {
                     src={getProfilePhotoUrl()}
                     alt="Profile"
                     className="w-10 h-10 rounded-full object-cover border-2 border-blue-500"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      const parent = e.target.parentElement;
-                      if (parent) {
-                        const avatar = document.createElement("div");
-                        avatar.className =
-                          "w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg cursor-pointer";
-                        avatar.textContent = getUserInitial();
-                        parent.innerHTML = "";
-                        parent.appendChild(avatar);
-                      }
-                    }}
                   />
                 </div>
               ) : (
@@ -4232,7 +8286,6 @@ const RentRideHome = () => {
             </div>
           </div>
 
-          {/* Mobile Search */}
           <div className="md:hidden mt-4">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -4355,7 +8408,6 @@ const RentRideHome = () => {
                 key={index}
                 className="group bg-white p-7 rounded-2xl shadow-md hover:shadow-xl transition-all duration-400 border border-gray-100 hover:-translate-y-1 relative overflow-hidden"
               >
-                {/* subtle corner accent */}
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-gray-50 to-transparent rounded-bl-3xl pointer-events-none" />
                 <div
                   className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.gradient} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}
@@ -4374,117 +8426,376 @@ const RentRideHome = () => {
         </div>
       </section>
 
-      {/* Choose Your Ride Section */}
+      {/* Fleet Section - Tabbed Cars / Bikes */}
       <section id="vehicles" className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
-            <div>
-              <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-3">
-                FLEET COLLECTION
-              </span>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                Choose Your Perfect Ride
-              </h2>
-              <p className="text-gray-500 mt-2 text-base">
-                Select from our premium collection of vehicles
-              </p>
-            </div>
-            <div className="flex items-center gap-3 bg-white rounded-2xl px-6 py-4 shadow-md border border-gray-100">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <FaCar className="text-blue-600" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900 leading-none">
-                  {filteredVehicles.length}
-                </div>
-                <div className="text-gray-500 text-xs">Cars Available</div>
-              </div>
-            </div>
+          {/* Section Header */}
+          <div className="text-center mb-12">
+            <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-3">
+              FLEET COLLECTION
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-3">
+              Choose Your Perfect Ride
+            </h2>
+            <p className="text-gray-500 text-base max-w-xl mx-auto">
+              Browse our premium cars or explore our bike collection
+            </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 mb-10">
-            {filters.map((filter) => (
+          {/* Tab Switcher */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-lg border border-gray-100 gap-1">
               <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  activeFilter === filter
-                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105"
-                    : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-blue-200 hover:text-blue-600"
+                onClick={() => setActiveTab("cars")}
+                className={`flex items-center gap-2.5 px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  activeTab === "cars"
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-[1.02]"
+                    : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
                 }`}
               >
-                {filter}
+                <FaCar
+                  className={
+                    activeTab === "cars" ? "text-white" : "text-blue-400"
+                  }
+                  size={16}
+                />
+                <span>Cars</span>
+                {!loading && (
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      activeTab === "cars"
+                        ? "bg-white/20 text-white"
+                        : "bg-blue-100 text-blue-600"
+                    }`}
+                  >
+                    {vehicles.length}
+                  </span>
+                )}
               </button>
-            ))}
+              <button
+                onClick={() => setActiveTab("bikes")}
+                className={`flex items-center gap-2.5 px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  activeTab === "bikes"
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-[1.02]"
+                    : "text-gray-500 hover:text-purple-600 hover:bg-purple-50"
+                }`}
+              >
+                <FaMotorcycle
+                  className={
+                    activeTab === "bikes" ? "text-white" : "text-purple-400"
+                  }
+                  size={16}
+                />
+                <span>Bikes</span>
+                {!bikesLoading && (
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      activeTab === "bikes"
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-100 text-purple-600"
+                    }`}
+                  >
+                    {bikes.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
-          {loading && (
-            <div className="text-center py-24">
-              <div className="relative w-16 h-16 mx-auto mb-5">
-                <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-                <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
+          {/* CARS TAB */}
+          {activeTab === "cars" && (
+            <div>
+              <div className="flex flex-wrap gap-2 mb-8 justify-center">
+                {filters.map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                      activeFilter === filter
+                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/25 scale-105"
+                        : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-blue-200 hover:text-blue-600"
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
               </div>
-              <p className="text-gray-500 font-medium">
-                Loading premium vehicles...
-              </p>
-            </div>
-          )}
-          {error && !loading && (
-            <div className="text-center py-24">
-              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl">⚠️</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Something went wrong
-              </h3>
-              <p className="text-gray-500 mb-6">{error}</p>
-              <button
-                onClick={fetchAllVehicles}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-              >
-                Try Again
-              </button>
+
+              {loading && (
+                <div className="text-center py-24">
+                  <div className="relative w-16 h-16 mx-auto mb-5">
+                    <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                    <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
+                  </div>
+                  <p className="text-gray-500 font-medium">
+                    Loading premium vehicles...
+                  </p>
+                </div>
+              )}
+              {error && !loading && (
+                <div className="text-center py-24">
+                  <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-4xl">⚠️</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    Something went wrong
+                  </h3>
+                  <p className="text-gray-500 mb-6">{error}</p>
+                  <button
+                    onClick={fetchAllVehicles}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              )}
+              {!loading && !error && filteredVehicles.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredVehicles.map((vehicle) => (
+                    <CarCard key={vehicle._id} vehicle={vehicle} />
+                  ))}
+                </div>
+              )}
+              {!loading && !error && filteredVehicles.length === 0 && (
+                <div className="text-center py-24">
+                  <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
+                    <FaCar className="text-4xl text-blue-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No vehicles found
+                  </h3>
+                  <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                    {searchQuery
+                      ? `No results for "${searchQuery}"`
+                      : "No vehicles available in this category"}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setActiveFilter("All vehicles");
+                      setSearchQuery("");
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  >
+                    View All Vehicles
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          {!loading && !error && filteredVehicles.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredVehicles.map((vehicle) => (
-                <CarCard key={vehicle._id} vehicle={vehicle} />
-              ))}
-            </div>
-          )}
-
-          {!loading && !error && filteredVehicles.length === 0 && (
-            <div className="text-center py-24">
-              <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
-                <FaCar className="text-4xl text-blue-300" />
+          {/* BIKES TAB */}
+          {activeTab === "bikes" && (
+            <div>
+              <div className="flex flex-wrap gap-2 mb-8 justify-center">
+                {bikeTypes.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setBikeFilter(type)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                      bikeFilter === type
+                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25 scale-105"
+                        : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm border border-gray-200 hover:border-purple-200 hover:text-purple-600"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No vehicles found
-              </h3>
-              <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-                {searchQuery
-                  ? `No results for "${searchQuery}"`
-                  : "No vehicles available in this category"}
-              </p>
-              <button
-                onClick={() => {
-                  setActiveFilter("All vehicles");
-                  setSearchQuery("");
-                }}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-              >
-                View All Vehicles
-              </button>
+
+              {bikesLoading && (
+                <div className="text-center py-24">
+                  <div className="relative w-16 h-16 mx-auto mb-5">
+                    <div className="absolute inset-0 border-4 border-purple-100 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-purple-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                    <FaMotorcycle className="absolute inset-0 m-auto text-purple-400 text-lg" />
+                  </div>
+                  <p className="text-gray-500 font-medium">Loading bikes...</p>
+                </div>
+              )}
+
+              {!bikesLoading && filteredBikes.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredBikes.map((bike) => (
+                    <BikeCard key={bike._id} bike={bike} />
+                  ))}
+                </div>
+              )}
+
+              {!bikesLoading && filteredBikes.length === 0 && (
+                <div className="text-center py-24">
+                  <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-purple-50 rounded-3xl">
+                    <FaMotorcycle className="text-4xl text-purple-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No bikes found
+                  </h3>
+                  <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                    {bikeSearchQuery
+                      ? `No results for "${bikeSearchQuery}"`
+                      : "No bikes available in this category"}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setBikeFilter("All");
+                      setBikeSearchQuery("");
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  >
+                    View All Bikes
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </section>
 
-      {/* Bikes Section */}
-      <BikesSection isLoggedIn={true} />
+      {/* Bike Detail Modal */}
+      {showBikeModal && selectedBike && (
+        <div className="fixed inset-0 z-[100]">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowBikeModal(false)}
+          ></div>
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center rounded-t-3xl">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {selectedBike.bikeName}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+                      {selectedBike.bikeType}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                        selectedBike.status === "Available"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {selectedBike.status}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowBikeModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition"
+                >
+                  <span className="text-2xl text-gray-500">×</span>
+                </button>
+              </div>
+              <div className="p-6">
+                {selectedBike.photos?.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {selectedBike.photos.map((photo, idx) => (
+                      <div
+                        key={idx}
+                        className={`${idx === 0 ? "col-span-2" : ""} relative rounded-2xl overflow-hidden`}
+                        style={{ height: idx === 0 ? "220px" : "104px" }}
+                      >
+                        <img
+                          src={`http://localhost:5000/uploads/bikes/${photo.filename}`}
+                          alt={photo.label}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+                          {photo.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-48 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl flex items-center justify-center mb-6">
+                    <FaMotorcycle className="text-7xl text-purple-200" />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {[
+                    { label: "Brand", value: selectedBike.brand },
+                    { label: "Model", value: selectedBike.model },
+                    { label: "Year", value: selectedBike.year },
+                    { label: "Engine", value: selectedBike.engineCapacity },
+                    { label: "Fuel", value: selectedBike.fuelType },
+                    { label: "Transmission", value: selectedBike.transmission },
+                    { label: "Mileage", value: selectedBike.mileage },
+                    { label: "Contact", value: selectedBike.phoneNumber },
+                  ]
+                    .filter((s) => s.value)
+                    .map((spec, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col p-3 bg-gray-50 rounded-xl"
+                      >
+                        <p className="text-xs text-gray-400 mb-0.5">
+                          {spec.label}
+                        </p>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {spec.value}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+                {selectedBike.features?.length > 0 && (
+                  <div className="mb-5">
+                    <p className="text-sm font-bold text-gray-700 mb-2">
+                      Features
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedBike.features.map((f, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-lg"
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-gray-500 text-sm">Daily Rate</p>
+                      <p className="text-3xl font-black text-gray-900">
+                        रु{selectedBike.ratePerDay}
+                        <span className="text-sm font-normal text-gray-400">
+                          /day
+                        </span>
+                      </p>
+                    </div>
+                    {selectedBike.ratePerWeek && (
+                      <div className="text-right">
+                        <p className="text-gray-400 text-xs">Weekly</p>
+                        <p className="text-lg font-bold text-purple-600">
+                          रु{selectedBike.ratePerWeek}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {selectedBike.status === "Available" ? (
+                    <button
+                      onClick={() => {
+                        navigate(`/bike-booking/${selectedBike._id}`);
+                        setShowBikeModal(false);
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
+                    >
+                      Book This Bike
+                    </button>
+                  ) : (
+                    <div className="w-full py-3 bg-gray-100 text-gray-400 font-semibold rounded-xl text-center text-sm">
+                      Currently {selectedBike.status}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Vehicle Details Modal */}
       {showDetailsModal && selectedVehicle && (
@@ -4505,7 +8816,11 @@ const RentRideHome = () => {
                       {selectedVehicle.carType}
                     </span>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedVehicle.status === "Available" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"}`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        selectedVehicle.status === "Available"
+                          ? "bg-green-50 text-green-600 border border-green-100"
+                          : "bg-red-50 text-red-600 border border-red-100"
+                      }`}
                     >
                       {selectedVehicle.status}
                     </span>
@@ -4691,8 +9006,6 @@ const RentRideHome = () => {
       )}
 
       {/* CTA Section */}
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900"></section>
       <section className="py-20 bg-gradient-to-r from-gray-900 to-blue-900">
         <div className="container mx-auto px-6 text-center">
           <span className="inline-block px-4 py-1.5 bg-white/10 text-white rounded-full text-sm font-semibold mb-6 backdrop-blur-sm border border-white/20">
@@ -4801,7 +9114,13 @@ const RentRideHome = () => {
                 </div>
                 {subscribeMessage && (
                   <p
-                    className={`text-xs ${subscribeStatus === "success" ? "text-green-400" : subscribeStatus === "error" ? "text-red-400" : "text-blue-400"}`}
+                    className={`text-xs ${
+                      subscribeStatus === "success"
+                        ? "text-green-400"
+                        : subscribeStatus === "error"
+                          ? "text-red-400"
+                          : "text-blue-400"
+                    }`}
                   >
                     {subscribeMessage}
                   </p>
