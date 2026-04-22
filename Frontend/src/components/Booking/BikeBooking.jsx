@@ -11,12 +11,11 @@ import {
   FaSpinner,
   FaCreditCard,
   FaInfoCircle,
-//   FaHelmetSafety, // ✅ now valid
   FaUser,
 } from "react-icons/fa";
+
 import { FaHelmetSafety } from "react-icons/fa6";
 import axios from "axios";
-import { motion } from "framer-motion";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -35,6 +34,7 @@ const BikeBooking = () => {
   const navigate = useNavigate();
   const { bikeId } = useParams();
 
+  // Bike state
   const [bike, setBike] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -114,10 +114,17 @@ const BikeBooking = () => {
   };
 
   const handleBookNow = async () => {
-    const token = localStorage.getItem("token");
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
     if (!token) {
-      alert("Please login to book");
+      alert("Please login to book a bike");
       navigate("/login");
+      return;
+    }
+
+    if (!bike) {
+      alert("Please select a bike first");
       return;
     }
 
@@ -131,40 +138,69 @@ const BikeBooking = () => {
       return;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const pickupDateObj = new Date(selectedDate);
+    if (pickupDateObj < today) {
+      alert("Pickup date cannot be in the past");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       const returnDate = calculateReturnDate();
+      const pickupDateTime = new Date(selectedDate);
+      const returnDateTime = new Date(returnDate);
+
       const bookingData = {
         bikeId: bike._id,
-        pickupDate: new Date(selectedDate).toISOString(),
+        pickupDate: pickupDateTime.toISOString(),
         pickupTime: selectedTime,
-        returnDate: new Date(returnDate).toISOString(),
+        returnDate: returnDateTime.toISOString(),
         returnTime: selectedTime,
-        pickupLocation,
-        dropoffLocation,
-        extraHelmet,
-        ridingGear,
-        riderExperience,
-        specialRequests,
-        emergencyContact,
+        pickupLocation: pickupLocation,
+        dropoffLocation: dropoffLocation,
+        extraHelmet: extraHelmet,
+        ridingGear: ridingGear,
+        riderExperience: riderExperience,
+        specialRequests: specialRequests,
+        emergencyContact: emergencyContact,
       };
 
       const response = await axiosInstance.post("/bikes/bookings", bookingData);
 
       if (response.data.success) {
-        navigate("/bike-booking-success", {
+        sessionStorage.setItem(
+          "current_bike_booking_id",
+          response.data.data.bookingId,
+        );
+
+        navigate("/bike-upload-documents", {
           state: {
             bookingId: response.data.data.bookingId,
             confirmationCode: response.data.data.confirmationCode,
-            bike: bike,
-            totalAmount: totals.total,
-            totalDays: bookingDays,
+            bikeDetails: bike,
+            bookingDetails: {
+              ...bookingData,
+              totalAmount: totals.total,
+              formattedTotal: formatNPR(totals.total),
+              totalDays: bookingDays,
+              basePrice: totals.basePrice,
+              extraCharges: totals.extraCharges,
+              serviceFee: totals.serviceFee,
+            },
           },
         });
+      } else {
+        alert(response.data.message || "Failed to create booking");
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to create booking");
+      console.error("Booking error:", error);
+      alert(
+        error.response?.data?.message ||
+          "Failed to create booking. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -265,8 +301,8 @@ const BikeBooking = () => {
                     <div className="mt-4 flex items-center gap-2">
                       <FaShieldAlt className="text-green-600" />
                       <span className="text-sm text-gray-600">
-                        Helmet Included • {bike.licenseRequired} License
-                        Required
+                        {bike.helmetIncluded ? "Helmet Included • " : ""}
+                        {bike.licenseRequired} License Required
                       </span>
                     </div>
                   </div>
@@ -280,7 +316,8 @@ const BikeBooking = () => {
                 Booking Details
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date and Time */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <FaCalendarAlt className="inline mr-2 text-purple-600" />{" "}
@@ -291,7 +328,7 @@ const BikeBooking = () => {
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     min={new Date().toISOString().split("T")[0]}
-                    className="w-full px-4 py-3 bg-gray-50 border rounded-xl"
+                    className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-purple-500"
                     required
                   />
                   <p className="text-sm text-gray-500 mt-1">
@@ -308,7 +345,11 @@ const BikeBooking = () => {
                       <button
                         key={time}
                         onClick={() => setSelectedTime(time)}
-                        className={`px-3 py-2 rounded-lg text-sm transition ${selectedTime === time ? "bg-purple-600 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
+                        className={`px-3 py-2 rounded-lg text-sm transition ${
+                          selectedTime === time
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-100 hover:bg-gray-200"
+                        }`}
                       >
                         {time}
                       </button>
@@ -317,7 +358,8 @@ const BikeBooking = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              {/* Locations */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <FaMapMarkerAlt className="inline mr-2 text-purple-600" />{" "}
@@ -344,14 +386,15 @@ const BikeBooking = () => {
                 </div>
               </div>
 
-              <div className="mt-4">
+              {/* Rental Duration */}
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Rental Duration
                 </label>
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => setBookingDays(Math.max(1, bookingDays - 1))}
-                    className="w-10 h-10 bg-gray-100 rounded-lg text-xl"
+                    className="w-10 h-10 bg-gray-100 rounded-lg text-xl hover:bg-gray-200"
                   >
                     -
                   </button>
@@ -365,7 +408,7 @@ const BikeBooking = () => {
                   </div>
                   <button
                     onClick={() => setBookingDays(bookingDays + 1)}
-                    className="w-10 h-10 bg-gray-100 rounded-lg text-xl"
+                    className="w-10 h-10 bg-gray-100 rounded-lg text-xl hover:bg-gray-200"
                   >
                     +
                   </button>
@@ -373,7 +416,7 @@ const BikeBooking = () => {
               </div>
 
               {/* Extras */}
-              <div className="mt-4">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   <FaHelmetSafety className="inline mr-2 text-purple-600" />{" "}
                   Extras
@@ -401,7 +444,7 @@ const BikeBooking = () => {
               </div>
 
               {/* Rider Experience */}
-              <div className="mt-4">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <FaUser className="inline mr-2 text-purple-600" /> Riding
                   Experience
@@ -411,7 +454,11 @@ const BikeBooking = () => {
                     <button
                       key={level}
                       onClick={() => setRiderExperience(level)}
-                      className={`px-4 py-2 rounded-lg text-sm transition ${riderExperience === level ? "bg-purple-600 text-white" : "bg-gray-100"}`}
+                      className={`px-4 py-2 rounded-lg text-sm transition ${
+                        riderExperience === level
+                          ? "bg-purple-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-200"
+                      }`}
                     >
                       {level}
                     </button>
@@ -420,7 +467,7 @@ const BikeBooking = () => {
               </div>
 
               {/* Emergency Contact */}
-              <div className="mt-4">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   <FaPhone className="inline mr-2 text-purple-600" /> Emergency
                   Contact
@@ -468,13 +515,13 @@ const BikeBooking = () => {
               </div>
 
               {/* Special Requests */}
-              <div className="mt-4">
+              <div>
                 <textarea
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   rows="2"
                   placeholder="Special requests (optional)"
-                  className="w-full px-4 py-3 bg-gray-50 border rounded-xl"
+                  className="w-full px-4 py-3 bg-gray-50 border rounded-xl resize-none"
                 />
               </div>
             </div>
@@ -527,7 +574,8 @@ const BikeBooking = () => {
                   <FaSpinner className="animate-spin mx-auto" />
                 ) : (
                   <>
-                    Continue to Payment <FaCreditCard className="inline ml-2" />
+                    Continue to Document Upload{" "}
+                    <FaCreditCard className="inline ml-2" />
                   </>
                 )}
               </button>
@@ -538,6 +586,25 @@ const BikeBooking = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white mt-12 pt-8 pb-6">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-3 mb-4 md:mb-0">
+              <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg">
+                <FaMotorcycle className="text-white" />
+              </div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Rent<span className="text-white">Ride</span>
+              </h3>
+            </div>
+            <div className="text-gray-400 text-sm">
+              &copy; {new Date().getFullYear()} RentRide. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

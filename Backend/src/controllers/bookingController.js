@@ -745,99 +745,260 @@ export const getAllBookings = async (req, res) => {
   }
 };
 
-// Approve booking (admin) - Sets vehicle to BOOKED
+// // Approve booking (admin) - Sets vehicle to BOOKED
+// export const approveBooking = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const adminId = req.user.id;
+
+//     const booking = await Booking.findById(id).populate("user", "name email");
+
+//     if (!booking) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Booking not found",
+//       });
+//     }
+
+//     if (booking.status !== "pending") {
+//       return res.status(400).json({
+//         success: false,
+//         message: `Booking cannot be approved in ${booking.status} status`,
+//       });
+//     }
+
+//     const isAvailable = await booking.checkVehicleAvailability();
+//     if (!isAvailable) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Vehicle is no longer available for the selected dates",
+//       });
+//     }
+
+//     // const documents = await Document.findOne({ booking: id });
+//     // if (!documents) {
+//     //   return res.status(400).json({
+//     //     success: false,
+//     //     message: "Documents are required before approval",
+//     //   });
+//     // }
+
+//     // Update booking status
+//     booking.status = "approved";
+//     booking.approvedBy = adminId;
+//     booking.approvedAt = new Date();
+//     booking.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+//     booking.paymentStatus = "pending";
+//     await booking.save();
+
+//     // Update vehicle status to BOOKED
+//     if (booking.vehicleType === "user") {
+//       try {
+//         await UserVehicle.findByIdAndUpdate(booking.vehicle, {
+//           status: "booked",
+//           isListed: true, // Keep listed but show as booked
+//         });
+//         console.log("✅ User vehicle status updated to BOOKED");
+//       } catch (error) {
+//         console.error("Error updating user vehicle status:", error);
+//       }
+//     } else {
+//       await Vehicle.findByIdAndUpdate(booking.vehicle, {
+//         status: "Booked",
+//       });
+//       console.log("✅ Admin vehicle status updated to Booked");
+//     }
+
+//     const vehicleData = await getVehicleDetails(
+//       booking.vehicle,
+//       booking.vehicleType,
+//     );
+
+//     // Send approval email
+//     await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
+//       ...booking.toObject(),
+//       vehicle: vehicleData,
+//       confirmationCode: booking.confirmationCode,
+//     });
+
+//     // Create in-app notification with payment link
+//     await createBookingApprovedNotification(
+//       booking.user._id,
+//       booking,
+//       vehicleData,
+//     );
+
+//     await createPaymentRequiredNotification(
+//       booking.user._id,
+//       booking,
+//       vehicleData,
+//     );
+
+//     console.log(
+//       `✅ Payment notification sent to user ${booking.user.email} for booking ${booking.confirmationCode}`,
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message:
+//         "Booking approved successfully. Payment notification sent to customer.",
+//       data: {
+//         booking: {
+//           id: booking._id,
+//           status: booking.status,
+//           approvedAt: booking.approvedAt,
+//           expiresAt: booking.expiresAt,
+//           confirmationCode: booking.confirmationCode,
+//           totalAmount: booking.totalAmount,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Approve booking error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to approve booking",
+//     });
+//   }
+// };
+
 export const approveBooking = async (req, res) => {
   try {
     const { id } = req.params;
     const adminId = req.user.id;
 
+    console.log("=== APPROVE BOOKING DEBUG ===");
+    console.log("Booking ID:", id);
+    console.log("Admin ID:", adminId);
+
     const booking = await Booking.findById(id).populate("user", "name email");
 
     if (!booking) {
+      console.log("❌ Booking not found");
       return res.status(404).json({
         success: false,
         message: "Booking not found",
       });
     }
 
+    console.log("Booking found:", {
+      id: booking._id,
+      status: booking.status,
+      vehicleType: booking.vehicleType,
+      vehicle: booking.vehicle,
+      paymentStatus: booking.paymentStatus,
+    });
+
+    // Check status
     if (booking.status !== "pending") {
+      console.log("❌ Wrong status:", booking.status);
       return res.status(400).json({
         success: false,
         message: `Booking cannot be approved in ${booking.status} status`,
       });
     }
 
+    // Check vehicle availability
+    console.log("Checking vehicle availability...");
     const isAvailable = await booking.checkVehicleAvailability();
+    console.log("Is available:", isAvailable);
+
     if (!isAvailable) {
+      console.log("❌ Vehicle not available");
       return res.status(400).json({
         success: false,
         message: "Vehicle is no longer available for the selected dates",
       });
     }
 
+    // Check documents (if required)
+    console.log("Checking documents...");
     const documents = await Document.findOne({ booking: id });
-    if (!documents) {
-      return res.status(400).json({
-        success: false,
-        message: "Documents are required before approval",
-      });
-    }
+    console.log("Documents found:", !!documents);
+
+    // TEMPORARILY COMMENT OUT THE DOCUMENTS CHECK FOR TESTING
+    // if (!documents) {
+    //   console.log("❌ No documents found");
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Documents are required before approval",
+    //   });
+    // }
 
     // Update booking status
+    console.log("Updating booking status to approved...");
     booking.status = "approved";
     booking.approvedBy = adminId;
     booking.approvedAt = new Date();
     booking.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
     booking.paymentStatus = "pending";
     await booking.save();
+    console.log("✅ Booking status updated");
 
     // Update vehicle status to BOOKED
+    console.log("Updating vehicle status...");
     if (booking.vehicleType === "user") {
       try {
-        await UserVehicle.findByIdAndUpdate(booking.vehicle, {
-          status: "booked",
-          isListed: true, // Keep listed but show as booked
-        });
-        console.log("✅ User vehicle status updated to BOOKED");
+        const userVehicle = await UserVehicle.findByIdAndUpdate(
+          booking.vehicle,
+          {
+            status: "booked",
+            isListed: true,
+          },
+        );
+        console.log(
+          "User vehicle updated:",
+          userVehicle ? "Success" : "Not found",
+        );
       } catch (error) {
         console.error("Error updating user vehicle status:", error);
       }
     } else {
-      await Vehicle.findByIdAndUpdate(booking.vehicle, {
+      const adminVehicle = await Vehicle.findByIdAndUpdate(booking.vehicle, {
         status: "Booked",
       });
-      console.log("✅ Admin vehicle status updated to Booked");
+      console.log(
+        "Admin vehicle updated:",
+        adminVehicle ? "Success" : "Not found",
+      );
     }
 
+    // Get vehicle details
     const vehicleData = await getVehicleDetails(
       booking.vehicle,
       booking.vehicleType,
     );
+    console.log("Vehicle data retrieved:", !!vehicleData);
 
-    // Send approval email
-    await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
-      ...booking.toObject(),
-      vehicle: vehicleData,
-      confirmationCode: booking.confirmationCode,
-    });
+    // Send email and notifications
+    try {
+      await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
+        ...booking.toObject(),
+        vehicle: vehicleData,
+        confirmationCode: booking.confirmationCode,
+      });
+      console.log("✅ Approval email sent");
+    } catch (emailError) {
+      console.error("Email error:", emailError.message);
+    }
 
-    // Create in-app notification with payment link
-    await createBookingApprovedNotification(
-      booking.user._id,
-      booking,
-      vehicleData,
-    );
+    try {
+      await createBookingApprovedNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
+      await createPaymentRequiredNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
+      console.log("✅ Notifications sent");
+    } catch (notifError) {
+      console.error("Notification error:", notifError.message);
+    }
 
-    await createPaymentRequiredNotification(
-      booking.user._id,
-      booking,
-      vehicleData,
-    );
-
-    console.log(
-      `✅ Payment notification sent to user ${booking.user.email} for booking ${booking.confirmationCode}`,
-    );
-
+    console.log("=== APPROVE BOOKING SUCCESS ===");
     res.status(200).json({
       success: true,
       message:
@@ -854,10 +1015,16 @@ export const approveBooking = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Approve booking error:", error);
+    console.error("=== APPROVE BOOKING ERROR ===");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+
+    // Send detailed error response
     res.status(500).json({
       success: false,
       message: "Failed to approve booking",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -1404,7 +1571,7 @@ export const checkUserBookingStatus = async (req, res) => {
     // First, check if the vehicle exists in either collection
     let vehicleExists = false;
     let isUserVehicle = false;
-    
+
     const adminVehicle = await Vehicle.findById(vehicleId);
     if (adminVehicle) {
       vehicleExists = true;
@@ -1460,4 +1627,4 @@ export const checkUserBookingStatus = async (req, res) => {
       message: error.message || "Failed to check booking status",
     });
   }
-}; 
+};

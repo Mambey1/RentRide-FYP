@@ -494,9 +494,16 @@ const AdminLayout = () => {
       id: "bookings",
       path: "/admin/bookings",
       icon: FaCheckCircle,
-      label: "Manage Bookings",
+      label: "Manage Car Bookings",
       bgColor: "bg-gradient-to-r from-orange-500 to-red-500",
     },
+    {
+  id: "bikeBookings",
+  path: "/admin/bike-bookings",
+  icon: FaMotorcycle,
+  label: "Manage Bike Bookings",
+  bgColor: "bg-gradient-to-r from-purple-500 to-pink-500",
+},
     {
       id: "vehicleVerification",
       path: "/admin/vehicle-verification",
