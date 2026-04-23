@@ -404,7 +404,20 @@ export const forgotPassword = async (req, res) => {
     });
   }
 };
-
+// Add to authController.js
+export const getUserCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    const activeCount = await User.countDocuments({ isEmailVerified: true });
+    res.json({
+      success: true,
+      count,
+      activeCount,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 // Verify OTP and reset password
 export const resetPassword = async (req, res) => {
   try {

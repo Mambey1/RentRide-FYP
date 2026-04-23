@@ -1,3 +1,73 @@
+// // import express from "express";
+// // import {
+// //   getOrCreateVehicleChat,
+// //   getOrCreateSupportChat,
+// //   getChatById,
+// //   getUserChats,
+// //   markMessagesAsRead,
+// //   getUnreadCount,
+// //   closeChat,
+// //   sendMessage,
+// //   blockUser,
+// //   unblockUser,
+// // } from "../controllers/chatController.js";
+// // import { protect } from "../middleware/authMiddleware.js";
+
+// // const router = express.Router();
+
+// // // All chat routes require authentication
+// // router.use(protect);
+
+// // router.post("/vehicle", getOrCreateVehicleChat);
+// // router.post("/support", getOrCreateSupportChat);
+// // router.get("/my-chats", getUserChats);
+// // router.get("/unread-count", getUnreadCount);
+// // router.get("/:chatId", getChatById);
+// // router.put("/:chatId/read", markMessagesAsRead);
+// // router.put("/:chatId/close", closeChat);
+// // router.post("/:chatId/message", sendMessage);
+// // router.put("/:chatId/block", blockUser);
+// // router.put("/:chatId/unblock", unblockUser);
+
+// // export default router;
+
+// // routes/chatRoutes.js
+// import express from "express";
+// import {
+//   getOrCreateVehicleChat,
+//   getOrCreateSupportChat,
+//   getChatById,
+//   getUserChats,
+//   markMessagesAsRead,
+//   getUnreadCount,
+//   closeChat,
+//   sendMessage,
+//   blockUser,
+//   unblockUser,
+//   uploadChatImage,
+//   uploadChatImageHandler,
+// } from "../controllers/chatController.js";
+// import { protect } from "../middleware/authMiddleware.js";
+
+// const router = express.Router();
+
+// // All chat routes require authentication
+// router.use(protect);
+
+// router.post("/vehicle", getOrCreateVehicleChat);
+// router.post("/support", getOrCreateSupportChat);
+// router.get("/my-chats", getUserChats);
+// router.get("/unread-count", getUnreadCount);
+// router.get("/:chatId", getChatById);
+// router.put("/:chatId/read", markMessagesAsRead);
+// router.put("/:chatId/close", closeChat);
+// router.post("/:chatId/message", sendMessage);
+// router.put("/:chatId/block", blockUser);
+// router.put("/:chatId/unblock", unblockUser);
+// router.post("/upload-image", uploadChatImage, uploadChatImageHandler);
+
+// export default router;
+
 import express from "express";
 import {
   getOrCreateVehicleChat,
@@ -10,6 +80,8 @@ import {
   sendMessage,
   blockUser,
   unblockUser,
+  uploadChatImage,
+  uploadChatImageHandler,
 } from "../controllers/chatController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -18,6 +90,7 @@ const router = express.Router();
 // All chat routes require authentication
 router.use(protect);
 
+// Chat management
 router.post("/vehicle", getOrCreateVehicleChat);
 router.post("/support", getOrCreateSupportChat);
 router.get("/my-chats", getUserChats);
@@ -28,6 +101,6 @@ router.put("/:chatId/close", closeChat);
 router.post("/:chatId/message", sendMessage);
 router.put("/:chatId/block", blockUser);
 router.put("/:chatId/unblock", unblockUser);
-
+router.post("/upload-image", uploadChatImage, uploadChatImageHandler);
 
 export default router;

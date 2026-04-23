@@ -34,9 +34,8 @@ import {
   FaUserCircle,
   FaSpinner,
   FaPassport,
-  FaHelmetSafety,
 } from "react-icons/fa";
-
+import { FaHelmetSafety } from "react-icons/fa6";
 const AdminBikeBookings = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
@@ -73,7 +72,8 @@ const AdminBikeBookings = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       const response = await axios.get(
         "http://localhost:5000/api/bikes/admin/bookings",
         {
@@ -129,7 +129,8 @@ const AdminBikeBookings = () => {
   const handleApprove = async (bookingId) => {
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       await axios.put(
         `http://localhost:5000/api/bikes/admin/bookings/${bookingId}/approve`,
         {},
@@ -154,7 +155,8 @@ const AdminBikeBookings = () => {
 
     setActionLoading(true);
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       await axios.put(
         `http://localhost:5000/api/bikes/admin/bookings/${bookingId}/cancel`,
         { reason: rejectionReason },
@@ -520,7 +522,7 @@ const AdminBikeBookings = () => {
                     <div className="text-sm font-medium text-gray-900">
                       {booking.confirmationCode || booking._id.slice(-6)}
                     </div>
-                   </td>
+                  </td>
                   <td className="px-6 py-4">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
@@ -530,7 +532,7 @@ const AdminBikeBookings = () => {
                         {booking.user?.email}
                       </div>
                     </div>
-                   </td>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <FaMotorcycle className="text-gray-400" />
@@ -538,7 +540,7 @@ const AdminBikeBookings = () => {
                         {booking.bike?.bikeName}
                       </span>
                     </div>
-                   </td>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
                       {formatDate(booking.pickupDate)} -{" "}
@@ -547,15 +549,15 @@ const AdminBikeBookings = () => {
                     <div className="text-xs text-gray-500">
                       {booking.totalDays} days
                     </div>
-                   </td>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
                       {formatCurrency(booking.totalAmount)}
                     </div>
-                   </td>
+                  </td>
                   <td className="px-6 py-4">
                     {getStatusBadge(booking.status)}
-                   </td>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
                       <button
@@ -597,11 +599,11 @@ const AdminBikeBookings = () => {
                         </>
                       )}
                     </div>
-                   </td>
-                 </tr>
+                  </td>
+                </tr>
               ))}
             </tbody>
-           </table>
+          </table>
         </div>
 
         {filteredBookings.length === 0 && (
@@ -636,7 +638,8 @@ const AdminBikeBookings = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <FaFileAlt className="text-purple-600" /> Booking Information
+                    <FaFileAlt className="text-purple-600" /> Booking
+                    Information
                   </h4>
                   <div className="space-y-2">
                     <p>
@@ -762,7 +765,8 @@ const AdminBikeBookings = () => {
                   <div className="flex items-center gap-4 mt-2">
                     {selectedBooking.extraHelmet && (
                       <span className="flex items-center gap-1 text-sm text-gray-600">
-                        <FaHelmetSafety className="text-purple-500" /> Extra Helmet
+                        <FaHelmetSafety className="text-purple-500" /> Extra
+                        Helmet
                       </span>
                     )}
                     {selectedBooking.ridingGear && (
@@ -788,13 +792,17 @@ const AdminBikeBookings = () => {
                   {selectedBooking.extraHelmet && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Extra Helmet</span>
-                      <span>{formatCurrency(100 * selectedBooking.totalDays)}</span>
+                      <span>
+                        {formatCurrency(100 * selectedBooking.totalDays)}
+                      </span>
                     </div>
                   )}
                   {selectedBooking.ridingGear && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Riding Gear</span>
-                      <span>{formatCurrency(200 * selectedBooking.totalDays)}</span>
+                      <span>
+                        {formatCurrency(200 * selectedBooking.totalDays)}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between">
@@ -846,9 +854,12 @@ const AdminBikeBookings = () => {
               {selectedBooking.specialRequests && (
                 <div className="bg-gray-50 rounded-lg p-4 mb-8">
                   <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <FaInfoCircle className="text-purple-600" /> Special Requests
+                    <FaInfoCircle className="text-purple-600" /> Special
+                    Requests
                   </h4>
-                  <p className="text-gray-700">{selectedBooking.specialRequests}</p>
+                  <p className="text-gray-700">
+                    {selectedBooking.specialRequests}
+                  </p>
                 </div>
               )}
 

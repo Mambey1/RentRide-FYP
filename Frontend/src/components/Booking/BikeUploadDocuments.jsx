@@ -10,8 +10,9 @@ import {
   FaFileSignature,
   FaExclamationTriangle,
   FaClock,
-  FaHelmetSafety,
+  //   FaHelmetSafety,
 } from "react-icons/fa";
+import { FaHelmetSafety } from "react-icons/fa6";
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api";
@@ -31,12 +32,8 @@ axiosInstance.interceptors.request.use((config) => {
 const BikeUploadDocuments = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    bookingId,
-    confirmationCode,
-    bikeDetails,
-    bookingDetails,
-  } = location.state || {};
+  const { bookingId, confirmationCode, bikeDetails, bookingDetails } =
+    location.state || {};
 
   const [licenseFront, setLicenseFront] = useState(null);
   const [licenseBack, setLicenseBack] = useState(null);
@@ -97,11 +94,15 @@ const BikeUploadDocuments = () => {
     formData.append("licenseBack", licenseBack);
 
     try {
-      const response = await axiosInstance.post("/bike-documents/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      const response = await axiosInstance.post(
+        "/bike-documents/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         },
-      });
+      );
 
       if (response.data.success) {
         setUploaded(true);
@@ -242,9 +243,7 @@ const BikeUploadDocuments = () => {
 
               <label className="block">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="font-semibold text-gray-900">
-                    Back Side
-                  </span>
+                  <span className="font-semibold text-gray-900">Back Side</span>
                   <span className="text-red-500">*</span>
                 </div>
                 <div className="flex items-center gap-4">
@@ -284,7 +283,8 @@ const BikeUploadDocuments = () => {
                       You will be physically present at the time of bike pickup
                     </li>
                     <li>
-                      You will sign the rental contract before receiving the bike
+                      You will sign the rental contract before receiving the
+                      bike
                     </li>
                     <li>
                       You understand that failure to sign the contract will
@@ -294,7 +294,9 @@ const BikeUploadDocuments = () => {
                       You accept full responsibility for the bike during the
                       rental period
                     </li>
-                    <li>You have a valid driver's license for motorcycle operation</li>
+                    <li>
+                      You have a valid driver's license for motorcycle operation
+                    </li>
                   </ul>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -353,7 +355,8 @@ const BikeUploadDocuments = () => {
                 Documents Submitted Successfully!
               </h2>
               <p className="text-gray-600 mb-6">
-                Your bike booking has been submitted and is pending verification.
+                Your bike booking has been submitted and is pending
+                verification.
               </p>
 
               <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
