@@ -648,7 +648,7 @@ import Home from "./components/Dashboard/Home";
 import Login from "./components/Auth/Login";
 import SignUp from "./components/Auth/SignUp";
 import RentRideHome from "./components/Dashboard/RentRideHome";
-import ProfileDetails from "./components/Profile/Profile.jsx";
+import ProfileDetails from "./components/Profile/Profile";
 import Booking from "./components/Booking/Booking";
 import VerifyEmail from "./components/Auth/VerifyEmail";
 import UploadDocuments from "./components/Booking/UploadDocuments";

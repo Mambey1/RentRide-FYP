@@ -1,3 +1,37 @@
+// // // import express from "express";
+// // // import {
+// // //   getOrCreateVehicleChat,
+// // //   getOrCreateSupportChat,
+// // //   getChatById,
+// // //   getUserChats,
+// // //   markMessagesAsRead,
+// // //   getUnreadCount,
+// // //   closeChat,
+// // //   sendMessage,
+// // //   blockUser,
+// // //   unblockUser,
+// // // } from "../controllers/chatController.js";
+// // // import { protect } from "../middleware/authMiddleware.js";
+
+// // // const router = express.Router();
+
+// // // // All chat routes require authentication
+// // // router.use(protect);
+
+// // // router.post("/vehicle", getOrCreateVehicleChat);
+// // // router.post("/support", getOrCreateSupportChat);
+// // // router.get("/my-chats", getUserChats);
+// // // router.get("/unread-count", getUnreadCount);
+// // // router.get("/:chatId", getChatById);
+// // // router.put("/:chatId/read", markMessagesAsRead);
+// // // router.put("/:chatId/close", closeChat);
+// // // router.post("/:chatId/message", sendMessage);
+// // // router.put("/:chatId/block", blockUser);
+// // // router.put("/:chatId/unblock", unblockUser);
+
+// // // export default router;
+
+// // // routes/chatRoutes.js
 // // import express from "express";
 // // import {
 // //   getOrCreateVehicleChat,
@@ -10,6 +44,8 @@
 // //   sendMessage,
 // //   blockUser,
 // //   unblockUser,
+// //   uploadChatImage,
+// //   uploadChatImageHandler,
 // // } from "../controllers/chatController.js";
 // // import { protect } from "../middleware/authMiddleware.js";
 
@@ -28,10 +64,10 @@
 // // router.post("/:chatId/message", sendMessage);
 // // router.put("/:chatId/block", blockUser);
 // // router.put("/:chatId/unblock", unblockUser);
+// // router.post("/upload-image", uploadChatImage, uploadChatImageHandler);
 
 // // export default router;
 
-// // routes/chatRoutes.js
 // import express from "express";
 // import {
 //   getOrCreateVehicleChat,
@@ -54,6 +90,7 @@
 // // All chat routes require authentication
 // router.use(protect);
 
+// // Chat management
 // router.post("/vehicle", getOrCreateVehicleChat);
 // router.post("/support", getOrCreateSupportChat);
 // router.get("/my-chats", getUserChats);
@@ -70,6 +107,7 @@
 
 import express from "express";
 import {
+  // Existing
   getOrCreateVehicleChat,
   getOrCreateSupportChat,
   getChatById,
@@ -82,6 +120,12 @@ import {
   unblockUser,
   uploadChatImage,
   uploadChatImageHandler,
+  // New
+  unsendMessage,
+  deleteMessageForMe,
+  deleteConversation,
+  reactToMessage,
+  muteChat,
 } from "../controllers/chatController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
@@ -90,17 +134,47 @@ const router = express.Router();
 // All chat routes require authentication
 router.use(protect);
 
-// Chat management
+// ─── Chat creation ────────────────────────────────────────────────────────────
 router.post("/vehicle", getOrCreateVehicleChat);
 router.post("/support", getOrCreateSupportChat);
+
+// ─── Chat listing & unread ────────────────────────────────────────────────────
 router.get("/my-chats", getUserChats);
 router.get("/unread-count", getUnreadCount);
+
+// ─── Single chat ──────────────────────────────────────────────────────────────
 router.get("/:chatId", getChatById);
 router.put("/:chatId/read", markMessagesAsRead);
 router.put("/:chatId/close", closeChat);
+
+// ─── Messaging ────────────────────────────────────────────────────────────────
 router.post("/:chatId/message", sendMessage);
+
+// Image upload — note: this uses multer middleware before the handler
+router.post("/:chatId/image", uploadChatImage, uploadChatImageHandler);
+
+// Legacy upload endpoint (kept for backward compat)
+router.post("/upload-image", uploadChatImage, uploadChatImageHandler);
+
+// ─── Message actions ──────────────────────────────────────────────────────────
+// Unsend a message (visible to everyone as "This message was unsent")
+router.delete("/:chatId/message/:messageId/unsend", unsendMessage);
+
+// Delete a message only for the requesting user
+router.delete("/:chatId/message/:messageId", deleteMessageForMe);
+
+// React to a message with an emoji (toggle on/off)
+router.post("/:chatId/message/:messageId/react", reactToMessage);
+
+// ─── Conversation actions ─────────────────────────────────────────────────────
+// Delete the entire conversation for the requesting user only
+router.delete("/:chatId/conversation", deleteConversation);
+
+// Mute / unmute a chat (toggles)
+router.put("/:chatId/mute", muteChat);
+
+// ─── Block / Unblock ──────────────────────────────────────────────────────────
 router.put("/:chatId/block", blockUser);
 router.put("/:chatId/unblock", unblockUser);
-router.post("/upload-image", uploadChatImage, uploadChatImageHandler);
 
 export default router;
