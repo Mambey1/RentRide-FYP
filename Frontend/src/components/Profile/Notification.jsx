@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -138,6 +136,22 @@ const Notification = () => {
     // Fallback: if no action but has metadata with bookingId
     else if (notification.metadata?.bookingId) {
       navigate(`/payment/${notification.metadata.bookingId}`);
+    }
+    // Handle chat action
+    if (notification.action?.type === "chat") {
+      const chatId = notification.metadata?.chatId;
+      if (chatId) {
+        // Navigate to profile with messages tab open and select the chat
+        const currentPath = window.location.pathname;
+        if (currentPath === "/profiledetails") {
+          // Already on profile page, just switch to messages and open chat
+          window.dispatchEvent(
+            new CustomEvent("openChat", { detail: { chatId } }),
+          );
+        } else {
+          navigate(`/profiledetails?tab=messages&chat=${chatId}`);
+        }
+      }
     }
   };
 
