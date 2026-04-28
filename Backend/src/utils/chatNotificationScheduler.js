@@ -14,11 +14,15 @@
  *                  and reset the "instant sent" flag so the cycle can
  *                  start fresh next time.
  *
+ * ─ Fresh cycle → when unread count drops back to 1 (new message after
+ *                  all previous were read), force-reset instantSent so
+ *                  the next threshold trigger works correctly.
+ *
  * Usage:
  *   import { scheduleUnreadNotification, cancelNotification } from "./chatNotificationScheduler.js";
  *
  *   // On every new message received by a participant:
- *   scheduleUnreadNotification({ chat, recipientId, sender, io });
+ *   scheduleUnreadNotification({ chat, recipientId, sender });
  *
  *   // When the recipient reads/opens the chat:
  *   cancelNotification(chatId, recipientId);
@@ -75,9 +79,7 @@ async function fireNotification({ recipientId, sender, chat, unreadCount }) {
       .map((id) => id.toString())
       .includes(recipientId.toString());
     if (isMuted) {
-      console.log(
-        `🔕 Notification suppressed (muted) for user_${recipientId}`
-      );
+      console.log(`🔕 Notification suppressed (muted) for user_${recipientId}`);
       return;
     }
 
@@ -91,7 +93,7 @@ async function fireNotification({ recipientId, sender, chat, unreadCount }) {
           !m.isUnsent &&
           !(m.deletedFor || [])
             .map((id) => id.toString())
-            .includes(recipientId.toString())
+            .includes(recipientId.toString()),
       );
 
     const preview = latestMsg?.message?.substring(0, 120) || "";
@@ -104,7 +106,7 @@ async function fireNotification({ recipientId, sender, chat, unreadCount }) {
       unreadCount,
       preview,
       chat.chatType,
-      chat.vehicleName || null
+      chat.vehicleName || null,
     );
 
     // 2️⃣  Push real-time socket event so the bell badge updates instantly
@@ -121,18 +123,36 @@ async function fireNotification({ recipientId, sender, chat, unreadCount }) {
     }
 
     // 3️⃣  Email notification
-    await sendChatUnreadEmail(
-      recipient.email,
-      recipient.name,
-      sender.name,
-      unreadCount,
-      preview,
-      chat._id.toString(),
-      chat.vehicleName || null
+    console.log(
+      `📧 Attempting to send email to: ${recipient.email} (${recipient.name})`,
     );
+    console.log(
+      `   From: ${sender.name} | Unread: ${unreadCount} | Chat: ${chat._id}`,
+    );
+    try {
+      const emailSent = await sendChatUnreadEmail(
+        recipient.email,
+        recipient.name,
+        sender.name,
+        unreadCount,
+        preview,
+        chat._id.toString(),
+        chat.vehicleName || null,
+      );
+      if (emailSent) {
+        console.log(`✅ Email sent successfully → ${recipient.email}`);
+      } else {
+        console.warn(
+          `⚠️  Email returned false (check transporter) → ${recipient.email}`,
+        );
+      }
+    } catch (emailErr) {
+      console.error(`❌ Email FAILED → ${recipient.email}`);
+      console.error(`   Reason: ${emailErr.message}`);
+    }
 
     console.log(
-      `✅ Chat notification fired → user_${recipientId} (${unreadCount} unread from ${sender.name})`
+      `✅ Chat notification fired → user_${recipientId} (${unreadCount} unread from ${sender.name})`,
     );
   } catch (err) {
     console.error("chatNotificationScheduler.fireNotification error:", err);
@@ -149,7 +169,11 @@ async function fireNotification({ recipientId, sender, chat, unreadCount }) {
  * @param {string|ObjectId} params.recipientId
  * @param {{ _id: string|ObjectId, name: string }} params.sender
  */
-export async function scheduleUnreadNotification({ chat, recipientId, sender }) {
+export async function scheduleUnreadNotification({
+  chat,
+  recipientId,
+  sender,
+}) {
   const chatId = chat._id.toString();
   const recipientStr = recipientId.toString();
 
@@ -159,44 +183,58 @@ export async function scheduleUnreadNotification({ chat, recipientId, sender }) 
       m.sender.toString() === sender._id.toString() &&
       !m.read &&
       !m.isUnsent &&
-      !(m.deletedFor || []).map((id) => id.toString()).includes(recipientStr)
+      !(m.deletedFor || []).map((id) => id.toString()).includes(recipientStr),
   );
 
   const unreadCount = unreadMessages.length;
   const state = getState(chatId, recipientStr);
 
-  // Track the timestamp of the first unread message
-  if (unreadCount === 1 || !state.firstUnreadAt) {
+  // ── Fresh cycle detection ──────────────────────────────────────────────────
+  // When unreadCount === 1 it means this is the very first unread message of
+  // a new cycle (all previous messages were read before this one arrived).
+  // Force-reset instantSent so the upcoming threshold trigger fires correctly,
+  // even if cancelNotification() wasn't called explicitly (e.g. the user read
+  // messages inside the chat window without triggering the socket event).
+  if (unreadCount === 1) {
+    clearTimer(state);
+    state.instantSent = false;
+    state.firstUnreadAt = unreadMessages[0]?.createdAt || new Date();
+    console.log(`🔄 Fresh notification cycle started for user_${recipientStr}`);
+  }
+
+  // For subsequent messages in the same cycle, record the first unread
+  // timestamp only if it hasn't been set yet.
+  if (unreadCount > 1 && !state.firstUnreadAt) {
     state.firstUnreadAt = unreadMessages[0]?.createdAt || new Date();
   }
 
   console.log(
-    `📊 Unread check → chat:${chatId} recipient:${recipientStr} unread:${unreadCount} instantSent:${state.instantSent}`
+    `📊 Unread check → chat:${chatId} recipient:${recipientStr} unread:${unreadCount} instantSent:${state.instantSent}`,
   );
 
-  // ── Case 1: More than THRESHOLD → instant (once per cycle) ────────────────
+  // ── Case 1: More than THRESHOLD → instant notification (once per cycle) ────
   if (unreadCount > THRESHOLD) {
     if (!state.instantSent) {
       state.instantSent = true;
       clearTimer(state); // cancel any pending delayed timer
 
       console.log(
-        `⚡ Instant notification triggered (${unreadCount} unread) → user_${recipientStr}`
+        `⚡ Instant notification triggered (${unreadCount} unread) → user_${recipientStr}`,
       );
       await fireNotification({ recipientId, sender, chat, unreadCount });
     } else {
       console.log(
-        `🔕 Instant already sent this cycle, skipping for user_${recipientStr}`
+        `🔕 Instant already sent this cycle, skipping for user_${recipientStr}`,
       );
     }
     return;
   }
 
-  // ── Case 2: ≤ THRESHOLD → schedule/reschedule delayed notification ─────────
-  // Don't schedule again if instant was already sent (shouldn't happen in practice)
+  // ── Case 2: ≤ THRESHOLD → schedule/reschedule delayed notification ──────────
+  // Don't schedule again if instant was already sent this cycle.
   if (state.instantSent) return;
 
-  // Cancel previous delayed timer (we'll reset based on first unread time)
+  // Cancel previous delayed timer — we recalculate remaining time below.
   clearTimer(state);
 
   const now = Date.now();
@@ -205,11 +243,11 @@ export async function scheduleUnreadNotification({ chat, recipientId, sender }) 
   const remaining = Math.max(0, DELAY_MS - elapsed);
 
   console.log(
-    `⏰ Scheduling delayed notification in ${Math.round(remaining / 60000)} min for user_${recipientStr}`
+    `⏰ Scheduling delayed notification in ${Math.round(remaining / 60000)} min for user_${recipientStr}`,
   );
 
   state.timer = setTimeout(async () => {
-    // Re-query fresh chat data so we use current unread counts
+    // Re-query fresh chat data at fire time to get current read status.
     const { default: Chat } = await import("../models/Chat.js");
     const freshChat = await Chat.findById(chatId);
     if (!freshChat) return;
@@ -219,18 +257,18 @@ export async function scheduleUnreadNotification({ chat, recipientId, sender }) 
         m.sender.toString() === sender._id.toString() &&
         !m.read &&
         !m.isUnsent &&
-        !(m.deletedFor || []).map((id) => id.toString()).includes(recipientStr)
+        !(m.deletedFor || []).map((id) => id.toString()).includes(recipientStr),
     );
 
     if (stillUnread.length === 0) {
       console.log(
-        `✅ Messages already read, skipping delayed notification for user_${recipientStr}`
+        `✅ Messages already read, skipping delayed notification for user_${recipientStr}`,
       );
       return;
     }
 
     console.log(
-      `📬 Delayed notification firing (${stillUnread.length} unread) → user_${recipientStr}`
+      `📬 Delayed notification firing (${stillUnread.length} unread) → user_${recipientStr}`,
     );
     await fireNotification({
       recipientId,
@@ -243,7 +281,8 @@ export async function scheduleUnreadNotification({ chat, recipientId, sender }) 
 
 /**
  * Called when the recipient reads/opens the chat.
- * Cancels any pending timer and resets the cycle.
+ * Cancels any pending timer and resets the cycle so the next
+ * batch of messages starts fresh.
  *
  * @param {string} chatId
  * @param {string} recipientId
@@ -257,7 +296,7 @@ export function cancelNotification(chatId, recipientId) {
     state.instantSent = false;
     state.firstUnreadAt = null;
     console.log(
-      `🔄 Notification cycle reset for chat:${chatId} user:${recipientId}`
+      `🔄 Notification cycle reset for chat:${chatId} user:${recipientId}`,
     );
   }
 }
