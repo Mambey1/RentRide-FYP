@@ -551,7 +551,7 @@ import reviewRoutes from "./src/routes/reviewRoutes.js";
 import chatRoutes from "./src/routes/chatRoutes.js";
 import adminChatRoutes from "./src/routes/adminChatRoutes.js";
 import bikeRoutes from "./src/routes/bikeRoutes.js";
-
+import bikePaymentRoutes from "./src/routes/bikePaymentRoutes.js";
 // ── AI Chatbot Route ──────────────────────────────────────────
 import aiChatRoutes from "./src/routes/aiChatRoutes.js";
 
@@ -615,6 +615,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/admin/chats", adminChatRoutes);
 app.use("/api/bikes", bikeRoutes);
+app.use("/api/bike-payments", bikePaymentRoutes);
 
 // ── AI Chatbot — POST /api/ai-chat ───────────────────────────
 app.use("/api", aiChatRoutes);

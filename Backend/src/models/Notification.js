@@ -87,7 +87,7 @@ const notificationSchema = new mongoose.Schema(
     action: {
       type: {
         type: String,
-        enum: ["navigate", "payment", "booking", "none"],
+        enum: ["navigate", "payment", "booking", "none","bike_payment"],
         default: "none",
       },
       path: String,
