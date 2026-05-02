@@ -1318,7 +1318,7 @@ const AdminLayout = () => {
       id: "bikes",
       path: "/admin/bikes",
       icon: FaMotorcycle,
-      label: "Bikes",
+      label: "Bikes Invent",
       bgColor: "bg-gradient-to-r from-purple-500 to-pink-500",
     },
     {
