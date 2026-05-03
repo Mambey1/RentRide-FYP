@@ -1227,6 +1227,7 @@ import {
   FaComments,
   FaMotorcycle,
   FaFileAlt,
+  FaUsers ,
 } from "react-icons/fa";
 import { useSocket } from "../../context/SocketContext"; // ← correct path from src/components/Admin/
 
@@ -1364,6 +1365,14 @@ const AdminLayout = () => {
       bgColor: "bg-gradient-to-r from-blue-500 to-purple-500",
       badge: true, // shows unread count badge
     },
+
+    {
+    id: "users",
+    path: "/admin/users",         // 👈 THIS ONE IS FOR USER MANAGEMENT
+    icon: FaUsers,                // Where you manage users (warnings, blocks, reports)
+    label: "User Management",
+    bgColor: "bg-gradient-to-r from-purple-500 to-pink-500",
+  },
   ];
 
   const isActive = (path) => location.pathname === path;

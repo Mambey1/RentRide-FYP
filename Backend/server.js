@@ -555,6 +555,10 @@ import bikePaymentRoutes from "./src/routes/bikePaymentRoutes.js";
 // ── AI Chatbot Route ──────────────────────────────────────────
 import aiChatRoutes from "./src/routes/aiChatRoutes.js";
 
+
+
+import adminRoutes from "./src/routes/adminRoutes.js";
+
 // Import Socket.IO
 import { initializeSocket } from "./src/socket/socketServer.js";
 
@@ -616,6 +620,7 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/admin/chats", adminChatRoutes);
 app.use("/api/bikes", bikeRoutes);
 app.use("/api/bike-payments", bikePaymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ── AI Chatbot — POST /api/ai-chat ───────────────────────────
 app.use("/api", aiChatRoutes);
