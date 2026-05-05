@@ -562,6 +562,9 @@ import adminRoutes from "./src/routes/adminRoutes.js";
 // Import Socket.IO
 import { initializeSocket } from "./src/socket/socketServer.js";
 
+
+import reportRoutes from "./src/routes/reportRoutes.js"; // ✅ correct
+
 const app = express();
 
 // CORS configuration
@@ -624,6 +627,8 @@ app.use("/api/admin", adminRoutes);
 
 // ── AI Chatbot — POST /api/ai-chat ───────────────────────────
 app.use("/api", aiChatRoutes);
+
+app.use("/api/reports", reportRoutes);
 
 // ─── Health check routes ──────────────────────────────────────
 app.get("/api/test", (req, res) => {
