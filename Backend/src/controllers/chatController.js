@@ -4720,7 +4720,6 @@
 //   }
 // };
 
-
 import Chat from "../models/Chat.js";
 import User from "../models/User.js";
 import UserVehicle from "../models/UserVehicle.js";
@@ -4740,7 +4739,6 @@ const __dirname = path.dirname(__filename);
 
 // ─── Multer ───────────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
-
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../../uploads/chats");
     if (!fs.existsSync(uploadPath))
@@ -4889,6 +4887,59 @@ export const getOrCreateSupportChat = async (req, res) => {
   }
 };
 
+export const getOrCreateDirectChat = async (req, res) => {
+  try {
+    const currentUserId = req.user.id;
+    const { recipientId } = req.body;
+
+    if (!recipientId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "recipientId is required" });
+    }
+
+    if (recipientId.toString() === currentUserId.toString()) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Cannot chat with yourself" });
+    }
+
+    const recipient = await User.findById(recipientId).select("_id name");
+    if (!recipient) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Find existing direct chat between exactly these two users
+    let chat = await Chat.findOne({
+      chatType: "direct",
+      participants: { $all: [currentUserId, recipientId], $size: 2 },
+    }).populate("participants", "name email profilePhoto role");
+
+    if (!chat) {
+      const unreadCounts = new Map();
+      unreadCounts.set(currentUserId.toString(), 0);
+      unreadCounts.set(recipientId.toString(), 0);
+
+      chat = new Chat({
+        chatType: "direct",
+        participants: [currentUserId, recipientId],
+        title: `Chat with ${recipient.name}`,
+        messages: [],
+        unreadCounts,
+      });
+      await chat.save();
+      await chat.populate("participants", "name email profilePhoto role");
+    }
+
+    res.status(200).json({ success: true, data: chat });
+  } catch (error) {
+    console.error("Error getting/creating direct chat:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ─── Get chat by ID ───────────────────────────────────────────────────────────
 export const getChatById = async (req, res) => {
   try {
@@ -4924,11 +4975,15 @@ export const getChatById = async (req, res) => {
       if (chat.vehicleOwnerId) {
         chatObj.vehicleOwnerId = chat.vehicleOwnerId.toString();
       } else if (chat.vehicleId) {
-        const vehicle = await UserVehicle.findById(chat.vehicleId).select("user");
+        const vehicle = await UserVehicle.findById(chat.vehicleId).select(
+          "user",
+        );
         if (vehicle?.user) {
           chatObj.vehicleOwnerId = vehicle.user.toString();
           // Backfill the field on the chat document for future requests
-          await Chat.findByIdAndUpdate(chat._id, { vehicleOwnerId: vehicle.user });
+          await Chat.findByIdAndUpdate(chat._id, {
+            vehicleOwnerId: vehicle.user,
+          });
         }
       }
       // Final fallback for admin-listed vehicles
@@ -4958,14 +5013,14 @@ export const getUserChats = async (req, res) => {
     // Pre-resolve vehicle owners for chats that don't have vehicleOwnerId stored yet
     // (older chats created before this field was added)
     const chatsNeedingOwner = chats.filter(
-      (c) => c.chatType === "vehicle" && !c.vehicleOwnerId && c.vehicleId
+      (c) => c.chatType === "vehicle" && !c.vehicleOwnerId && c.vehicleId,
     );
     const vehicleIds = chatsNeedingOwner.map((c) => c.vehicleId);
     const vehicleOwnerMap = {}; // vehicleId → ownerId string
     if (vehicleIds.length > 0) {
       const vehicles = await UserVehicle.find(
         { _id: { $in: vehicleIds } },
-        { _id: 1, user: 1 }
+        { _id: 1, user: 1 },
       );
       vehicles.forEach((v) => {
         vehicleOwnerMap[v._id.toString()] = v.user.toString();

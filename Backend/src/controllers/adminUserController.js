@@ -1,6 +1,9 @@
 import User from "../models/User.js";
 import Report from "../models/Report.js";
 import Warning from "../models/Warning.js";
+import Booking from "../models/Booking.js";           // ← add this
+import BikeBooking from "../models/BikeBooking.js";   // ← add this
+import UserVehicle from "../models/UserVehicle.js";   // ← add this
 import { createNotification } from "../utils/notificationHelper.js";
 
 // Get all users
@@ -23,39 +26,90 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Get user details
+// // Get user details
+// export const getUserDetails = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+//     const user = await User.findById(userId).select("-password");
+
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
+
+//     const warnings = await Warning.find({ userId })
+//       .populate("givenBy", "name email")
+//       .sort({ createdAt: -1 });
+
+//     const reports = await Report.find({ reportedUser: userId })
+//       .populate("reportedBy", "name email")
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json({
+//       success: true,
+//       user,
+//       warnings,
+//       reports,
+//     });
+//   } catch (error) {
+//     console.error("Get user details error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
 export const getUserDetails = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId).select("-password");
 
+    const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const warnings = await Warning.find({ userId })
-      .populate("givenBy", "name email")
-      .sort({ createdAt: -1 });
+    const [warnings, reports, carBookings, bikeBookings, vehicles] = await Promise.all([
+      Warning.find({ userId })
+        .populate("givenBy", "name email")
+        .sort({ createdAt: -1 }),
 
-    const reports = await Report.find({ reportedUser: userId })
-      .populate("reportedBy", "name email")
-      .sort({ createdAt: -1 });
+      Report.find({ reportedUser: userId })
+        .populate("reportedBy", "name email")
+        .sort({ createdAt: -1 }),
+
+      Booking.find({ user: userId })
+        .populate("vehicle", "carName vehiclePhotos")
+        .sort({ createdAt: -1 }),
+
+      BikeBooking.find({ user: userId })
+        .populate("bike", "name photos")
+        .sort({ createdAt: -1 }),
+
+      UserVehicle.find({ user: userId })
+        .sort({ createdAt: -1 }),
+    ]);
+
+    // Merge car and bike bookings, newest first
+    const bookings = [...carBookings, ...bikeBookings].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
 
     res.status(200).json({
       success: true,
       user,
       warnings,
       reports,
+      bookings,
+      vehicles,
     });
   } catch (error) {
     console.error("Get user details error:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

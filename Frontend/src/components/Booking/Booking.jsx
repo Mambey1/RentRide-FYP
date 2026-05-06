@@ -5555,7 +5555,6 @@
 
 // export default Booking;
 
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   FaCar,
@@ -5590,6 +5589,9 @@ import {
 } from "react-icons/fa";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+// and add <ToastContainer /> somewhere in your JSX return
 
 const API_URL = "http://localhost:5000/api";
 
@@ -6094,7 +6096,9 @@ const Booking = () => {
           _id: msg._id || index,
           message: msg.message,
           createdAt: msg.createdAt,
-          isOwn: (msg.sender?._id || msg.sender?.id || msg.sender)?.toString() === currentUserId,
+          isOwn:
+            (msg.sender?._id || msg.sender?.id || msg.sender)?.toString() ===
+            currentUserId,
           sender: msg.sender,
           read: msg.read,
           delivered: msg.delivered,
@@ -6118,7 +6122,10 @@ const Booking = () => {
       createdAt: new Date(),
       isOwn: true,
       sending: true,
-      sender: { _id: currentUser._id || currentUser.id, name: currentUser.name },
+      sender: {
+        _id: currentUser._id || currentUser.id,
+        name: currentUser.name,
+      },
     };
     setChatMessages((prev) => [...prev, tempMessage]);
     setNewMessage("");
@@ -6176,7 +6183,40 @@ const Booking = () => {
     }
   };
 
+  // const handleOpenReviewerChat = async (reviewer) => {
+  //   setSelectedReviewer(reviewer);
+  //   setChatLoading(true);
+  //   setChatPartnerInfo({
+  //     name: reviewer.name,
+  //     image: reviewer.profilePhoto
+  //       ? `http://localhost:5000/uploads/profiles/${reviewer.profilePhoto}`
+  //       : `https://ui-avatars.com/api/?background=3B82F6&color=fff&rounded=true&size=128&name=${reviewer.name?.charAt(0) || "U"}`,
+  //     role: "reviewer",
+  //   });
+  //   setShowChatModal(true);
+  //   try {
+  //     const response = await chatService.getSupportChat();
+  //     if (response.success) {
+  //       setActiveChatId(response.data._id);
+  //       await loadChatMessages(response.data._id);
+  //       await getChatPartnerFromChat(response.data._id);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error opening reviewer chat:", err);
+  //     alert("Failed to start chat with reviewer");
+  //   } finally {
+  //     setChatLoading(false);
+  //   }
+  // };
+
   const handleOpenReviewerChat = async (reviewer) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login to chat");
+      navigate("/login");
+      return;
+    }
+
     setSelectedReviewer(reviewer);
     setChatLoading(true);
     setChatPartnerInfo({
@@ -6185,18 +6225,25 @@ const Booking = () => {
         ? `http://localhost:5000/uploads/profiles/${reviewer.profilePhoto}`
         : `https://ui-avatars.com/api/?background=3B82F6&color=fff&rounded=true&size=128&name=${reviewer.name?.charAt(0) || "U"}`,
       role: "reviewer",
+      id: reviewer._id,
     });
     setShowChatModal(true);
+
     try {
-      const response = await chatService.getSupportChat();
-      if (response.success) {
-        setActiveChatId(response.data._id);
-        await loadChatMessages(response.data._id);
-        await getChatPartnerFromChat(response.data._id);
+      // ✅ Open a direct vehicle chat scoped to this reviewer
+      // This creates/fetches a chat between the current user and the reviewer
+      const response = await axiosInstance.post("/chats/direct", {
+        recipientId: reviewer._id,
+      });
+
+      if (response.data.success) {
+        setActiveChatId(response.data.data._id);
+        await loadChatMessages(response.data.data._id);
       }
     } catch (err) {
       console.error("Error opening reviewer chat:", err);
-      alert("Failed to start chat with reviewer");
+      alert("Failed to start chat with this user");
+      setShowChatModal(false);
     } finally {
       setChatLoading(false);
     }

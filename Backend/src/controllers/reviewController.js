@@ -630,7 +630,6 @@ export const createReview = async (req, res) => {
 //   }
 // };
 
-
 // Get all reviews for a vehicle (PUBLIC - no auth required)
 export const getVehicleReviews = async (req, res) => {
   try {
@@ -678,12 +677,12 @@ export const getVehicleReviews = async (req, res) => {
     console.log(`Found ${reviews.length} reviews for vehicle ${vehicleId}`);
 
     // Add hasLiked flag using the likedBy array (only if user is logged in)
-    const reviewsWithLikeStatus = reviews.map(review => {
+    const reviewsWithLikeStatus = reviews.map((review) => {
       const reviewObj = review.toObject();
-      const hasLiked = currentUserId 
-        ? review.likedBy?.some(id => id.toString() === currentUserId)
+      const hasLiked = currentUserId
+        ? review.likedBy?.some((id) => id.toString() === currentUserId)
         : false;
-      
+
       return {
         ...reviewObj,
         hasLiked: hasLiked,
@@ -872,14 +871,14 @@ export const toggleReviewHelpful = async (req, res) => {
     }
 
     // Check if user already liked (convert ObjectIds to strings for comparison)
-    const alreadyLiked = review.likedBy.some(id => id.toString() === userId);
-    
+    const alreadyLiked = review.likedBy.some((id) => id.toString() === userId);
+
     let isLiked = false;
     let newHelpfulCount = review.helpful;
 
     if (alreadyLiked) {
       // Unlike - remove user from likedBy array
-      review.likedBy = review.likedBy.filter(id => id.toString() !== userId);
+      review.likedBy = review.likedBy.filter((id) => id.toString() !== userId);
       newHelpfulCount = Math.max(0, review.helpful - 1);
       isLiked = false;
       console.log("User unliked the review");
@@ -899,7 +898,9 @@ export const toggleReviewHelpful = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: isLiked ? "Review marked as helpful" : "Review unmarked as helpful",
+      message: isLiked
+        ? "Review marked as helpful"
+        : "Review unmarked as helpful",
       helpful: newHelpfulCount,
       isLiked: isLiked,
     });

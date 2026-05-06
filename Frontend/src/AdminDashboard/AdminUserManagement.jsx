@@ -41,10 +41,14 @@
 
 //   const fetchUsers = async () => {
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-//       const response = await axios.get("http://localhost:5000/api/admin/users", {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const response = await axios.get(
+//         "http://localhost:5000/api/admin/users",
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         },
+//       );
 //       setUsers(response.data.users);
 //       setLoading(false);
 //     } catch (error) {
@@ -56,10 +60,14 @@
 
 //   const fetchReports = async () => {
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-//       const response = await axios.get("http://localhost:5000/api/admin/reports", {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const response = await axios.get(
+//         "http://localhost:5000/api/admin/reports",
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         },
+//       );
 //       setReports(response.data.reports);
 //     } catch (error) {
 //       console.error("Error fetching reports:", error);
@@ -68,10 +76,14 @@
 
 //   const fetchUserDetails = async (userId) => {
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-//       const response = await axios.get(`http://localhost:5000/api/admin/users/${userId}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const response = await axios.get(
+//         `http://localhost:5000/api/admin/users/${userId}`,
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         },
+//       );
 //       setSelectedUser(response.data);
 //       setShowUserModal(true);
 //     } catch (error) {
@@ -87,11 +99,12 @@
 //     }
 
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
 //       const response = await axios.post(
 //         `http://localhost:5000/api/admin/users/${userId}/warning`,
 //         { reason: warningReason },
-//         { headers: { Authorization: `Bearer ${token}` } }
+//         { headers: { Authorization: `Bearer ${token}` } },
 //       );
 
 //       toast.success(response.data.message);
@@ -99,7 +112,7 @@
 //       setWarningReason("");
 //       fetchUsers();
 //       if (selectedUser) fetchUserDetails(userId);
-      
+
 //       // Refresh reports if needed
 //       fetchReports();
 //     } catch (error) {
@@ -113,11 +126,12 @@
 //     if (!reason) return;
 
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
 //       const response = await axios.post(
 //         `http://localhost:5000/api/admin/users/${userId}/block`,
 //         { reason },
-//         { headers: { Authorization: `Bearer ${token}` } }
+//         { headers: { Authorization: `Bearer ${token}` } },
 //       );
 
 //       toast.success(response.data.message);
@@ -134,11 +148,12 @@
 //     if (!reason) return;
 
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
 //       const response = await axios.post(
 //         `http://localhost:5000/api/admin/users/${userId}/unblock`,
 //         { reason },
-//         { headers: { Authorization: `Bearer ${token}` } }
+//         { headers: { Authorization: `Bearer ${token}` } },
 //       );
 
 //       toast.success(response.data.message);
@@ -151,14 +166,18 @@
 //   };
 
 //   const handleResetWarnings = async (userId) => {
-//     if (!window.confirm("Are you sure you want to reset warnings for this user?")) return;
+//     if (
+//       !window.confirm("Are you sure you want to reset warnings for this user?")
+//     )
+//       return;
 
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
 //       const response = await axios.post(
 //         `http://localhost:5000/api/admin/users/${userId}/reset-warnings`,
 //         {},
-//         { headers: { Authorization: `Bearer ${token}` } }
+//         { headers: { Authorization: `Bearer ${token}` } },
 //       );
 
 //       toast.success(response.data.message);
@@ -171,13 +190,22 @@
 //   };
 
 //   const handleDeleteUser = async (userId) => {
-//     if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone!")) return;
+//     if (
+//       !window.confirm(
+//         "Are you sure you want to delete this user? This action cannot be undone!",
+//       )
+//     )
+//       return;
 
 //     try {
-//       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-//       const response = await axios.delete(`http://localhost:5000/api/admin/users/${userId}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
+//       const token =
+//         localStorage.getItem("token") || sessionStorage.getItem("token");
+//       const response = await axios.delete(
+//         `http://localhost:5000/api/admin/users/${userId}`,
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         },
+//       );
 
 //       toast.success(response.data.message);
 //       fetchUsers();
@@ -206,28 +234,39 @@
 //   };
 
 //   const filteredUsers = users.filter((user) => {
-//     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-//     const matchesFilter = filterStatus === "all" ||
-//                          (filterStatus === "blocked" && user.isBlocked) ||
-//                          (filterStatus === "active" && !user.isBlocked) ||
-//                          (filterStatus === "warnings" && user.warningCount > 0);
+//     const matchesSearch =
+//       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+//       user.email.toLowerCase().includes(searchTerm.toLowerCase());
+//     const matchesFilter =
+//       filterStatus === "all" ||
+//       (filterStatus === "blocked" && user.isBlocked) ||
+//       (filterStatus === "active" && !user.isBlocked) ||
+//       (filterStatus === "warnings" && user.warningCount > 0);
 //     return matchesSearch && matchesFilter;
 //   });
 
 //   // Export users data to CSV
 //   const exportToCSV = () => {
-//     const headers = ["Name", "Email", "Status", "Warning Count", "Joined Date", "Last Active"];
-//     const csvData = filteredUsers.map(user => [
+//     const headers = [
+//       "Name",
+//       "Email",
+//       "Status",
+//       "Warning Count",
+//       "Joined Date",
+//       "Last Active",
+//     ];
+//     const csvData = filteredUsers.map((user) => [
 //       user.name,
 //       user.email,
 //       user.isBlocked ? "Blocked" : "Active",
 //       user.warningCount,
 //       new Date(user.createdAt).toLocaleDateString(),
-//       user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : "N/A"
+//       user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : "N/A",
 //     ]);
-    
-//     const csvContent = [headers, ...csvData].map(row => row.join(",")).join("\n");
+
+//     const csvContent = [headers, ...csvData]
+//       .map((row) => row.join(","))
+//       .join("\n");
 //     const blob = new Blob([csvContent], { type: "text/csv" });
 //     const url = URL.createObjectURL(blob);
 //     const a = document.createElement("a");
@@ -277,7 +316,8 @@
 //               className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
 //             >
 //               <FaShieldAlt className="text-white" />
-//               View Reports ({reports.filter(r => r.status === "pending").length})
+//               View Reports (
+//               {reports.filter((r) => r.status === "pending").length})
 //             </button>
 //           </div>
 //         </div>
@@ -332,7 +372,9 @@
 //           <div className="flex justify-between items-center">
 //             <div>
 //               <p className="text-sm opacity-90">Active Users</p>
-//               <p className="text-2xl font-bold">{users.filter(u => !u.isBlocked).length}</p>
+//               <p className="text-2xl font-bold">
+//                 {users.filter((u) => !u.isBlocked).length}
+//               </p>
 //             </div>
 //             <FaUserCheck className="text-3xl opacity-80" />
 //           </div>
@@ -341,7 +383,9 @@
 //           <div className="flex justify-between items-center">
 //             <div>
 //               <p className="text-sm opacity-90">Blocked Users</p>
-//               <p className="text-2xl font-bold">{users.filter(u => u.isBlocked).length}</p>
+//               <p className="text-2xl font-bold">
+//                 {users.filter((u) => u.isBlocked).length}
+//               </p>
 //             </div>
 //             <FaUserSlash className="text-3xl opacity-80" />
 //           </div>
@@ -350,7 +394,9 @@
 //           <div className="flex justify-between items-center">
 //             <div>
 //               <p className="text-sm opacity-90">Users with Warnings</p>
-//               <p className="text-2xl font-bold">{users.filter(u => u.warningCount > 0).length}</p>
+//               <p className="text-2xl font-bold">
+//                 {users.filter((u) => u.warningCount > 0).length}
+//               </p>
 //             </div>
 //             <FaExclamationTriangle className="text-3xl opacity-80" />
 //           </div>
@@ -386,21 +432,31 @@
 //             <tbody className="bg-white divide-y divide-gray-200">
 //               {filteredUsers.length === 0 ? (
 //                 <tr>
-//                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+//                   <td
+//                     colSpan="6"
+//                     className="px-6 py-12 text-center text-gray-500"
+//                   >
 //                     No users found
 //                   </td>
 //                 </tr>
 //               ) : (
 //                 filteredUsers.map((user) => (
-//                   <tr key={user._id} className="hover:bg-gray-50 transition-colors">
+//                   <tr
+//                     key={user._id}
+//                     className="hover:bg-gray-50 transition-colors"
+//                   >
 //                     <td className="px-6 py-4">
 //                       <div className="flex items-center gap-3">
 //                         <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
 //                           {user.name.charAt(0).toUpperCase()}
 //                         </div>
 //                         <div>
-//                           <p className="font-medium text-gray-900">{user.name}</p>
-//                           <p className="text-sm text-gray-500">@{user.username || user.email.split('@')[0]}</p>
+//                           <p className="font-medium text-gray-900">
+//                             {user.name}
+//                           </p>
+//                           <p className="text-sm text-gray-500">
+//                             @{user.username || user.email.split("@")[0]}
+//                           </p>
 //                         </div>
 //                       </div>
 //                     </td>
@@ -418,12 +474,16 @@
 //                     </td>
 //                     <td className="px-6 py-4 text-center">
 //                       {user.warningCount > 0 ? (
-//                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getWarningColor(user.warningCount)}`}>
+//                         <span
+//                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getWarningColor(user.warningCount)}`}
+//                         >
 //                           <FaExclamationTriangle className="mr-1 text-xs" />
 //                           {user.warningCount}/3
 //                         </span>
 //                       ) : (
-//                         <span className="text-gray-400 text-xs">No warnings</span>
+//                         <span className="text-gray-400 text-xs">
+//                           No warnings
+//                         </span>
 //                       )}
 //                     </td>
 //                     <td className="px-6 py-4 text-center text-gray-500 text-sm">
@@ -447,7 +507,9 @@
 //                           title="Give Warning"
 //                           disabled={user.isBlocked}
 //                         >
-//                           <FaGavel className={user.isBlocked ? "opacity-50" : ""} />
+//                           <FaGavel
+//                             className={user.isBlocked ? "opacity-50" : ""}
+//                           />
 //                         </button>
 //                         {user.isBlocked ? (
 //                           <button
@@ -493,11 +555,18 @@
 //                   <FaUsers className="text-white text-xl" />
 //                 </div>
 //                 <div>
-//                   <h2 className="text-xl font-bold text-gray-900">User Details</h2>
-//                   <p className="text-sm text-gray-500">{selectedUser.user.name}</p>
+//                   <h2 className="text-xl font-bold text-gray-900">
+//                     User Details
+//                   </h2>
+//                   <p className="text-sm text-gray-500">
+//                     {selectedUser.user.name}
+//                   </p>
 //                 </div>
 //               </div>
-//               <button onClick={() => setShowUserModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition">
+//               <button
+//                 onClick={() => setShowUserModal(false)}
+//                 className="p-2 hover:bg-gray-100 rounded-lg transition"
+//               >
 //                 <FaTimes className="text-gray-500" />
 //               </button>
 //             </div>
@@ -505,7 +574,9 @@
 //             <div className="p-6 max-h-[70vh] overflow-y-auto">
 //               {/* User Info */}
 //               <div className="mb-6">
-//                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Account Information</h3>
+//                 <h3 className="text-lg font-semibold text-gray-800 mb-3">
+//                   Account Information
+//                 </h3>
 //                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
 //                   <div>
 //                     <p className="text-sm text-gray-500">Full Name</p>
@@ -517,38 +588,54 @@
 //                   </div>
 //                   <div>
 //                     <p className="text-sm text-gray-500">Username</p>
-//                     <p className="font-medium">@{selectedUser.user.username || selectedUser.user.email.split('@')[0]}</p>
+//                     <p className="font-medium">
+//                       @
+//                       {selectedUser.user.username ||
+//                         selectedUser.user.email.split("@")[0]}
+//                     </p>
 //                   </div>
 //                   <div>
 //                     <p className="text-sm text-gray-500">Role</p>
-//                     <p className="font-medium capitalize">{selectedUser.user.role || "User"}</p>
+//                     <p className="font-medium capitalize">
+//                       {selectedUser.user.role || "User"}
+//                     </p>
 //                   </div>
 //                   <div>
 //                     <p className="text-sm text-gray-500">Status</p>
-//                     <p className={`font-medium ${selectedUser.user.isBlocked ? 'text-red-600' : 'text-green-600'}`}>
-//                       {selectedUser.user.isBlocked ? 'Blocked' : 'Active'}
+//                     <p
+//                       className={`font-medium ${selectedUser.user.isBlocked ? "text-red-600" : "text-green-600"}`}
+//                     >
+//                       {selectedUser.user.isBlocked ? "Blocked" : "Active"}
 //                     </p>
 //                   </div>
 //                   <div>
 //                     <p className="text-sm text-gray-500">Email Verified</p>
-//                     <p className={`font-medium ${selectedUser.user.isEmailVerified ? 'text-green-600' : 'text-red-600'}`}>
-//                       {selectedUser.user.isEmailVerified ? 'Yes' : 'No'}
+//                     <p
+//                       className={`font-medium ${selectedUser.user.isEmailVerified ? "text-green-600" : "text-red-600"}`}
+//                     >
+//                       {selectedUser.user.isEmailVerified ? "Yes" : "No"}
 //                     </p>
 //                   </div>
 //                   <div>
 //                     <p className="text-sm text-gray-500">Warning Count</p>
-//                     <p className={`font-medium ${selectedUser.user.warningCount >= 3 ? 'text-red-600' : 'text-yellow-600'}`}>
+//                     <p
+//                       className={`font-medium ${selectedUser.user.warningCount >= 3 ? "text-red-600" : "text-yellow-600"}`}
+//                     >
 //                       {selectedUser.user.warningCount}/3
 //                     </p>
 //                   </div>
 //                   <div>
 //                     <p className="text-sm text-gray-500">Joined</p>
-//                     <p className="font-medium">{new Date(selectedUser.user.createdAt).toLocaleString()}</p>
+//                     <p className="font-medium">
+//                       {new Date(selectedUser.user.createdAt).toLocaleString()}
+//                     </p>
 //                   </div>
 //                   {selectedUser.user.blockedReason && (
 //                     <div className="col-span-2">
 //                       <p className="text-sm text-gray-500">Block Reason</p>
-//                       <p className="font-medium text-red-600">{selectedUser.user.blockedReason}</p>
+//                       <p className="font-medium text-red-600">
+//                         {selectedUser.user.blockedReason}
+//                       </p>
 //                     </div>
 //                   )}
 //                 </div>
@@ -557,15 +644,23 @@
 //               {/* Warnings History */}
 //               {selectedUser.warnings && selectedUser.warnings.length > 0 && (
 //                 <div className="mb-6">
-//                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Warning History</h3>
+//                   <h3 className="text-lg font-semibold text-gray-800 mb-3">
+//                     Warning History
+//                   </h3>
 //                   <div className="space-y-2">
 //                     {selectedUser.warnings.map((warning, idx) => (
-//                       <div key={idx} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+//                       <div
+//                         key={idx}
+//                         className="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+//                       >
 //                         <div className="flex justify-between items-start">
 //                           <div className="flex-1">
-//                             <p className="font-medium text-yellow-800">Reason: {warning.reason}</p>
+//                             <p className="font-medium text-yellow-800">
+//                               Reason: {warning.reason}
+//                             </p>
 //                             <p className="text-sm text-yellow-600 mt-1">
-//                               Given by: {warning.givenBy?.name || 'Admin'} on {new Date(warning.createdAt).toLocaleString()}
+//                               Given by: {warning.givenBy?.name || "Admin"} on{" "}
+//                               {new Date(warning.createdAt).toLocaleString()}
 //                             </p>
 //                           </div>
 //                         </div>
@@ -578,23 +673,34 @@
 //               {/* Reports against user */}
 //               {selectedUser.reports && selectedUser.reports.length > 0 && (
 //                 <div className="mb-6">
-//                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Reports Against User</h3>
+//                   <h3 className="text-lg font-semibold text-gray-800 mb-3">
+//                     Reports Against User
+//                   </h3>
 //                   <div className="space-y-2">
 //                     {selectedUser.reports.map((report, idx) => (
-//                       <div key={idx} className="bg-red-50 border border-red-200 rounded-lg p-3">
+//                       <div
+//                         key={idx}
+//                         className="bg-red-50 border border-red-200 rounded-lg p-3"
+//                       >
 //                         <div className="flex justify-between items-start">
 //                           <div className="flex-1">
-//                             <p className="font-medium text-red-800">Reason: {report.reason}</p>
+//                             <p className="font-medium text-red-800">
+//                               Reason: {report.reason}
+//                             </p>
 //                             <p className="text-sm text-red-600 mt-1">
-//                               Reported by: {report.reportedBy?.name || 'Anonymous'} on {new Date(report.createdAt).toLocaleString()}
+//                               Reported by:{" "}
+//                               {report.reportedBy?.name || "Anonymous"} on{" "}
+//                               {new Date(report.createdAt).toLocaleString()}
 //                             </p>
 //                             {report.description && (
-//                               <p className="text-sm text-gray-700 mt-2">Description: {report.description}</p>
+//                               <p className="text-sm text-gray-700 mt-2">
+//                                 Description: {report.description}
+//                               </p>
 //                             )}
 //                             {report.screenshotProof && (
-//                               <a 
-//                                 href={`http://localhost:5000${report.screenshotProof}`} 
-//                                 target="_blank" 
+//                               <a
+//                                 href={`http://localhost:5000${report.screenshotProof}`}
+//                                 target="_blank"
 //                                 rel="noopener noreferrer"
 //                                 className="text-blue-600 text-sm mt-2 inline-block hover:underline"
 //                               >
@@ -602,7 +708,9 @@
 //                               </a>
 //                             )}
 //                           </div>
-//                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getReportStatusBadge(report.status)}`}>
+//                           <span
+//                             className={`px-2 py-1 rounded-full text-xs font-medium ${getReportStatusBadge(report.status)}`}
+//                           >
 //                             {report.status}
 //                           </span>
 //                         </div>
@@ -667,7 +775,10 @@
 //           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
 //             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
 //               <h2 className="text-xl font-bold text-gray-900">Issue Warning</h2>
-//               <button onClick={() => setShowWarningModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition">
+//               <button
+//                 onClick={() => setShowWarningModal(false)}
+//                 className="p-2 hover:bg-gray-100 rounded-lg transition"
+//               >
 //                 <FaTimes className="text-gray-500" />
 //               </button>
 //             </div>
@@ -676,7 +787,10 @@
 //                 <FaExclamationTriangle className="text-yellow-600 text-xl" />
 //                 <div>
 //                   <p className="text-sm text-gray-600">
-//                     Giving a warning to <strong className="text-gray-900">{selectedUser.name}</strong>
+//                     Giving a warning to{" "}
+//                     <strong className="text-gray-900">
+//                       {selectedUser.name}
+//                     </strong>
 //                   </p>
 //                   <p className="text-xs text-gray-500 mt-1">
 //                     Current warnings: {selectedUser.warningCount || 0}/3
@@ -690,16 +804,21 @@
 //                 rows={4}
 //                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
 //               />
-//               <div className={`mt-3 p-3 rounded-lg ${selectedUser.warningCount + 1 >= 3 ? 'bg-red-50 border border-red-200' : 'bg-blue-50'}`}>
+//               <div
+//                 className={`mt-3 p-3 rounded-lg ${selectedUser.warningCount + 1 >= 3 ? "bg-red-50 border border-red-200" : "bg-blue-50"}`}
+//               >
 //                 <p className="text-sm">
 //                   {selectedUser.warningCount + 1 >= 3 ? (
 //                     <span className="text-red-700 font-medium">
-//                       ⚠️ Warning count will reach 3/3. This user will be automatically BLOCKED after this warning!
+//                       ⚠️ Warning count will reach 3/3. This user will be
+//                       automatically BLOCKED after this warning!
 //                     </span>
 //                   ) : (
 //                     <span className="text-blue-700">
-//                       ℹ️ After this warning, user will have {selectedUser.warningCount + 1}/3 warnings.
-//                       {3 - (selectedUser.warningCount + 1)} more warning(s) until automatic block.
+//                       ℹ️ After this warning, user will have{" "}
+//                       {selectedUser.warningCount + 1}/3 warnings.
+//                       {3 - (selectedUser.warningCount + 1)} more warning(s)
+//                       until automatic block.
 //                     </span>
 //                   )}
 //                 </p>
@@ -733,11 +852,18 @@
 //                   <FaShieldAlt className="text-white text-xl" />
 //                 </div>
 //                 <div>
-//                   <h2 className="text-xl font-bold text-gray-900">User Reports</h2>
-//                   <p className="text-sm text-gray-500">Review and manage user reports</p>
+//                   <h2 className="text-xl font-bold text-gray-900">
+//                     User Reports
+//                   </h2>
+//                   <p className="text-sm text-gray-500">
+//                     Review and manage user reports
+//                   </p>
 //                 </div>
 //               </div>
-//               <button onClick={() => setShowReportsModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition">
+//               <button
+//                 onClick={() => setShowReportsModal(false)}
+//                 className="p-2 hover:bg-gray-100 rounded-lg transition"
+//               >
 //                 <FaTimes className="text-gray-500" />
 //               </button>
 //             </div>
@@ -751,31 +877,43 @@
 //               ) : (
 //                 <div className="space-y-4">
 //                   {reports.map((report) => (
-//                     <div key={report._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+//                     <div
+//                       key={report._id}
+//                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+//                     >
 //                       <div className="flex justify-between items-start mb-3">
 //                         <div>
 //                           <h3 className="font-semibold text-gray-900">
-//                             Report against: {report.reportedUser?.name || 'Unknown User'}
+//                             Report against:{" "}
+//                             {report.reportedUser?.name || "Unknown User"}
 //                           </h3>
 //                           <p className="text-sm text-gray-500">
-//                             Reported by: {report.reportedBy?.name || 'Anonymous'} • {new Date(report.createdAt).toLocaleString()}
+//                             Reported by:{" "}
+//                             {report.reportedBy?.name || "Anonymous"} •{" "}
+//                             {new Date(report.createdAt).toLocaleString()}
 //                           </p>
 //                         </div>
-//                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getReportStatusBadge(report.status)}`}>
+//                         <span
+//                           className={`px-3 py-1 rounded-full text-xs font-medium ${getReportStatusBadge(report.status)}`}
+//                         >
 //                           {report.status}
 //                         </span>
 //                       </div>
 //                       <div className="mb-3">
-//                         <p className="text-sm font-medium text-gray-700">Reason: {report.reason}</p>
+//                         <p className="text-sm font-medium text-gray-700">
+//                           Reason: {report.reason}
+//                         </p>
 //                         {report.description && (
-//                           <p className="text-sm text-gray-600 mt-1">{report.description}</p>
+//                           <p className="text-sm text-gray-600 mt-1">
+//                             {report.description}
+//                           </p>
 //                         )}
 //                       </div>
 //                       {report.screenshotProof && (
 //                         <div className="mb-3">
-//                           <a 
-//                             href={`http://localhost:5000${report.screenshotProof}`} 
-//                             target="_blank" 
+//                           <a
+//                             href={`http://localhost:5000${report.screenshotProof}`}
+//                             target="_blank"
 //                             rel="noopener noreferrer"
 //                             className="text-blue-600 text-sm hover:underline inline-flex items-center gap-1"
 //                           >
@@ -785,7 +923,8 @@
 //                       )}
 //                       {report.adminNote && (
 //                         <div className="bg-gray-50 p-2 rounded text-sm text-gray-600 mt-2">
-//                           <span className="font-medium">Admin Note:</span> {report.adminNote}
+//                           <span className="font-medium">Admin Note:</span>{" "}
+//                           {report.adminNote}
 //                         </div>
 //                       )}
 //                       <div className="flex gap-2 mt-3">
@@ -802,7 +941,9 @@
 //                               Issue Warning
 //                             </button>
 //                             <button
-//                               onClick={() => handleBlockUser(report.reportedUser._id)}
+//                               onClick={() =>
+//                                 handleBlockUser(report.reportedUser._id)
+//                               }
 //                               className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition"
 //                             >
 //                               Block User
@@ -832,10 +973,6 @@
 // };
 
 // export default AdminUserManagement;
-
-
-
-
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
@@ -1448,7 +1585,7 @@ const AdminUserManagement = () => {
                             ) : (
                               <div className="space-y-3">
                                 {detailUser.vehicles.map((v) => {
-                                  const thumb = v.vehiclePhotos?.[0] || v.photos?.[0] || v.image;
+                                  const thumb = v.vehiclePhotos?.[0]?.url || null;
                                   return (
                                     <div key={v._id} className="border border-gray-100 rounded-xl p-3 hover:border-gray-200 transition flex gap-3">
                                       {thumb ? (
@@ -1465,7 +1602,7 @@ const AdminUserManagement = () => {
                                       )}
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between gap-2">
-                                          <p className="text-sm font-semibold text-gray-800 truncate">{v.carName || v.name}</p>
+                                          <p className="text-sm font-semibold text-gray-800 truncate">{v.carName}</p>
                                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap capitalize ${
                                             v.status === "active" ? "bg-emerald-100 text-emerald-700" :
                                             v.status === "pending" ? "bg-amber-100 text-amber-700" :
@@ -1473,9 +1610,9 @@ const AdminUserManagement = () => {
                                             "bg-gray-100 text-gray-600"
                                           }`}>{v.status}</span>
                                         </div>
-                                        <p className="text-xs text-gray-400 mt-0.5 truncate">{v.location || v.pickupLocation}</p>
-                                        {v.pricePerDay && (
-                                          <p className="text-xs text-blue-600 font-medium mt-1">Rs. {v.pricePerDay?.toLocaleString()}/day</p>
+                                        <p className="text-xs text-gray-400 mt-0.5 truncate">{v.city}</p>
+                                        {v.ratePerDay && (
+                                          <p className="text-xs text-blue-600 font-medium mt-1">Rs. {v.ratePerDay?.toLocaleString()}/day</p>
                                         )}
                                       </div>
                                     </div>
