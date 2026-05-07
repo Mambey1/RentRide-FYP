@@ -565,6 +565,10 @@ import { initializeSocket } from "./src/socket/socketServer.js";
 
 import reportRoutes from "./src/routes/reportRoutes.js"; // ✅ correct
 
+
+import session from "express-session";
+import passport from "./src/config/passport.js";
+
 const app = express();
 
 // CORS configuration
@@ -582,6 +586,17 @@ app.use(
 );
 
 app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "rentride_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // set true in production with HTTPS
+  })
+);
+app.use(passport.initialize());
+
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Ensure all upload directories exist ─────────────────────

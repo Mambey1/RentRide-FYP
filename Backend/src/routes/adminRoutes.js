@@ -45,6 +45,6 @@ router.post("/users/:userId/reset-warnings", resetWarnings);
 // Report routes
 router.get("/reports", getAllReports);
 router.post("/reports", upload.single("screenshot"), createReport);
-router.put("/reports/:reportId", updateReportStatus);
+router.patch("/reports/:reportId/status", updateReportStatus);
 
 export default router;

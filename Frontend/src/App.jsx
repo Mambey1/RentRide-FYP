@@ -452,6 +452,11 @@ import { GlobalChatToasts } from "./components/Profile/Notification";
 import BikeBooking from "./components/Booking/BikeBooking";
 import BikeUploadDocuments from "./components/Booking/BikeUploadDocuments";
 
+
+
+//Google Authenctication
+import GoogleCallback from "./components/auth/GoogleCallback";
+
 // ─── Inner app — needs to be inside SocketProvider to use useSocket ───────────
 const AppInner = () => {
   const isLoggedIn = !!localStorage.getItem("token");
@@ -485,6 +490,7 @@ const AppInner = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/payment/:bookingId" element={<PaymentComponent />} />
         <Route path="/payment" element={<PaymentComponent />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
