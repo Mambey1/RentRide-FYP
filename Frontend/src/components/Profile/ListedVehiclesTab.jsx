@@ -25,7 +25,9 @@ const ListedVehiclesTab = ({
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Listed Vehicles</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            My Listed Vehicles
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
             Manage and track all vehicles you've listed for rent
           </p>
@@ -70,7 +72,7 @@ const ListedVehiclesTab = ({
                       className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition"
                       onClick={() =>
                         openImageViewer(
-                          `http://localhost:5000${vehicle.vehiclePhotos[0].url}`
+                          `http://localhost:5000${vehicle.vehiclePhotos[0].url}`,
                         )
                       }
                     />
@@ -83,15 +85,21 @@ const ListedVehiclesTab = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{vehicle.carName}</h3>
-                      <p className="text-sm text-gray-500">{vehicle.carNumber}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {vehicle.carName}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {vehicle.carNumber}
+                      </p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {vehicle.carType} &middot; {vehicle.seats} seats &middot;{" "}
-                        {vehicle.gearType} &middot;{" "}
+                        {vehicle.carType} &middot; {vehicle.seats} seats
+                        &middot; {vehicle.gearType} &middot;{" "}
                         {vehicle.airCondition === "Yes" ? "AC" : "No AC"}
                       </p>
                     </div>
-                    <div className="flex-shrink-0">{getStatusBadge(vehicle.status)}</div>
+                    <div className="flex-shrink-0">
+                      {getStatusBadge(vehicle.status)}
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
                     <div className="flex items-center gap-1 text-xs text-gray-600">
@@ -137,12 +145,15 @@ const ListedVehiclesTab = ({
                   )}
                   <div className="flex justify-end gap-3 pt-1">
                     <button
-                      onClick={() => navigate(`/vehicle-details/${vehicle._id}`)}
+                      onClick={() =>
+                        navigate(`/vehicle-details/${vehicle._id}`)
+                      }
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 transition"
                     >
                       <FaEye size={12} /> View Details
                     </button>
-                    {(vehicle.status === "pending" || vehicle.status === "rejected") && (
+                    {(vehicle.status === "pending" ||
+                      vehicle.status === "rejected") && (
                       <button
                         onClick={() => navigate(`/edit-vehicle/${vehicle._id}`)}
                         className="text-yellow-600 hover:text-yellow-700 text-sm font-medium flex items-center gap-1 transition"

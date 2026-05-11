@@ -16,7 +16,15 @@ const bikeSchema = new mongoose.Schema(
     bikeType: {
       type: String,
       required: true,
-      enum: ["Sports", "Cruiser", "Touring", "Scooter", "Electric", "Dirt Bike", "Standard"],
+      enum: [
+        "Sports",
+        "Cruiser",
+        "Touring",
+        "Scooter",
+        "Electric",
+        "Dirt Bike",
+        "Standard",
+      ],
     },
     brand: {
       type: String,
@@ -26,6 +34,10 @@ const bikeSchema = new mongoose.Schema(
     model: {
       type: String,
       trim: true,
+    },
+    holdExpiresAt: {
+      type: Date,
+      default: null,
     },
     year: {
       type: Number,
@@ -70,7 +82,13 @@ const bikeSchema = new mongoose.Schema(
       {
         label: {
           type: String,
-          enum: ["Front View", "Side View", "Rear View", "Dashboard", "Extra View"],
+          enum: [
+            "Front View",
+            "Side View",
+            "Rear View",
+            "Dashboard",
+            "Extra View",
+          ],
         },
         filename: {
           type: String,
@@ -79,7 +97,7 @@ const bikeSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ["Available", "Booked", "Maintenance"],
+      enum: ["Available", "Booked", "Maintenance", "On Hold"],
       default: "Available",
     },
     quantity: {
@@ -113,7 +131,7 @@ const bikeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Indexes

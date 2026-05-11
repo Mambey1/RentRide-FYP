@@ -478,6 +478,10 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       default: () => new Date(Date.now() + 24 * 60 * 60 * 1000),
     },
+    holdExpiresAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

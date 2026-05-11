@@ -1,12 +1,11 @@
-
-
 import Bike from "../models/Bike.js";
 import BikeBooking from "../models/BikeBooking.js";
 import {
-  createNotification,
+  createBikeOnHoldNotification,
   createBikeBookingApprovedNotification,
   createBikePaymentRequiredNotification,
 } from "../utils/notificationHelper.js";
+
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -72,13 +71,11 @@ export const getBikeBookingById = async (req, res) => {
     res.json({ success: true, data: booking });
   } catch (error) {
     console.error("Error fetching bike booking:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch booking",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch booking",
+      error: error.message,
+    });
   }
 };
 
@@ -101,13 +98,11 @@ export const getAllBikes = async (req, res) => {
     res.json({ success: true, data: bikes });
   } catch (error) {
     console.error("Error fetching bikes:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch bikes",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bikes",
+      error: error.message,
+    });
   }
 };
 
@@ -120,13 +115,11 @@ export const getBikeById = async (req, res) => {
         .json({ success: false, message: "Bike not found" });
     res.json({ success: true, data: bike });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch bike",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bike",
+      error: error.message,
+    });
   }
 };
 
@@ -235,13 +228,11 @@ export const updateBike = async (req, res) => {
     });
   } catch (error) {
     cleanupFiles(req.files);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to update bike",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to update bike",
+      error: error.message,
+    });
   }
 };
 
@@ -261,13 +252,11 @@ export const deleteBike = async (req, res) => {
     await Bike.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Bike deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to delete bike",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete bike",
+      error: error.message,
+    });
   }
 };
 
@@ -285,13 +274,11 @@ export const updateBikeStatus = async (req, res) => {
         .json({ success: false, message: "Bike not found" });
     res.json({ success: true, message: "Bike status updated", data: bike });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to update status",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to update status",
+      error: error.message,
+    });
   }
 };
 
@@ -389,13 +376,11 @@ export const createBikeBooking = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating bike booking:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to create booking",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to create booking",
+      error: error.message,
+    });
   }
 };
 
@@ -406,13 +391,11 @@ export const getUserBikeBookings = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, data: bookings });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch bookings",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookings",
+      error: error.message,
+    });
   }
 };
 
@@ -426,13 +409,11 @@ export const getAllBikeBookings = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, data: bookings });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch bookings",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookings",
+      error: error.message,
+    });
   }
 };
 
@@ -481,49 +462,92 @@ export const getAllBikeBookings = async (req, res) => {
 //   }
 // };
 
+// export const approveBikeBooking = async (req, res) => {
+//   try {
+//     const booking = await BikeBooking.findById(req.params.id).populate(
+//       "user",
+//       "name email",
+//     );
+//     if (!booking)
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Booking not found" });
+
+//     booking.status = "approved";
+//     booking.approvedBy = req.user.id;
+//     booking.approvedAt = new Date();
+//     await booking.save();
+
+//     await Bike.findByIdAndUpdate(booking.bike, { status: "Booked" });
+
+//     const bikeData = await Bike.findById(booking.bike);
+
+//     console.log("🏍️ Firing bike notifications for:", bikeData?.bikeName);
+//     console.log("User ID:", booking.user._id);
+//     console.log("Booking amount:", booking.totalAmount);
+
+//     try {
+//       await createBikeBookingApprovedNotification(
+//         booking.user._id,
+//         booking,
+//         bikeData,
+//       );
+//       console.log("✅ Approved notification sent");
+//       await createBikePaymentRequiredNotification(
+//         booking.user._id,
+//         booking,
+//         bikeData,
+//       );
+//       console.log("✅ Payment notification sent");
+//     } catch (notifErr) {
+//       console.error("❌ Notification error:", notifErr.message);
+//       console.error("Stack:", notifErr.stack);
+//     }
+
+//     res.json({ success: true, message: "Booking approved successfully" });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to approve booking",
+//       error: error.message,
+//     });
+//   }
+// };
 
 
 export const approveBikeBooking = async (req, res) => {
   try {
-    const booking = await BikeBooking.findById(req.params.id).populate(
-      "user",
-      "name email",
-    );
+    const booking = await BikeBooking.findById(req.params.id).populate("user", "name email");
     if (!booking)
-      return res
-        .status(404)
-        .json({ success: false, message: "Booking not found" });
+      return res.status(404).json({ success: false, message: "Booking not found" });
+
+    const holdExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     booking.status = "approved";
     booking.approvedBy = req.user.id;
     booking.approvedAt = new Date();
+    booking.holdExpiresAt = holdExpiry;    // ← new
     await booking.save();
 
-    await Bike.findByIdAndUpdate(booking.bike, { status: "Booked" });
+    // Set bike to On Hold instead of Booked
+    await Bike.findByIdAndUpdate(booking.bike, {
+      status: "On Hold",
+      holdExpiresAt: holdExpiry,
+    });
 
     const bikeData = await Bike.findById(booking.bike);
 
-    console.log("🏍️ Firing bike notifications for:", bikeData?.bikeName);
-    console.log("User ID:", booking.user._id);
-    console.log("Booking amount:", booking.totalAmount);
-
     try {
+      await createBikeOnHoldNotification(booking.user._id, booking, bikeData);
       await createBikeBookingApprovedNotification(booking.user._id, booking, bikeData);
-      console.log("✅ Approved notification sent");
       await createBikePaymentRequiredNotification(booking.user._id, booking, bikeData);
-      console.log("✅ Payment notification sent");
     } catch (notifErr) {
       console.error("❌ Notification error:", notifErr.message);
-      console.error("Stack:", notifErr.stack);
     }
 
-    res.json({ success: true, message: "Booking approved successfully" });
+    res.json({ success: true, message: "Booking approved — bike placed on hold for 24 hours" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to approve booking",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "Failed to approve booking", error: error.message });
   }
 };
 
@@ -545,12 +569,10 @@ export const cancelBikeBooking = async (req, res) => {
 
     res.json({ success: true, message: "Booking cancelled successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to cancel booking",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel booking",
+      error: error.message,
+    });
   }
 };

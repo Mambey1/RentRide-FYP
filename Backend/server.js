@@ -374,7 +374,6 @@
 // //   console.log(`   - /api/chats`);
 // // });
 
-
 // import express from "express";
 // import mongoose from "mongoose";
 // import cors from "cors";
@@ -518,8 +517,6 @@
 //   console.log(`   - /api/bikes`);
 // });
 
-
-
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -555,19 +552,17 @@ import bikePaymentRoutes from "./src/routes/bikePaymentRoutes.js";
 // ── AI Chatbot Route ──────────────────────────────────────────
 import aiChatRoutes from "./src/routes/aiChatRoutes.js";
 
-
-
 import adminRoutes from "./src/routes/adminRoutes.js";
 
 // Import Socket.IO
 import { initializeSocket } from "./src/socket/socketServer.js";
 
-
 import reportRoutes from "./src/routes/reportRoutes.js"; // ✅ correct
-
 
 import session from "express-session";
 import passport from "./src/config/passport.js";
+
+import { startScheduler } from "./scheduler.js";
 
 const app = express();
 
@@ -593,7 +588,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false }, // set true in production with HTTPS
-  })
+  }),
 );
 app.use(passport.initialize());
 
@@ -671,9 +666,11 @@ const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/rentride";
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected successfully"))
+  .then(() => {
+    console.log("✅ MongoDB connected successfully");
+    startScheduler(); // ← add this here
+  })
   .catch((err) => console.log("❌ MongoDB connection error:", err));
-
 // ─── HTTP + Socket.IO server ──────────────────────────────────
 const server = createServer(app);
 const io = initializeSocket(server);

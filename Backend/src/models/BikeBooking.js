@@ -61,13 +61,32 @@ const bikeBookingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
     ridingGear: {
       type: Boolean,
       default: false,
     },
+    holdExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    holdExpiresAt: {
+      type: Date,
+      default: null,
+    },
+
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "confirmed", "active", "completed", "cancelled"],
+      enum: [
+        "pending",
+        "approved",
+        "rejected",
+        "confirmed",
+        "active",
+        "completed",
+        "cancelled",
+        "expired",
+      ],
       default: "pending",
     },
     approvedBy: {
@@ -115,7 +134,7 @@ const bikeBookingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Generate confirmation code

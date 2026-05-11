@@ -1751,6 +1751,85 @@ export const createBikeBookingApprovedNotification = async (
   );
 };
 
+// ── On-Hold notifications (vehicle) ──────────────────────────────────────────
+export const createVehicleOnHoldNotification = async (userId, booking, vehicleData) => {
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return await createNotification(
+    userId,
+    "🚗 Vehicle On Hold — Complete Payment Within 24 Hours",
+    `Your booking for ${vehicleData.carName} has been approved and the vehicle is now on hold for you. Please complete the payment of रु ${booking.totalAmount.toLocaleString()} within 24 hours, otherwise the vehicle will be released.`,
+    "warning",
+    `Booking ID: ${booking.confirmationCode} | Expires: ${expiresAt.toLocaleString()}`,
+    {
+      bookingId: booking._id,
+      bookingCode: booking.confirmationCode,
+      vehicleName: vehicleData.carName,
+      amount: booking.totalAmount,
+      holdExpiresAt: expiresAt,
+    },
+    {
+      type: "payment",
+      path: `/payment/${booking._id}`,
+      data: { bookingId: booking._id, amount: booking.totalAmount },
+    },
+    "high",
+    expiresAt,
+  );
+};
+
+// ── On-Hold notifications (bike) ──────────────────────────────────────────────
+export const createBikeOnHoldNotification = async (userId, booking, bike) => {
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return await createNotification(
+    userId,
+    "🏍️ Bike On Hold — Complete Payment Within 24 Hours",
+    `Your booking for ${bike.bikeName} has been approved and the bike is now on hold for you. Please complete the payment of रु ${booking.totalAmount.toLocaleString()} within 24 hours, otherwise the bike will be released.`,
+    "warning",
+    `Booking ID: ${booking.confirmationCode} | Expires: ${expiresAt.toLocaleString()}`,
+    {
+      bookingId: booking._id,
+      bookingCode: booking.confirmationCode,
+      vehicleName: bike.bikeName,
+      amount: booking.totalAmount,
+      holdExpiresAt: expiresAt,
+      bookingType: "bike",
+    },
+    {
+      type: "bike_payment",
+      path: `/bike-payment/${booking._id}`,
+      data: { bookingId: booking._id, amount: booking.totalAmount },
+    },
+    "high",
+    expiresAt,
+  );
+};
+
+export const createVehicleHoldExpiredNotification = async (userId, booking, vehicleName) => {
+  return await createNotification(
+    userId,
+    "⏰ Booking Expired — Payment Not Received",
+    `Your booking (${booking.confirmationCode}) for ${vehicleName} has been automatically cancelled because payment was not completed within 24 hours. The vehicle is now available for others to book. You can create a new booking anytime.`,
+    "error",
+    `Booking ID: ${booking.confirmationCode}`,
+    { bookingId: booking._id, bookingCode: booking.confirmationCode, vehicleName },
+    { type: "booking", path: `/rentridehome`, data: {} },
+    "high",
+  );
+};
+
+export const createBikeHoldExpiredNotification = async (userId, booking, bikeName) => {
+  return await createNotification(
+    userId,
+    "⏰ Bike Booking Expired — Payment Not Received",
+    `Your bike booking (${booking.confirmationCode}) for ${bikeName} has been automatically cancelled because payment was not completed within 24 hours. The bike is now available for others to book. You can create a new booking anytime.`,
+    "error",
+    `Booking ID: ${booking.confirmationCode}`,
+    { bookingId: booking._id, bookingCode: booking.confirmationCode, bikeName, bookingType: "bike" },
+    { type: "booking", path: `/rentridehome`, data: {} },
+    "high",
+  );
+};
+
 // ── Bulk notifications ────────────────────────────────────────────────────────
 export const createBulkNotifications = async (
   userIds,

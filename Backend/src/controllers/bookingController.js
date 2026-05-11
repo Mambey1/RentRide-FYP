@@ -1641,6 +1641,7 @@ import {
   sendBookingConfirmationEmail,
 } from "../utils/emailService.js";
 import {
+  createVehicleOnHoldNotification,
   createNotification,
   createPaymentRequiredNotification,
   createBookingApprovedNotification,
@@ -2492,15 +2493,26 @@ export const approveBooking = async (req, res) => {
     console.log("Vehicle data retrieved:", !!vehicleData);
 
     // Send approval email
+    // Create in-app notifications
     try {
-      await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
-        ...booking.toObject(),
-        vehicle: vehicleData,
-        confirmationCode: booking.confirmationCode,
-      });
-      console.log("✅ Approval email sent");
-    } catch (emailError) {
-      console.error("Email error:", emailError.message);
+      await createVehicleOnHoldNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
+      await createBookingApprovedNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
+      await createPaymentRequiredNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
+      console.log("✅ Notifications sent");
+    } catch (notifError) {
+      console.error("Notification error:", notifError.message);
     }
 
     // Create in-app notification with payment link
