@@ -905,7 +905,7 @@ const userVehicleSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "active", "inactive", "booked", "on_hold"],
+      enum: ["pending", "approved", "rejected", "active", "inactive", "booked", "On_Hold"],
       default: "pending",
     },
     holdExpiresAt: { type: Date, default: null },

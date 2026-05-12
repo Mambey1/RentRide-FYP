@@ -88,19 +88,17 @@ const vehicleSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Available", "Booked", "Maintenance"],
+      enum: ["Available", "Booked", "Maintenance", "On Hold"],
       default: "Available",
     },
+    holdExpiresAt: { type: Date, default: null },
+    description: { type: String, trim: true },
+    features: [{ type: String, trim: true }],
     description: {
       type: String,
       trim: true,
     },
-    features: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+ 
   },
   { timestamps: true },
 );

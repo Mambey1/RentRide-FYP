@@ -129,7 +129,92 @@ export const initiateKhaltiBikePayment = async (req, res) => {
   }
 };
 
-// ── Verify Khalti payment for a bike booking ──────────────────────────────────
+// // ── Verify Khalti payment for a bike booking ──────────────────────────────────
+// export const verifyKhaltiBikePayment = async (req, res) => {
+//   try {
+//     const { pidx, bookingId } = req.body;
+//     const userId = req.user.id;
+
+//     console.log("🔍 Verifying Khalti bike payment — booking:", bookingId, "pidx:", pidx);
+
+//     const transaction = await Transaction.findOne({ pidx });
+//     if (!transaction) {
+//       return res.status(404).json({ success: false, message: "Transaction not found" });
+//     }
+
+//     if (transaction.userId.toString() !== userId) {
+//       return res.status(403).json({ success: false, message: "Unauthorized to verify this transaction" });
+//     }
+
+//     // Verify with Khalti
+//     const response = await axios.post(
+//       KHALTI_CONFIG.verificationUrl,
+//       { pidx },
+//       {
+//         headers: {
+//           Authorization: `Key ${KHALTI_CONFIG.secretKey}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     const paymentStatus = response.data;
+//     console.log("Khalti bike verification response:", paymentStatus);
+
+//     if (paymentStatus.status === "Completed") {
+//       transaction.status = "COMPLETED";
+//       await transaction.save();
+
+//       const booking = await BikeBooking.findById(transaction.bookingId);
+//       if (booking) {
+//         booking.paymentStatus = "paid";
+//         booking.paidAmount = booking.totalAmount;
+//         booking.status = "confirmed";
+//         booking.confirmedAt = new Date();
+//         await booking.save();
+
+//         // Keep bike as Booked (already set during approval)
+//         const bike = await Bike.findById(booking.bike);
+//         if (bike && bike.status !== "Booked") {
+//           bike.status = "Booked";
+//           await bike.save();
+//           console.log("⚠️ Bike status corrected to Booked after payment");
+//         }
+
+//         console.log("✅ Bike payment verified, booking confirmed:", booking._id);
+//       }
+
+//       return res.json({
+//         success: true,
+//         status: "COMPLETED",
+//         message: "Bike payment verified successfully",
+//         booking: {
+//           id: booking._id,
+//           status: booking.status,
+//           confirmationCode: booking.confirmationCode,
+//         },
+//       });
+//     } else {
+//       transaction.status = "FAILED";
+//       await transaction.save();
+
+//       return res.json({
+//         success: false,
+//         status: "FAILED",
+//         message: "Bike payment verification failed",
+//       });
+//     }
+//   } catch (error) {
+//     console.error("❌ Khalti bike verification error:", error.response?.data || error.message);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Bike payment verification failed",
+//       error: error.response?.data?.detail || error.message,
+//     });
+//   }
+// };
+
+
 export const verifyKhaltiBikePayment = async (req, res) => {
   try {
     const { pidx, bookingId } = req.body;
@@ -146,16 +231,10 @@ export const verifyKhaltiBikePayment = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized to verify this transaction" });
     }
 
-    // Verify with Khalti
     const response = await axios.post(
       KHALTI_CONFIG.verificationUrl,
       { pidx },
-      {
-        headers: {
-          Authorization: `Key ${KHALTI_CONFIG.secretKey}`,
-          "Content-Type": "application/json",
-        },
-      }
+      { headers: { Authorization: `Key ${KHALTI_CONFIG.secretKey}`, "Content-Type": "application/json" } }
     );
 
     const paymentStatus = response.data;
@@ -171,15 +250,15 @@ export const verifyKhaltiBikePayment = async (req, res) => {
         booking.paidAmount = booking.totalAmount;
         booking.status = "confirmed";
         booking.confirmedAt = new Date();
+        booking.holdExpiresAt = null; // ← clear hold timer
         await booking.save();
 
-        // Keep bike as Booked (already set during approval)
-        const bike = await Bike.findById(booking.bike);
-        if (bike && bike.status !== "Booked") {
-          bike.status = "Booked";
-          await bike.save();
-          console.log("⚠️ Bike status corrected to Booked after payment");
-        }
+        // ── Set bike to Booked now that payment is confirmed ─────────────────
+        await Bike.findByIdAndUpdate(booking.bike, {
+          status: "Booked",      // ← now truly booked after payment
+          holdExpiresAt: null,   // ← clear hold timer
+        });
+        console.log("✅ Bike set to Booked after payment");
 
         console.log("✅ Bike payment verified, booking confirmed:", booking._id);
       }

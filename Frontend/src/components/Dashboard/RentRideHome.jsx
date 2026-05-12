@@ -1,6 +1,3 @@
-
-
-
 // import React, { useState, useEffect } from "react";
 // import {
 //   FaCar,
@@ -1043,7 +1040,6 @@
 
 // export default RentRideHome;
 
-
 import React, { useState, useEffect } from "react";
 import {
   FaCar,
@@ -1186,14 +1182,15 @@ const RentRideHome = () => {
       });
       if (response.data.success) {
         setSubscribeMessage(
-          "Thank you for subscribing! You'll receive exclusive updates."
+          "Thank you for subscribing! You'll receive exclusive updates.",
         );
         setSubscribeStatus("success");
         setSubscriberEmail("");
       }
     } catch (error) {
       setSubscribeMessage(
-        error.response?.data?.message || "Subscription failed. Please try again."
+        error.response?.data?.message ||
+          "Subscription failed. Please try again.",
       );
       setSubscribeStatus("error");
     }
@@ -1211,7 +1208,7 @@ const RentRideHome = () => {
       setError("");
       const adminResponse = await axios.get(
         "http://localhost:5000/api/vehicles",
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -1220,7 +1217,7 @@ const RentRideHome = () => {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const userResponse = await axios.get(
           "http://localhost:5000/api/user-vehicles/public/active",
-          { timeout: 10000, headers }
+          { timeout: 10000, headers },
         );
         if (userResponse.data.success) userVehicles = userResponse.data.data;
       } catch (userError) {
@@ -1256,7 +1253,7 @@ const RentRideHome = () => {
         allVehicles = [...adminResponse.data.data];
       }
       filteredUserVehicles.forEach((v) =>
-        allVehicles.push({ ...v, source: "user" })
+        allVehicles.push({ ...v, source: "user" }),
       );
       setVehicles(allVehicles);
     } catch (error) {
@@ -1422,7 +1419,6 @@ const RentRideHome = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* ── Header ─────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
         <div className="container mx-auto px-6 py-4">
@@ -1438,7 +1434,9 @@ const RentRideHome = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Rent<span className="text-gray-800">Ride</span>
                 </h1>
-                <p className="text-xs text-gray-500 -mt-1">Premium Car Rentals</p>
+                <p className="text-xs text-gray-500 -mt-1">
+                  Premium Car Rentals
+                </p>
               </div>
             </div>
 
@@ -1458,15 +1456,24 @@ const RentRideHome = () => {
             </div>
 
             <nav className="hidden lg:flex items-center space-x-8">
-              <a href="#vehicles" className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group">
+              <a
+                href="#vehicles"
+                className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+              >
                 Browse
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
               </a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group">
+              <a
+                href="#how-it-works"
+                className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+              >
                 How It Works
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
               </a>
-              <a href="#contact" className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group">
+              <a
+                href="#contact"
+                className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
+              >
                 Contact
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300 rounded-full"></span>
               </a>
@@ -1482,7 +1489,10 @@ const RentRideHome = () => {
               {userLoading ? (
                 <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
               ) : userProfile && getProfilePhotoUrl() ? (
-                <div onClick={() => navigate("/profiledetails")} className="cursor-pointer">
+                <div
+                  onClick={() => navigate("/profiledetails")}
+                  className="cursor-pointer"
+                >
                   <img
                     src={getProfilePhotoUrl()}
                     alt="Profile"
@@ -1494,7 +1504,10 @@ const RentRideHome = () => {
                   />
                 </div>
               ) : (
-                <div onClick={() => navigate("/profiledetails")} className="cursor-pointer">
+                <div
+                  onClick={() => navigate("/profiledetails")}
+                  className="cursor-pointer"
+                >
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
                     {getUserInitial()}
                   </div>
@@ -1541,20 +1554,30 @@ const RentRideHome = () => {
               Premium Service Since 2024
             </span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              Drive Your <span className="text-blue-400">Dream Car</span> in Kathmandu
+              Drive Your <span className="text-blue-400">Dream Car</span> in
+              Kathmandu
             </h1>
             <p className="text-xl md:text-2xl mb-10 text-gray-200 max-w-xl">
-              Experience luxury and convenience with our premium car rental service. Book online in minutes.
+              Experience luxury and convenience with our premium car rental
+              service. Book online in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => document.getElementById("vehicles").scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  document
+                    .getElementById("vehicles")
+                    .scrollIntoView({ behavior: "smooth" })
+                }
                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all"
               >
                 Explore Cars
               </button>
               <button
-                onClick={() => document.getElementById("how-it-works").scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  document
+                    .getElementById("how-it-works")
+                    .scrollIntoView({ behavior: "smooth" })
+                }
                 className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold rounded-xl hover:bg-white/20"
               >
                 How It Works
@@ -1568,11 +1591,15 @@ const RentRideHome = () => {
           <div className="container mx-auto px-6 -mb-12">
             <div className="bg-white rounded-2xl shadow-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-gray-100">
               <div className="text-center px-6">
-                <div className="text-3xl font-bold text-gray-900 mb-1">10K+</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  10K+
+                </div>
                 <div className="text-gray-500 text-sm">Happy Customers</div>
               </div>
               <div className="text-center px-6">
-                <div className="text-3xl font-bold text-gray-900 mb-1">200+</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  200+
+                </div>
                 <div className="text-gray-500 text-sm">Premium Vehicles</div>
               </div>
               <div className="text-center px-6">
@@ -1580,7 +1607,9 @@ const RentRideHome = () => {
                 <div className="text-gray-500 text-sm">Cities</div>
               </div>
               <div className="text-center px-6">
-                <div className="text-3xl font-bold text-gray-900 mb-1">24/7</div>
+                <div className="text-3xl font-bold text-gray-900 mb-1">
+                  24/7
+                </div>
                 <div className="text-gray-500 text-sm">Support</div>
               </div>
             </div>
@@ -1589,7 +1618,10 @@ const RentRideHome = () => {
       </section>
 
       {/* ── Features ───────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 bg-gradient-to-b from-white to-gray-50">
+      <section
+        id="how-it-works"
+        className="py-20 bg-gradient-to-b from-white to-gray-50"
+      >
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <span className="inline-block px-4 py-1.5 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold mb-4">
@@ -1599,7 +1631,8 @@ const RentRideHome = () => {
               The Best Rental Experience
             </h2>
             <p className="text-gray-500 max-w-xl mx-auto text-base">
-              We combine technology with personalized service to deliver an exceptional car rental experience
+              We combine technology with personalized service to deliver an
+              exceptional car rental experience
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1609,11 +1642,17 @@ const RentRideHome = () => {
                 className="group bg-white p-7 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-gray-50 to-transparent rounded-bl-3xl pointer-events-none" />
-                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.gradient} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}>
+                <div
+                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.gradient} mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}
+                >
                   <div className="text-white">{feature.icon}</div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{feature.description}</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -1638,7 +1677,6 @@ const RentRideHome = () => {
           {/* ── Tab Switcher ── */}
           <div className="flex justify-center mb-10">
             <div className="inline-flex bg-white rounded-2xl p-1.5 shadow-lg border border-gray-100 gap-1">
-
               {/* Cars Tab */}
               <button
                 onClick={() => setActiveTab("cars")}
@@ -1649,7 +1687,9 @@ const RentRideHome = () => {
                 }`}
               >
                 <FaCar
-                  className={activeTab === "cars" ? "text-white" : "text-blue-400"}
+                  className={
+                    activeTab === "cars" ? "text-white" : "text-blue-400"
+                  }
                   size={16}
                 />
                 <span>Cars</span>
@@ -1676,7 +1716,9 @@ const RentRideHome = () => {
                 }`}
               >
                 <FaMotorcycle
-                  className={activeTab === "bikes" ? "text-white" : "text-purple-400"}
+                  className={
+                    activeTab === "bikes" ? "text-white" : "text-purple-400"
+                  }
                   size={16}
                 />
                 <span>Bikes</span>
@@ -1724,7 +1766,9 @@ const RentRideHome = () => {
                     <div className="absolute inset-0 border-4 border-t-blue-600 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
                     <FaCar className="absolute inset-0 m-auto text-blue-400 text-lg" />
                   </div>
-                  <p className="text-gray-500 font-medium">Loading premium vehicles...</p>
+                  <p className="text-gray-500 font-medium">
+                    Loading premium vehicles...
+                  </p>
                 </div>
               )}
 
@@ -1734,7 +1778,9 @@ const RentRideHome = () => {
                   <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-4xl">⚠️</span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Something went wrong</h3>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    Something went wrong
+                  </h3>
                   <p className="text-gray-500 mb-6">{error}</p>
                   <button
                     onClick={fetchAllVehicles}
@@ -1760,14 +1806,19 @@ const RentRideHome = () => {
                   <div className="w-24 h-24 mx-auto mb-5 flex items-center justify-center bg-blue-50 rounded-3xl">
                     <FaCar className="text-4xl text-blue-300" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No vehicles found</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No vehicles found
+                  </h3>
                   <p className="text-gray-500 mb-6 max-w-sm mx-auto">
                     {searchQuery
                       ? `No results for "${searchQuery}"`
                       : "No vehicles available in this category"}
                   </p>
                   <button
-                    onClick={() => { setActiveFilter("All vehicles"); setSearchQuery(""); }}
+                    onClick={() => {
+                      setActiveFilter("All vehicles");
+                      setSearchQuery("");
+                    }}
                     className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
                   >
                     View All Vehicles
@@ -1781,7 +1832,10 @@ const RentRideHome = () => {
           {activeTab === "bikes" && (
             <BikesSection
               isLoggedIn={
-                !!(localStorage.getItem("token") || sessionStorage.getItem("token"))
+                !!(
+                  localStorage.getItem("token") ||
+                  sessionStorage.getItem("token")
+                )
               }
               embeddedMode
               onCountReady={(count) => setBikeCount(count)}
@@ -1835,13 +1889,19 @@ const RentRideHome = () => {
               <div className="p-8">
                 {/* Photos */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-                  {selectedVehicle.photos && selectedVehicle.photos.length > 0 ? (
+                  {selectedVehicle.photos &&
+                  selectedVehicle.photos.length > 0 ? (
                     selectedVehicle.photos.map((photo, index) => (
-                      <div key={index} className={index === 0 ? "lg:col-span-2" : ""}>
+                      <div
+                        key={index}
+                        className={index === 0 ? "lg:col-span-2" : ""}
+                      >
                         <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
                           <img
                             src={`http://localhost:5000/uploads/${
-                              selectedVehicle.source === "user" ? "user-vehicles" : "vehicles"
+                              selectedVehicle.source === "user"
+                                ? "user-vehicles"
+                                : "vehicles"
                             }/${photo.filename}`}
                             alt={photo.label}
                             className="w-full h-full object-cover"
@@ -1862,45 +1922,88 @@ const RentRideHome = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {/* Specs */}
                   <div className="lg:col-span-2">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Specifications</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                      Specifications
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {[
-                        { icon: FaCogs, label: "Transmission", value: selectedVehicle.gearType },
-                        { icon: FaChair, label: "Seats", value: `${selectedVehicle.seats} Persons` },
-                        { icon: FaSnowflake, label: "Air Conditioning", value: selectedVehicle.airCondition },
-                        { icon: FaUser, label: "Driver", value: selectedVehicle.driverName || "Not Included" },
-                        { icon: FaPhone, label: "Contact", value: selectedVehicle.phoneNumber },
-                        { icon: FaCalendarAlt, label: "Booking Type", value: selectedVehicle.bookingType },
+                        {
+                          icon: FaCogs,
+                          label: "Transmission",
+                          value: selectedVehicle.gearType,
+                        },
+                        {
+                          icon: FaChair,
+                          label: "Seats",
+                          value: `${selectedVehicle.seats} Persons`,
+                        },
+                        {
+                          icon: FaSnowflake,
+                          label: "Air Conditioning",
+                          value: selectedVehicle.airCondition,
+                        },
+                        {
+                          icon: FaUser,
+                          label: "Driver",
+                          value: selectedVehicle.driverName || "Not Included",
+                        },
+                        {
+                          icon: FaPhone,
+                          label: "Contact",
+                          value: selectedVehicle.phoneNumber,
+                        },
+                        {
+                          icon: FaCalendarAlt,
+                          label: "Booking Type",
+                          value: selectedVehicle.bookingType,
+                        },
                       ].map((spec, index) => (
-                        <div key={index} className="flex items-center p-4 bg-gray-50 rounded-xl">
+                        <div
+                          key={index}
+                          className="flex items-center p-4 bg-gray-50 rounded-xl"
+                        >
                           <div className="p-3 bg-white rounded-lg shadow-sm mr-4">
                             <spec.icon className="text-blue-600" />
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500">{spec.label}</p>
-                            <p className="font-semibold text-gray-900">{spec.value}</p>
+                            <p className="text-sm text-gray-500">
+                              {spec.label}
+                            </p>
+                            <p className="font-semibold text-gray-900">
+                              {spec.value}
+                            </p>
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    {selectedVehicle.features && selectedVehicle.features.length > 0 && (
-                      <div className="mt-10">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Features and Amenities</h3>
-                        <div className="flex flex-wrap gap-3">
-                          {selectedVehicle.features.map((feature, index) => (
-                            <span key={index} className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium">
-                              {feature}
-                            </span>
-                          ))}
+                    {selectedVehicle.features &&
+                      selectedVehicle.features.length > 0 && (
+                        <div className="mt-10">
+                          <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                            Features and Amenities
+                          </h3>
+                          <div className="flex flex-wrap gap-3">
+                            {selectedVehicle.features.map((feature, index) => (
+                              <span
+                                key={index}
+                                className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium"
+                              >
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {selectedVehicle.description && (
                       <div className="mt-10">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Description</h3>
-                        <p className="text-gray-600 leading-relaxed">{selectedVehicle.description}</p>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Description
+                        </h3>
+                        <p className="text-gray-600 leading-relaxed">
+                          {selectedVehicle.description}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -1921,9 +2024,13 @@ const RentRideHome = () => {
                         <div className="flex items-start">
                           <FaInfoCircle className="text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
                           <div>
-                            <h4 className="font-semibold text-blue-800 mb-1">Complete Price Breakdown</h4>
+                            <h4 className="font-semibold text-blue-800 mb-1">
+                              Complete Price Breakdown
+                            </h4>
                             <p className="text-sm text-blue-700">
-                              Full price calculation including optional extras, service fee, and taxes will be shown during booking.
+                              Full price calculation including optional extras,
+                              service fee, and taxes will be shown during
+                              booking.
                             </p>
                           </div>
                         </div>
@@ -1939,7 +2046,8 @@ const RentRideHome = () => {
                       </button>
                       <div className="mt-6 text-center">
                         <p className="text-gray-500 text-sm">
-                          Free cancellation - 24/7 support - Instant confirmation
+                          Free cancellation - 24/7 support - Instant
+                          confirmation
                         </p>
                       </div>
                     </div>
@@ -1961,7 +2069,8 @@ const RentRideHome = () => {
             Ready for Your Next Adventure?
           </h2>
           <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust RentRide for their travel needs
+            Join thousands of satisfied customers who trust RentRide for their
+            travel needs
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
@@ -1981,7 +2090,6 @@ const RentRideHome = () => {
       <footer id="contact" className="bg-gray-900 text-white pt-20 pb-8">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
@@ -1991,11 +2099,14 @@ const RentRideHome = () => {
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Rent<span className="text-white">Ride</span>
                   </h1>
-                  <p className="text-xs text-gray-400 -mt-1">Premium Car Rental</p>
+                  <p className="text-xs text-gray-400 -mt-1">
+                    Premium Car Rental
+                  </p>
                 </div>
               </div>
               <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-                Premium car rental service in Kathmandu. Experience luxury, reliability, and exceptional service.
+                Premium car rental service in Kathmandu. Experience luxury,
+                reliability, and exceptional service.
               </p>
             </div>
 
@@ -2009,7 +2120,10 @@ const RentRideHome = () => {
                   { label: "Contact", href: "#contact" },
                 ].map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-gray-400 hover:text-white transition-all duration-200 text-sm block">
+                    <a
+                      href={link.href}
+                      className="text-gray-400 hover:text-white transition-all duration-200 text-sm block"
+                    >
                       {link.label}
                     </a>
                   </li>
@@ -2018,7 +2132,9 @@ const RentRideHome = () => {
             </div>
 
             <div>
-              <h4 className="text-lg font-bold mb-6 text-white">Contact Info</h4>
+              <h4 className="text-lg font-bold mb-6 text-white">
+                Contact Info
+              </h4>
               <ul className="text-gray-400 space-y-4 text-sm">
                 <li className="flex items-start gap-3">
                   <FaMapMarkerAlt className="mt-1 text-blue-400 flex-shrink-0" />
@@ -2037,7 +2153,9 @@ const RentRideHome = () => {
 
             <div>
               <h4 className="text-lg font-bold mb-6 text-white">Newsletter</h4>
-              <p className="text-gray-400 mb-4 text-sm">Subscribe for exclusive deals and updates</p>
+              <p className="text-gray-400 mb-4 text-sm">
+                Subscribe for exclusive deals and updates
+              </p>
               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
                 <div className="flex rounded-xl overflow-hidden border border-gray-700 focus-within:border-blue-500 transition-colors">
                   <input
@@ -2055,11 +2173,15 @@ const RentRideHome = () => {
                   </button>
                 </div>
                 {subscribeMessage && (
-                  <p className={`text-xs ${
-                    subscribeStatus === "success" ? "text-green-400"
-                      : subscribeStatus === "error" ? "text-red-400"
-                      : "text-blue-400"
-                  }`}>
+                  <p
+                    className={`text-xs ${
+                      subscribeStatus === "success"
+                        ? "text-green-400"
+                        : subscribeStatus === "error"
+                          ? "text-red-400"
+                          : "text-blue-400"
+                    }`}
+                  >
                     {subscribeMessage}
                   </p>
                 )}
