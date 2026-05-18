@@ -1642,7 +1642,7 @@ const AdminLayout = () => {
       id: "bikes",
       path: "/admin/bikes",
       icon: FaMotorcycle,
-      label: "Bikes Invent",
+      label: "Bikes Inventory",
       bgColor: "bg-gradient-to-r from-purple-500 to-pink-500",
       activeCollapsedBg: "bg-purple-100",
       activeCollapsedText: "text-purple-600",

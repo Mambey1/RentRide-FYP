@@ -3459,15 +3459,20 @@ import {
   FaCheckDouble,
 } from "react-icons/fa";
 import { useNotifications } from "../../hooks/useNotifications";
+import notificationSound from "../../assets/notificationSound/notification.mp3";
 
 const playNotificationSound = () => {
   try {
-    const audio = new Audio("/notification.mp3");
+    const audio = new Audio(notificationSound);
     audio.volume = 0.5;
-    audio.play().catch(() => {});
-  } catch (_) {}
-};
 
+    audio.play().catch((err) => {
+      console.log("Audio play blocked:", err);
+    });
+  } catch (err) {
+    console.log("Audio error:", err);
+  }
+};
 const SenderAvatar = ({ photo, name, size = "w-12 h-12" }) => {
   const [imgError, setImgError] = useState(false);
   const initials = name
