@@ -1,8 +1,3 @@
-
-
-
-
-
 // // import React, { useState, useEffect, useRef, useCallback } from "react";
 // // import {
 // //   FaCar,
@@ -4112,7 +4107,7 @@
 // //                       <p className="text-sm">
 // //                         {selectedBikeBooking.emergencyContact.name} -{" "}
 // //                         {selectedBikeBooking.emergencyContact.phone}
-// //                         {selectedBikeBooking.emergencyContact.relationship && 
+// //                         {selectedBikeBooking.emergencyContact.relationship &&
 // //                           ` (${selectedBikeBooking.emergencyContact.relationship})`}
 // //                       </p>
 // //                     </div>
@@ -4601,7 +4596,6 @@
 // // };
 
 // // export default ProfileDetails;
-
 
 // import React, { useState, useEffect, useRef, useCallback } from "react";
 // import {
@@ -6217,8 +6211,6 @@
 
 // export default ProfileDetails;
 
-
-
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   FaCar,
@@ -6260,7 +6252,9 @@ const BASE = "http://localhost:5000";
 const getUnreadForUser = (chat, uid) => {
   if (!uid || !chat.unreadCounts) return 0;
   if (chat.unreadCounts[uid] !== undefined) return chat.unreadCounts[uid] || 0;
-  const matchKey = Object.keys(chat.unreadCounts).find((k) => k.toString() === uid);
+  const matchKey = Object.keys(chat.unreadCounts).find(
+    (k) => k.toString() === uid,
+  );
   return matchKey ? chat.unreadCounts[matchKey] || 0 : 0;
 };
 
@@ -6293,7 +6287,8 @@ const ProfileDetails = () => {
   const [bookingDocuments, setBookingDocuments] = useState(null);
   const [bookingDocumentsLoading, setBookingDocumentsLoading] = useState(false);
   const [bikeBookingDocuments, setBikeBookingDocuments] = useState(null);
-  const [bikeBookingDocumentsLoading, setBikeBookingDocumentsLoading] = useState(false);
+  const [bikeBookingDocumentsLoading, setBikeBookingDocumentsLoading] =
+    useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   const [userVehicles, setUserVehicles] = useState([]);
@@ -6393,9 +6388,15 @@ const ProfileDetails = () => {
       setChatMessages((prev) =>
         prev.map((m) =>
           m._id === messageId
-            ? { ...m, isUnsent: true, message: "", attachments: [], reactions: [] }
-            : m
-        )
+            ? {
+                ...m,
+                isUnsent: true,
+                message: "",
+                attachments: [],
+                reactions: [],
+              }
+            : m,
+        ),
       );
     };
     socket.on("message_unsent", handler);
@@ -6406,7 +6407,7 @@ const ProfileDetails = () => {
     if (!socket) return;
     const handler = ({ messageId, reactions }) => {
       setChatMessages((prev) =>
-        prev.map((m) => (m._id === messageId ? { ...m, reactions } : m))
+        prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)),
       );
     };
     socket.on("message_reaction", handler);
@@ -6415,7 +6416,9 @@ const ProfileDetails = () => {
 
   const recomputeUnreadBadge = (chatsArray, uid) => {
     if (!uid) return;
-    const count = chatsArray.filter((c) => getUnreadForUser(c, uid) > 0 && !c.isMuted).length;
+    const count = chatsArray.filter(
+      (c) => getUnreadForUser(c, uid) > 0 && !c.isMuted,
+    ).length;
     setLocalUnreadCount(count);
   };
 
@@ -6427,7 +6430,9 @@ const ProfileDetails = () => {
     (() => {
       try {
         const u = JSON.parse(
-          localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
+          localStorage.getItem("user") ||
+            sessionStorage.getItem("user") ||
+            "{}",
         );
         return u._id || u.id || null;
       } catch (e) {
@@ -6453,7 +6458,11 @@ const ProfileDetails = () => {
 
       const currentUserId = getCurrentUserId()?.toString();
       const senderId = (data.senderId || data.message?.sender?._id)?.toString();
-      const isOwnMessage = !!(senderId && currentUserId && senderId === currentUserId);
+      const isOwnMessage = !!(
+        senderId &&
+        currentUserId &&
+        senderId === currentUserId
+      );
       const isCurrentlyOpen = selectedChatRef.current?._id === data.chatId;
 
       setChats((prevChats) => {
@@ -6473,7 +6482,8 @@ const ProfileDetails = () => {
         const updated = prevChats.map((chat) => {
           if (chat._id !== data.chatId) return chat;
           const currentUnread = getUnreadForUser(chat, currentUserId);
-          const newUnread = isOwnMessage || isCurrentlyOpen ? 0 : currentUnread + 1;
+          const newUnread =
+            isOwnMessage || isCurrentlyOpen ? 0 : currentUnread + 1;
           const counts = {
             ...(chat.unreadCounts instanceof Map
               ? Object.fromEntries(chat.unreadCounts)
@@ -6483,14 +6493,16 @@ const ProfileDetails = () => {
           return {
             ...chat,
             lastMessage:
-              data.message.message || (data.message.attachments?.length ? "📷 Image" : ""),
+              data.message.message ||
+              (data.message.attachments?.length ? "📷 Image" : ""),
             lastMessageAt: data.message.createdAt || new Date().toISOString(),
             unreadCounts: counts,
           };
         });
         updated.sort(
           (a, b) =>
-            new Date(b.lastMessageAt || b.updatedAt) - new Date(a.lastMessageAt || a.updatedAt)
+            new Date(b.lastMessageAt || b.updatedAt) -
+            new Date(a.lastMessageAt || a.updatedAt),
         );
         recomputeUnreadBadge(updated, currentUserId);
         return updated;
@@ -6539,7 +6551,7 @@ const ProfileDetails = () => {
           (m) =>
             m._id?.toString().startsWith("temp-") &&
             m.message === data.message.message &&
-            isOwnMessage
+            isOwnMessage,
         );
         if (tempIdx !== -1) {
           const next = [...prev];
@@ -6563,7 +6575,13 @@ const ProfileDetails = () => {
       }
     });
     return unsubscribe;
-  }, [selectedChat?._id, onNewMessage, markRead, processedMessageIds, user?._id]);
+  }, [
+    selectedChat?._id,
+    onNewMessage,
+    markRead,
+    processedMessageIds,
+    user?._id,
+  ]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -6573,7 +6591,8 @@ const ProfileDetails = () => {
 
   const fetchUnreadCountFromServer = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
       const response = await chatService.getUnreadCount();
       if (response.success) setLocalUnreadCount(response.unreadCount);
@@ -6630,7 +6649,8 @@ const ProfileDetails = () => {
     try {
       setError("");
       setLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) {
         setError("Please login to view your profile");
         setLoading(false);
@@ -6667,7 +6687,8 @@ const ProfileDetails = () => {
   const fetchUserBookings = async () => {
     try {
       setBookingsLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
       const response = await axios.get(`${BASE}/api/bookings/my-bookings`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -6690,13 +6711,19 @@ const ProfileDetails = () => {
   const fetchUserBikeBookings = async () => {
     try {
       setBikeBookingsLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
-      const response = await axios.get(`${BASE}/api/bikes/bookings/my-bookings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE}/api/bikes/bookings/my-bookings`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.data.success) {
-        setBikeBookings(Array.isArray(response.data.data) ? response.data.data : []);
+        setBikeBookings(
+          Array.isArray(response.data.data) ? response.data.data : [],
+        );
       }
     } catch (error) {
       console.error("Failed to load bike bookings:", error);
@@ -6709,10 +6736,14 @@ const ProfileDetails = () => {
     try {
       if (isBike) setBikeBookingDocumentsLoading(true);
       else setBookingDocumentsLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      const response = await axios.get(`${BASE}/api/documents/booking/${bookingId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE}/api/documents/booking/${bookingId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.data.success) {
         if (isBike) setBikeBookingDocuments(response.data.data);
         else setBookingDocuments(response.data.data);
@@ -6732,14 +6763,21 @@ const ProfileDetails = () => {
   const fetchUserVehicles = async () => {
     try {
       setVehiclesLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
-      const response = await axios.get(`${BASE}/api/user-vehicles/my-vehicles`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE}/api/user-vehicles/my-vehicles`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.data.success) {
         const vehiclesData =
-          response.data.data?.vehicles || response.data.vehicles || response.data.data || [];
+          response.data.data?.vehicles ||
+          response.data.vehicles ||
+          response.data.data ||
+          [];
         setUserVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
       }
     } catch (error) {
@@ -6752,11 +6790,15 @@ const ProfileDetails = () => {
   const fetchUserEarnings = async () => {
     try {
       setEarningsLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
-      const response = await axios.get(`${BASE}/api/user-vehicles/my-earnings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${BASE}/api/user-vehicles/my-earnings`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.data.success) {
         setEarnings(response.data.data || response.data || null);
       }
@@ -6769,7 +6811,8 @@ const ProfileDetails = () => {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
       const response = await axios.get(`${BASE}/api/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -6783,14 +6826,15 @@ const ProfileDetails = () => {
   const fetchUserChats = async (silent = false) => {
     try {
       if (!silent) setChatsLoading(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return;
       const response = await chatService.getUserChats();
       if (response.success) {
         setChats(response.data);
         const uid = getCurrentUserId()?.toString();
         const unreadConvos = response.data.filter(
-          (chat) => uid && getUnreadForUser(chat, uid) > 0 && !chat.isMuted
+          (chat) => uid && getUnreadForUser(chat, uid) > 0 && !chat.isMuted,
         ).length;
         setLocalUnreadCount(unreadConvos);
         if (resetUnreadCount) resetUnreadCount();
@@ -6841,7 +6885,8 @@ const ProfileDetails = () => {
       setName(user.name);
       setUsername(user.username || user.email?.split("@")[0] || "");
       setGender(user.gender || "Male");
-      if (user.profilePhoto) setPhotoPreview(`${BASE}/uploads/profiles/${user.profilePhoto}`);
+      if (user.profilePhoto)
+        setPhotoPreview(`${BASE}/uploads/profiles/${user.profilePhoto}`);
       else setPhotoPreview(null);
       setProfilePhoto(null);
     }
@@ -6866,8 +6911,13 @@ const ProfileDetails = () => {
 
   const handleSaveProfile = async () => {
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (!token) { toast.error("Please login again"); navigate("/login"); return; }
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login again");
+        navigate("/login");
+        return;
+      }
       setUploading(true);
       const formData = new FormData();
       formData.append("name", name);
@@ -6875,14 +6925,19 @@ const ProfileDetails = () => {
       formData.append("gender", gender);
       if (profilePhoto) formData.append("profilePhoto", profilePhoto);
       const response = await axios.put(`${BASE}/api/profile/update`, formData, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
       });
       if (response.data.success) {
         setUser(response.data.user);
         setEditing(false);
         setProfilePhoto(null);
         if (response.data.user.profilePhoto)
-          setPhotoPreview(`${BASE}/uploads/profiles/${response.data.user.profilePhoto}`);
+          setPhotoPreview(
+            `${BASE}/uploads/profiles/${response.data.user.profilePhoto}`,
+          );
         toast.success("Profile updated successfully!");
       } else toast.error("Failed to update profile");
     } catch (error) {
@@ -6893,14 +6948,18 @@ const ProfileDetails = () => {
   };
 
   const handleCancelBooking = async () => {
-    if (!cancelReason.trim()) { toast.error("Please provide a reason for cancellation"); return; }
+    if (!cancelReason.trim()) {
+      toast.error("Please provide a reason for cancellation");
+      return;
+    }
     setCancellingBooking(true);
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       const response = await axios.post(
         `${BASE}/api/bookings/${selectedBooking._id}/cancel`,
         { reason: cancelReason },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (response.data.success) {
         toast.success("Booking cancelled successfully!");
@@ -6918,14 +6977,18 @@ const ProfileDetails = () => {
   };
 
   const handleCancelBikeBooking = async () => {
-    if (!cancelReason.trim()) { toast.error("Please provide a reason for cancellation"); return; }
+    if (!cancelReason.trim()) {
+      toast.error("Please provide a reason for cancellation");
+      return;
+    }
     setCancellingBooking(true);
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       const response = await axios.post(
         `${BASE}/api/bikes/admin/bookings/${selectedBikeBooking._id}/cancel`,
         { reason: cancelReason },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (response.data.success) {
         toast.success("Bike booking cancelled successfully!");
@@ -6960,11 +7023,12 @@ const ProfileDetails = () => {
     setSelectedBooking(booking);
     setPaymentLoading(true);
     try {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       const response = await axios.post(
         `${BASE}/api/payments/initiate-khalti`,
         { bookingId: booking._id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (response.data.success && response.data.payment_url) {
         sessionStorage.setItem("current_booking_id", booking._id);
@@ -6977,8 +7041,14 @@ const ProfileDetails = () => {
     }
   };
 
-  const openCancelModal = (booking) => { setSelectedBooking(booking); setShowCancelConfirm(true); };
-  const openBikeCancelModal = (booking) => { setSelectedBikeBooking(booking); setShowCancelConfirm(true); };
+  const openCancelModal = (booking) => {
+    setSelectedBooking(booking);
+    setShowCancelConfirm(true);
+  };
+  const openBikeCancelModal = (booking) => {
+    setSelectedBikeBooking(booking);
+    setShowCancelConfirm(true);
+  };
 
   const handleOpenChat = async (chat) => {
     if (selectedChatRef.current?._id) leaveChat(selectedChatRef.current._id);
@@ -6989,7 +7059,9 @@ const ProfileDetails = () => {
     setReplyTo(null);
     if (!chat.isBlocked) await fetchChatMessages(chat._id);
     else setChatMessages([]);
-    setTimeout(() => { inputRef.current?.focus(); }, 200);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 200);
   };
 
   const handleCloseChat = () => {
@@ -7006,8 +7078,14 @@ const ProfileDetails = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) { toast.error("Only image files are allowed"); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be less than 5MB"); return; }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
     setUploadingImage(true);
     try {
       const res = await chatService.sendImage(selectedChat._id, file);
@@ -7020,10 +7098,13 @@ const ProfileDetails = () => {
           prev.map((c) =>
             c._id !== selectedChat._id
               ? c
-              : { ...c, lastMessage: "📷 Image", lastMessageAt: new Date() }
-          )
+              : { ...c, lastMessage: "📷 Image", lastMessageAt: new Date() },
+          ),
         );
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+        setTimeout(
+          () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+          100,
+        );
       } else toast.error("Failed to send image");
     } catch (error) {
       toast.error("Failed to upload image");
@@ -7034,7 +7115,11 @@ const ProfileDetails = () => {
   };
 
   const handleSendChatMessage = async () => {
-    if ((!newChatMessage.trim() && !uploadingImage) || sendingMessage || selectedChat?.isBlocked)
+    if (
+      (!newChatMessage.trim() && !uploadingImage) ||
+      sendingMessage ||
+      selectedChat?.isBlocked
+    )
       return;
     setSendingMessage(true);
     const messageText = newChatMessage;
@@ -7046,7 +7131,7 @@ const ProfileDetails = () => {
       chatMessages.some(
         (m) =>
           m.senderType === "owner" &&
-          (m.sender?._id || m.sender?.id || m.sender)?.toString() === _uid
+          (m.sender?._id || m.sender?.id || m.sender)?.toString() === _uid,
       );
 
     const tempMessage = {
@@ -7080,23 +7165,36 @@ const ProfileDetails = () => {
     setNewChatMessage("");
     setReplyTo(null);
     setShowEmojiPicker(false);
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+    setTimeout(
+      () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+      100,
+    );
 
     try {
-      const response = await chatService.sendMessage(selectedChat._id, messageText, replyToId);
+      const response = await chatService.sendMessage(
+        selectedChat._id,
+        messageText,
+        replyToId,
+      );
       if (response.success) {
         setChatMessages((prev) =>
-          prev.map((m) => (m._id === tempMessage._id ? response.data : m))
+          prev.map((m) => (m._id === tempMessage._id ? response.data : m)),
         );
         setChats((prev) =>
           prev.map((c) =>
             c._id !== selectedChat._id
               ? c
-              : { ...c, lastMessage: messageText || "📷 Image", lastMessageAt: new Date() }
-          )
+              : {
+                  ...c,
+                  lastMessage: messageText || "📷 Image",
+                  lastMessageAt: new Date(),
+                },
+          ),
         );
       } else {
-        setChatMessages((prev) => prev.filter((m) => m._id !== tempMessage._id));
+        setChatMessages((prev) =>
+          prev.filter((m) => m._id !== tempMessage._id),
+        );
         toast.error("Failed to send message");
       }
     } catch (error) {
@@ -7113,9 +7211,15 @@ const ProfileDetails = () => {
       setChatMessages((prev) =>
         prev.map((m) =>
           m._id === messageId
-            ? { ...m, isUnsent: true, message: "", attachments: [], reactions: [] }
-            : m
-        )
+            ? {
+                ...m,
+                isUnsent: true,
+                message: "",
+                attachments: [],
+                reactions: [],
+              }
+            : m,
+        ),
       );
     } catch (error) {
       toast.error("Failed to unsend message");
@@ -7133,10 +7237,16 @@ const ProfileDetails = () => {
 
   const handleReactToMessage = async (messageId, emoji) => {
     try {
-      const res = await chatService.reactToMessage(selectedChat._id, messageId, emoji);
+      const res = await chatService.reactToMessage(
+        selectedChat._id,
+        messageId,
+        emoji,
+      );
       if (res.success) {
         setChatMessages((prev) =>
-          prev.map((m) => (m._id === messageId ? { ...m, reactions: res.reactions } : m))
+          prev.map((m) =>
+            m._id === messageId ? { ...m, reactions: res.reactions } : m,
+          ),
         );
       }
     } catch (error) {
@@ -7174,9 +7284,15 @@ const ProfileDetails = () => {
     try {
       const response = await chatService.blockUser(selectedChat._id);
       if (response.success) {
-        toast.success(`${getOtherParticipant(selectedChat)?.name} has been blocked`);
+        toast.success(
+          `${getOtherParticipant(selectedChat)?.name} has been blocked`,
+        );
         await fetchUserChats();
-        setSelectedChat((prev) => ({ ...prev, isBlocked: true, blockedBy: user?._id }));
+        setSelectedChat((prev) => ({
+          ...prev,
+          isBlocked: true,
+          blockedBy: user?._id,
+        }));
         setChatMessages([]);
       }
     } catch (error) {
@@ -7193,9 +7309,15 @@ const ProfileDetails = () => {
     try {
       const response = await chatService.unblockUser(selectedChat._id);
       if (response.success) {
-        toast.success(`${getOtherParticipant(selectedChat)?.name} has been unblocked`);
+        toast.success(
+          `${getOtherParticipant(selectedChat)?.name} has been unblocked`,
+        );
         await fetchUserChats();
-        setSelectedChat((prev) => ({ ...prev, isBlocked: false, blockedBy: null }));
+        setSelectedChat((prev) => ({
+          ...prev,
+          isBlocked: false,
+          blockedBy: null,
+        }));
         await fetchChatMessages(selectedChat._id);
       }
     } catch (error) {
@@ -7234,21 +7356,29 @@ const ProfileDetails = () => {
 
   const getOtherParticipant = (chat) => {
     const currentUserId = getCurrentUserId()?.toString();
-    if (!chat || !chat.participants || !Array.isArray(chat.participants)) return null;
+    if (!chat || !chat.participants || !Array.isArray(chat.participants))
+      return null;
     const others = chat.participants.filter(
-      (p) => p && p._id && p._id.toString() !== currentUserId
+      (p) => p && p._id && p._id.toString() !== currentUserId,
     );
     return others[0] || null;
   };
 
-  const openImageViewer = (imageUrl) => { setSelectedImage(imageUrl); setShowImageViewer(true); };
+  const openImageViewer = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setShowImageViewer(true);
+  };
 
   const getVehicleImageForBooking = (booking) => {
     if (booking.vehicle?.photos && booking.vehicle.photos.length > 0) {
-      const folder = booking.vehicleType === "user" ? "user-vehicles" : "vehicles";
+      const folder =
+        booking.vehicleType === "user" ? "user-vehicles" : "vehicles";
       return `${BASE}/uploads/${folder}/${booking.vehicle.photos[0].filename}`;
     }
-    if (booking.vehicle?.vehiclePhotos && booking.vehicle.vehiclePhotos.length > 0)
+    if (
+      booking.vehicle?.vehiclePhotos &&
+      booking.vehicle.vehiclePhotos.length > 0
+    )
       return `${BASE}${booking.vehicle.vehiclePhotos[0].url}`;
     return null;
   };
@@ -7296,13 +7426,15 @@ const ProfileDetails = () => {
       if (other.role === "admin") return "Support";
       const uid = getCurrentUserId()?.toString();
       if (chat.vehicleOwnerId) {
-        return chat.vehicleOwnerId?.toString() === uid ? "Customer" : "Vehicle Owner";
+        return chat.vehicleOwnerId?.toString() === uid
+          ? "Customer"
+          : "Vehicle Owner";
       }
       if (chatMessages && selectedChat?._id === chat._id) {
         const iAmOwner = chatMessages.some(
           (m) =>
             m.senderType === "owner" &&
-            (m.sender?._id || m.sender?.id || m.sender)?.toString() === uid
+            (m.sender?._id || m.sender?.id || m.sender)?.toString() === uid,
         );
         return iAmOwner ? "Customer" : "Vehicle Owner";
       }
@@ -7313,21 +7445,63 @@ const ProfileDetails = () => {
 
   const getStatusBadge = (status) => {
     const cfg = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: "Pending", icon: FaClock },
-      approved: { color: "bg-blue-100 text-blue-800", label: "Approved", icon: FaCheckCircle },
-      rejected: { color: "bg-red-100 text-red-800", label: "Rejected", icon: FaTimesCircle },
-      confirmed: { color: "bg-green-100 text-green-800", label: "Confirmed", icon: FaCheckCircle },
-      active: { color: "bg-purple-100 text-purple-800", label: "Active", icon: FaCar },
-      completed: { color: "bg-gray-100 text-gray-800", label: "Completed", icon: FaCheckCircle },
-      cancelled: { color: "bg-red-100 text-red-800", label: "Cancelled", icon: FaTimesCircle },
-      expired: { color: "bg-orange-100 text-orange-800", label: "Expired", icon: FaClock },
-      inactive: { color: "bg-gray-100 text-gray-600", label: "Inactive", icon: FaTimesCircle },
-      booked: { color: "bg-orange-100 text-orange-800", label: "Booked", icon: FaCalendarAlt },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "Pending",
+        icon: FaClock,
+      },
+      approved: {
+        color: "bg-blue-100 text-blue-800",
+        label: "Approved",
+        icon: FaCheckCircle,
+      },
+      rejected: {
+        color: "bg-red-100 text-red-800",
+        label: "Rejected",
+        icon: FaTimesCircle,
+      },
+      confirmed: {
+        color: "bg-green-100 text-green-800",
+        label: "Confirmed",
+        icon: FaCheckCircle,
+      },
+      active: {
+        color: "bg-purple-100 text-purple-800",
+        label: "Active",
+        icon: FaCar,
+      },
+      completed: {
+        color: "bg-gray-100 text-gray-800",
+        label: "Completed",
+        icon: FaCheckCircle,
+      },
+      cancelled: {
+        color: "bg-red-100 text-red-800",
+        label: "Cancelled",
+        icon: FaTimesCircle,
+      },
+      expired: {
+        color: "bg-orange-100 text-orange-800",
+        label: "Expired",
+        icon: FaClock,
+      },
+      inactive: {
+        color: "bg-gray-100 text-gray-600",
+        label: "Inactive",
+        icon: FaTimesCircle,
+      },
+      booked: {
+        color: "bg-orange-100 text-orange-800",
+        label: "Booked",
+        icon: FaCalendarAlt,
+      },
     };
     const c = cfg[status] || cfg.pending;
     const Icon = c.icon;
     return (
-      <span className={`px-3 py-1 rounded-full text-sm font-medium inline-flex items-center gap-1 ${c.color}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-sm font-medium inline-flex items-center gap-1 ${c.color}`}
+      >
         <Icon size={12} /> {c.label}
       </span>
     );
@@ -7335,19 +7509,28 @@ const ProfileDetails = () => {
 
   const getPaymentStatusBadge = (ps) => {
     const cfg = {
-      pending: { color: "bg-yellow-100 text-yellow-800", label: "Payment Pending" },
+      pending: {
+        color: "bg-yellow-100 text-yellow-800",
+        label: "Payment Pending",
+      },
       paid: { color: "bg-green-100 text-green-800", label: "Paid" },
       failed: { color: "bg-red-100 text-red-800", label: "Payment Failed" },
       refunded: { color: "bg-gray-100 text-gray-800", label: "Refunded" },
     };
     const s = cfg[ps] || cfg.pending;
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${s.color}`}>{s.label}</span>
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${s.color}`}>
+        {s.label}
+      </span>
     );
   };
 
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    new Date(d).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   const formatCurrency = (a) => `रु ${a?.toLocaleString("en-NP") || 0}`;
 
   const iBlockedThem =
@@ -7417,7 +7600,10 @@ const ProfileDetails = () => {
           <h2 className="text-xl font-semibold mb-2">Error Loading Profile</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
-            onClick={() => { setLoading(true); fetchUserProfile(); }}
+            onClick={() => {
+              setLoading(true);
+              fetchUserProfile();
+            }}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             Try Again
@@ -7478,7 +7664,9 @@ const ProfileDetails = () => {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-800 truncate">{user.name}</p>
+                <p className="font-semibold text-gray-800 truncate">
+                  {user.name}
+                </p>
                 <p className="text-xs text-gray-500 truncate">{user.email}</p>
               </div>
             </div>
@@ -7486,7 +7674,10 @@ const ProfileDetails = () => {
         )}
 
         {/* Nav */}
-        <nav className="mt-6 px-3 overflow-y-auto pb-24" style={{ maxHeight: "calc(100vh - 220px)" }}>
+        <nav
+          className="mt-6 px-3 overflow-y-auto pb-24"
+          style={{ maxHeight: "calc(100vh - 220px)" }}
+        >
           <p
             className={`text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 ${
               !sidebarOpen && "text-center"
@@ -7537,7 +7728,9 @@ const ProfileDetails = () => {
                 <Icon className={iconClass} />
 
                 {sidebarOpen && (
-                  <span className={`font-medium ${isItemActive ? "text-white" : ""}`}>
+                  <span
+                    className={`font-medium ${isItemActive ? "text-white" : ""}`}
+                  >
                     {item.label}
                   </span>
                 )}
@@ -7555,16 +7748,22 @@ const ProfileDetails = () => {
                 )}
 
                 {/* Unread badge */}
-                {item.id === "messages" && getUnreadConversationCount() > 0 && sidebarOpen && (
-                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                    {getUnreadConversationCount()}
-                  </span>
-                )}
-                {item.id === "messages" && getUnreadConversationCount() > 0 && !sidebarOpen && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-md">
-                    {getUnreadConversationCount() > 9 ? "9+" : getUnreadConversationCount()}
-                  </span>
-                )}
+                {item.id === "messages" &&
+                  getUnreadConversationCount() > 0 &&
+                  sidebarOpen && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                      {getUnreadConversationCount()}
+                    </span>
+                  )}
+                {item.id === "messages" &&
+                  getUnreadConversationCount() > 0 &&
+                  !sidebarOpen && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-md">
+                      {getUnreadConversationCount() > 9
+                        ? "9+"
+                        : getUnreadConversationCount()}
+                    </span>
+                  )}
               </button>
             );
           })}
@@ -7585,7 +7784,9 @@ const ProfileDetails = () => {
       </div>
 
       {/* ── Main Content ── */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? "ml-72" : "ml-20"}`}>
+      <div
+        className={`transition-all duration-300 ${sidebarOpen ? "ml-72" : "ml-20"}`}
+      >
         <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10">
           <div className="px-8 py-5">
             <div className="flex justify-between items-center">
@@ -7598,10 +7799,13 @@ const ProfileDetails = () => {
                   {activeTab === "messages" && "Messages"}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  {activeTab === "profile" && "Manage your personal information"}
+                  {activeTab === "profile" &&
+                    "Manage your personal information"}
                   {activeTab === "bookings" && "View and manage your bookings"}
-                  {activeTab === "listed-vehicles" && "Manage your listed vehicles"}
-                  {activeTab === "earnings" && "Track your earnings from listed vehicles"}
+                  {activeTab === "listed-vehicles" &&
+                    "Manage your listed vehicles"}
+                  {activeTab === "earnings" &&
+                    "Track your earnings from listed vehicles"}
                   {activeTab === "messages" && "Your conversations"}
                 </p>
               </div>
@@ -7751,8 +7955,12 @@ const ProfileDetails = () => {
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
                 <FaBan size={24} className="text-white" />
               </div>
-              <h3 className="text-white text-center text-lg font-bold">Block User?</h3>
-              <p className="text-red-100 text-center text-xs mt-1">This will restrict messaging</p>
+              <h3 className="text-white text-center text-lg font-bold">
+                Block User?
+              </h3>
+              <p className="text-red-100 text-center text-xs mt-1">
+                This will restrict messaging
+              </p>
             </div>
             <div className="-mt-4 bg-white rounded-t-2xl px-6 pt-5 pb-6">
               <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
@@ -7813,8 +8021,12 @@ const ProfileDetails = () => {
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
                 <FaUnlock size={24} className="text-white" />
               </div>
-              <h3 className="text-white text-center text-lg font-bold">Unblock User?</h3>
-              <p className="text-emerald-100 text-center text-xs mt-1">Resume your conversation</p>
+              <h3 className="text-white text-center text-lg font-bold">
+                Unblock User?
+              </h3>
+              <p className="text-emerald-100 text-center text-xs mt-1">
+                Resume your conversation
+              </p>
             </div>
             <div className="-mt-4 bg-white rounded-t-2xl px-6 pt-5 pb-6">
               <div className="flex gap-2">
@@ -7853,12 +8065,17 @@ const ProfileDetails = () => {
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
                 <FaTrash size={24} className="text-white" />
               </div>
-              <h3 className="text-white text-center text-lg font-bold">Delete Conversation?</h3>
-              <p className="text-gray-300 text-center text-xs mt-1">Only deleted for you</p>
+              <h3 className="text-white text-center text-lg font-bold">
+                Delete Conversation?
+              </h3>
+              <p className="text-gray-300 text-center text-xs mt-1">
+                Only deleted for you
+              </p>
             </div>
             <div className="-mt-4 bg-white rounded-t-2xl px-6 pt-5 pb-6">
               <p className="text-sm text-gray-600 mb-5 text-center">
-                This will remove all messages for you only. The other person can still see the conversation.
+                This will remove all messages for you only. The other person can
+                still see the conversation.
               </p>
               <div className="flex gap-2">
                 <button
@@ -7902,8 +8119,12 @@ const ProfileDetails = () => {
       {showCancelConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Cancel Booking</h3>
-            <p className="text-sm text-gray-600 mb-4">Please provide a reason for cancellation:</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
+              Cancel Booking
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Please provide a reason for cancellation:
+            </p>
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
@@ -7913,13 +8134,20 @@ const ProfileDetails = () => {
             />
             <div className="flex gap-3">
               <button
-                onClick={() => { setShowCancelConfirm(false); setCancelReason(""); }}
+                onClick={() => {
+                  setShowCancelConfirm(false);
+                  setCancelReason("");
+                }}
                 className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition font-medium"
               >
                 Keep Booking
               </button>
               <button
-                onClick={selectedBikeBooking ? handleCancelBikeBooking : handleCancelBooking}
+                onClick={
+                  selectedBikeBooking
+                    ? handleCancelBikeBooking
+                    : handleCancelBooking
+                }
                 disabled={cancellingBooking}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition disabled:opacity-60"
               >
@@ -7933,14 +8161,19 @@ const ProfileDetails = () => {
       {/* ── Floating Chat Button ── */}
       {activeTab !== "messages" && (
         <button
-          onClick={() => { setActiveTab("messages"); fetchUserChats(); }}
+          onClick={() => {
+            setActiveTab("messages");
+            fetchUserChats();
+          }}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-blue-500/40 hover:scale-110 transition-all duration-200"
           title="Open Messages"
         >
           <FaComments size={22} />
           {getUnreadConversationCount() > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-md">
-              {getUnreadConversationCount() > 9 ? "9+" : getUnreadConversationCount()}
+              {getUnreadConversationCount() > 9
+                ? "9+"
+                : getUnreadConversationCount()}
             </span>
           )}
         </button>
