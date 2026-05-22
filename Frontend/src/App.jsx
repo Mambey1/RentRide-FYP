@@ -794,7 +794,7 @@ import Home from "./components/Dashboard/Home";
 import Login from "./components/auth/Login";
 import SignUp from "./components/auth/SignUp";
 import RentRideHome from "./components/Dashboard/RentRideHome";
-import ProfileDetails from "./components/Profile/Profile.jsx";
+import Profile from "./components/Profile/Profile.jsx";
 import Booking from "./components/Booking/Booking";
 import VerifyEmail from "./components/auth/VerifyEmail";
 import UploadDocuments from "./components/Booking/UploadDocuments";
@@ -903,7 +903,8 @@ const AppInner = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/rentridehome" element={<RentRideHome />} />
           <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/profiledetails" element={<ProfileDetails />} />
+          {/* <Route path="/profiledetails" element={<ProfileDetails />} /> */}
+          <Route path="/profiledetails" element={<Profile />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/booking/:vehicleId" element={<Booking />} />
           <Route
