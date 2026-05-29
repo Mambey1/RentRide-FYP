@@ -877,6 +877,7 @@ const AppInner = () => {
 
       <Routes>
         {/* Public Routes */}
+
         <Route path="/" element={<Home />} />
         <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -888,17 +889,14 @@ const AppInner = () => {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-failure" element={<PaymentFailure />} />
         <Route path="/vehicle-details/:id" element={<VehicleDetails />} />
-
         {/* ✅ Forgot Password — public route (user is not logged in) */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
-
         {/* Bike Booking Routes */}
         <Route path="/bike-booking/:bikeId" element={<BikeBooking />} />
         <Route
           path="/bike-upload-documents"
           element={<BikeUploadDocuments />}
         />
-
         {/* Protected User Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/rentridehome" element={<RentRideHome />} />
@@ -918,7 +916,6 @@ const AppInner = () => {
           {/* Bike Payment — protected so user must be logged in */}
           <Route path="/bike-payment/:bookingId" element={<BikePayment />} />
         </Route>
-
         {/* Admin Routes */}
         <Route
           path="/admin"
@@ -943,7 +940,6 @@ const AppInner = () => {
           <Route path="reports" element={<AdminReports />} />
           <Route path="users" element={<AdminUserManagement />} />
         </Route>
-
         {/* Catch-all */}
         <Route
           path="*"

@@ -1,3 +1,1634 @@
+// // import Booking from "../models/Booking.js";
+// // import Vehicle from "../models/Vehicle.js";
+// // import UserVehicle from "../models/UserVehicle.js";
+// // import Document from "../models/Document.js";
+// // import User from "../models/User.js";
+// // import mongoose from "mongoose";
+// // import {
+// //   sendBookingApprovalEmail,
+// //   sendBookingRejectionEmail,
+// //   sendBookingConfirmationEmail,
+// // } from "../utils/emailService.js";
+// // import {
+// //   createNotification,
+// //   createPaymentRequiredNotification,
+// //   createBookingApprovedNotification,
+// // } from "../utils/notificationHelper.js";
+
+// // // Helper function to get vehicle details by ID and type
+// // async function getVehicleDetails(vehicleId, vehicleType) {
+// //   if (vehicleType === "user") {
+// //     const userVehicle = await UserVehicle.findById(vehicleId).lean();
+// //     if (userVehicle) {
+// //       return {
+// //         _id: userVehicle._id,
+// //         carName: userVehicle.carName,
+// //         carNumber: userVehicle.carNumber,
+// //         carType: userVehicle.carType,
+// //         ratePerDay: userVehicle.ratePerDay,
+// //         seats: userVehicle.seats,
+// //         bookingType: userVehicle.bookingType,
+// //         gearType: userVehicle.gearType,
+// //         airCondition: userVehicle.airCondition,
+// //         description: userVehicle.description,
+// //         features: userVehicle.features,
+// //         photos: userVehicle.vehiclePhotos,
+// //         phoneNumber: userVehicle.phoneNumber,
+// //         driverName: userVehicle.driverName,
+// //         source: "user",
+// //         owner: userVehicle.fullName,
+// //         ownerPhone: userVehicle.phoneNumber,
+// //       };
+// //     }
+// //   } else {
+// //     return await Vehicle.findById(vehicleId).lean();
+// //   }
+// //   return null;
+// // }
+
+// // // Helper function to reset vehicle status to available (for ALL scenarios)
+// // async function resetVehicleToAvailable(
+// //   vehicleId,
+// //   vehicleType,
+// //   reason = "booking_ended",
+// // ) {
+// //   try {
+// //     if (vehicleType === "user") {
+// //       const vehicle = await UserVehicle.findById(vehicleId);
+// //       if (vehicle) {
+// //         vehicle.status = "active";
+// //         vehicle.isListed = true;
+// //         await vehicle.save();
+// //         console.log(
+// //           `✅ User vehicle ${vehicleId} reset to ACTIVE (Reason: ${reason})`,
+// //         );
+// //         return true;
+// //       }
+// //     } else {
+// //       const vehicle = await Vehicle.findById(vehicleId);
+// //       if (vehicle) {
+// //         vehicle.status = "Available";
+// //         await vehicle.save();
+// //         console.log(
+// //           `✅ Admin vehicle ${vehicleId} reset to AVAILABLE (Reason: ${reason})`,
+// //         );
+// //         return true;
+// //       }
+// //     }
+// //     return false;
+// //   } catch (error) {
+// //     console.error(`Error resetting vehicle ${vehicleId} status:`, error);
+// //     return false;
+// //   }
+// // }
+
+// // // Helper function to add activity log
+// // async function addBookingActivity(bookingId, userId, action, notes = "") {
+// //   console.log(
+// //     `Booking Activity: ${bookingId} - ${userId} - ${action} - ${notes}`,
+// //   );
+// // }
+
+// // // Create new booking
+// // export const createBooking = async (req, res) => {
+// //   try {
+// //     console.log("=== 🚀 CREATE BOOKING START ===");
+// //     console.log("Request body:", JSON.stringify(req.body, null, 2));
+// //     console.log("User from token:", req.user ? req.user.email : "No user");
+
+// //     const {
+// //       vehicleId,
+// //       pickupDate,
+// //       pickupTime,
+// //       returnDate,
+// //       returnTime,
+// //       pickupLocation,
+// //       dropoffLocation,
+// //       driverOption,
+// //       insuranceOption,
+// //       specialRequests,
+// //       emergencyContact,
+// //     } = req.body;
+
+// //     const userId = req.user.id;
+// //     console.log("User ID:", userId);
+// //     console.log("Vehicle ID being searched:", vehicleId);
+
+// //     // Validate required fields
+// //     if (!vehicleId || !pickupDate || !returnDate) {
+// //       console.log("❌ Missing required fields");
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Vehicle ID, pickup date, and return date are required",
+// //       });
+// //     }
+
+// //     // First try to find in admin vehicles
+// //     let vehicle = null;
+// //     let vehicleType = "admin";
+
+// //     console.log("Looking for vehicle in admin collection...");
+
+// //     // Check admin vehicles
+// //     vehicle = await Vehicle.findById(vehicleId);
+// //     if (vehicle) {
+// //       console.log("✅ Vehicle found in admin collection:", vehicle.carName);
+// //       vehicleType = "admin";
+// //     } else {
+// //       // If not found, check user vehicles
+// //       console.log("Checking user vehicles collection...");
+// //       try {
+// //         const userVehicle = await UserVehicle.findById(vehicleId).populate(
+// //           "user",
+// //           "name email phone",
+// //         );
+
+// //         if (userVehicle) {
+// //           console.log(
+// //             "✅ Vehicle found in user collection:",
+// //             userVehicle.carName,
+// //           );
+// //           console.log("User vehicle status:", userVehicle.status);
+// //           console.log("User vehicle isListed:", userVehicle.isListed);
+
+// //           // Check if user vehicle is active and listed
+// //           if (userVehicle.status !== "active" || !userVehicle.isListed) {
+// //             console.log(
+// //               "❌ User vehicle not available for booking. Status:",
+// //               userVehicle.status,
+// //             );
+// //             return res.status(400).json({
+// //               success: false,
+// //               message: `This vehicle is not available for booking. Status: ${userVehicle.status}`,
+// //             });
+// //           }
+
+// //           // Format user vehicle to match admin vehicle structure
+// //           vehicle = {
+// //             _id: userVehicle._id,
+// //             carName: userVehicle.carName,
+// //             carNumber: userVehicle.carNumber,
+// //             carType: userVehicle.carType,
+// //             ratePerDay: userVehicle.ratePerDay,
+// //             seats: userVehicle.seats,
+// //             bookingType: userVehicle.bookingType,
+// //             gearType: userVehicle.gearType,
+// //             airCondition: userVehicle.airCondition,
+// //             description: userVehicle.description,
+// //             features: userVehicle.features,
+// //             photos: userVehicle.vehiclePhotos,
+// //             phoneNumber: userVehicle.phoneNumber,
+// //             driverName: userVehicle.driverName,
+// //             status: "Available",
+// //             source: "user",
+// //             owner: userVehicle.fullName,
+// //             ownerPhone: userVehicle.phoneNumber,
+// //           };
+// //           vehicleType = "user";
+// //           console.log("✅ User vehicle formatted for booking");
+// //         } else {
+// //           console.log(
+// //             "❌ Vehicle not found in user collection with ID:",
+// //             vehicleId,
+// //           );
+// //         }
+// //       } catch (userVehicleError) {
+// //         console.error("Error querying user vehicle:", userVehicleError);
+// //       }
+// //     }
+
+// //     if (!vehicle) {
+// //       console.log("❌ Vehicle not found in any collection");
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Vehicle not found. Please check the vehicle ID.",
+// //       });
+// //     }
+
+// //     // Check vehicle availability (only for admin vehicles)
+// //     if (vehicleType === "admin" && vehicle.status !== "Available") {
+// //       console.log("❌ Vehicle not available, status:", vehicle.status);
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Vehicle is not available for booking",
+// //       });
+// //     }
+
+// //     // Parse dates
+// //     const pickupDateTime = new Date(pickupDate);
+// //     const returnDateTime = new Date(returnDate);
+
+// //     console.log("Pickup date:", pickupDateTime);
+// //     console.log("Return date:", returnDateTime);
+
+// //     // Validate dates
+// //     if (pickupDateTime >= returnDateTime) {
+// //       console.log("❌ Return date must be after pickup date");
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Return date must be after pickup date",
+// //       });
+// //     }
+
+// //     // Only check if pickup date is not in the past (allow same day)
+// //     const today = new Date();
+// //     today.setHours(0, 0, 0, 0);
+// //     if (pickupDateTime < today) {
+// //       console.log("❌ Pickup date cannot be in the past");
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Pickup date cannot be in the past",
+// //       });
+// //     }
+
+// //     // Calculate total days
+// //     const timeDiff = returnDateTime.getTime() - pickupDateTime.getTime();
+// //     const totalDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+// //     console.log("Total days:", totalDays);
+
+// //     if (totalDays < 1) {
+// //       console.log("❌ Minimum booking duration is 1 day");
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Minimum booking duration is 1 day",
+// //       });
+// //     }
+
+// //     // Calculate pricing
+// //     const basePrice = (vehicle.ratePerDay || 5000) * totalDays;
+// //     const driverFee = driverOption === "with" ? 500 * totalDays : 0;
+// //     const insuranceFee = insuranceOption === "premium" ? 1500 * totalDays : 0;
+// //     const serviceFee = 500;
+// //     const tax = 0;
+// //     const totalAmount = basePrice + driverFee + insuranceFee + serviceFee + tax;
+
+// //     console.log("💰 Pricing calculated:", {
+// //       basePrice,
+// //       driverFee,
+// //       insuranceFee,
+// //       serviceFee,
+// //       totalAmount,
+// //     });
+
+// //     // Check for overlapping bookings (only for admin vehicles)
+// //     let overlappingBookings = [];
+// //     if (vehicleType === "admin") {
+// //       overlappingBookings = await Booking.find({
+// //         vehicle: vehicleId,
+// //         status: { $in: ["approved", "confirmed", "active"] },
+// //         $or: [
+// //           {
+// //             pickupDate: { $lt: returnDateTime },
+// //             returnDate: { $gt: pickupDateTime },
+// //           },
+// //         ],
+// //       });
+// //       console.log("Overlapping bookings found:", overlappingBookings.length);
+
+// //       if (overlappingBookings.length > 0) {
+// //         console.log("❌ Vehicle already booked for these dates");
+// //         return res.status(400).json({
+// //           success: false,
+// //           message: "Vehicle is already booked for the selected dates",
+// //         });
+// //       }
+// //     }
+
+// //     // Create booking
+// //     const bookingData = {
+// //       user: userId,
+// //       vehicle: vehicleId,
+// //       pickupDate: pickupDateTime,
+// //       pickupTime,
+// //       returnDate: returnDateTime,
+// //       returnTime,
+// //       pickupLocation,
+// //       dropoffLocation,
+// //       totalDays,
+// //       basePrice,
+// //       driverFee,
+// //       insuranceFee,
+// //       serviceFee,
+// //       tax,
+// //       totalAmount,
+// //       driverOption,
+// //       insuranceOption,
+// //       specialRequests: specialRequests || "",
+// //       emergencyContact: {
+// //         name: emergencyContact?.name || "",
+// //         phone: emergencyContact?.phone || "",
+// //         relationship: emergencyContact?.relationship || "",
+// //       },
+// //       status: "pending",
+// //       vehicleType: vehicleType,
+// //     };
+
+// //     console.log("📝 Creating booking with data:", bookingData);
+// //     const booking = new Booking(bookingData);
+// //     await booking.save();
+// //     console.log("✅ Booking saved with ID:", booking._id);
+// //     console.log("✅ Confirmation code:", booking.confirmationCode);
+
+// //     // For response, use the vehicle object we already have
+// //     const responseVehicle = vehicle;
+
+// //     // Create notification for booking created
+// //     try {
+// //       await createNotification(
+// //         userId,
+// //         "Booking Created 📝",
+// //         `Your booking for ${responseVehicle.carName} has been created and is awaiting admin approval.`,
+// //         "info",
+// //         `Booking ID: ${booking.confirmationCode}`,
+// //         { bookingId: booking._id },
+// //       );
+// //     } catch (notifError) {
+// //       console.error("Error creating notification:", notifError);
+// //     }
+
+// //     const responseData = {
+// //       success: true,
+// //       message: "Booking created successfully. Waiting for admin approval.",
+// //       data: {
+// //         booking: {
+// //           id: booking._id,
+// //           confirmationCode: booking.confirmationCode,
+// //           vehicle: responseVehicle.carName,
+// //           pickupDate: booking.pickupDate,
+// //           returnDate: booking.returnDate,
+// //           totalDays: booking.totalDays,
+// //           totalAmount: booking.totalAmount,
+// //           status: booking.status,
+// //           createdAt: booking.createdAt,
+// //         },
+// //         nextStep: "Upload documents for verification",
+// //       },
+// //     };
+
+// //     console.log("📤 Sending response:", JSON.stringify(responseData, null, 2));
+
+// //     res.status(201).json(responseData);
+// //   } catch (error) {
+// //     console.error("=== ❌ CREATE BOOKING ERROR ===");
+// //     console.error("Error name:", error.name);
+// //     console.error("Error message:", error.message);
+// //     console.error("Error stack:", error.stack);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to create booking",
+// //       error:
+// //         process.env.NODE_ENV === "development"
+// //           ? error.message
+// //           : "Internal server error",
+// //     });
+// //   }
+// // };
+
+// // // Get user's bookings
+// // export const getUserBookings = async (req, res) => {
+// //   try {
+// //     const userId = req.user.id;
+// //     const { status, page = 1, limit = 10 } = req.query;
+
+// //     const query = { user: userId };
+// //     if (status) {
+// //       query.status = status;
+// //     }
+
+// //     const skip = (page - 1) * limit;
+
+// //     const bookings = await Booking.find(query)
+// //       .sort({ createdAt: -1 })
+// //       .skip(skip)
+// //       .limit(parseInt(limit))
+// //       .lean();
+
+// //     const populatedBookings = await Promise.all(
+// //       bookings.map(async (booking) => {
+// //         const vehicleData = await getVehicleDetails(
+// //           booking.vehicle,
+// //           booking.vehicleType,
+// //         );
+// //         return {
+// //           ...booking,
+// //           vehicle: vehicleData,
+// //         };
+// //       }),
+// //     );
+
+// //     const total = await Booking.countDocuments(query);
+
+// //     res.status(200).json({
+// //       success: true,
+// //       data: {
+// //         bookings: populatedBookings,
+// //         pagination: {
+// //           page: parseInt(page),
+// //           limit: parseInt(limit),
+// //           total,
+// //           pages: Math.ceil(total / limit),
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Get user bookings error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to fetch bookings",
+// //     });
+// //   }
+// // };
+
+// // // Get booking by ID
+// // export const getBookingById = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const userId = req.user.id;
+// //     const isAdmin = req.user.role === "admin";
+
+// //     const booking = await Booking.findById(id)
+// //       .populate("user", "name email phone")
+// //       .populate("approvedBy", "name email")
+// //       .populate("rejectedBy", "name email")
+// //       .lean();
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     if (!isAdmin && booking.user._id.toString() !== userId) {
+// //       return res.status(403).json({
+// //         success: false,
+// //         message: "Unauthorized to view this booking",
+// //       });
+// //     }
+
+// //     const vehicleData = await getVehicleDetails(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //     );
+
+// //     const documents = await Document.findOne({ booking: id });
+
+// //     res.status(200).json({
+// //       success: true,
+// //       data: {
+// //         booking: {
+// //           ...booking,
+// //           vehicle: vehicleData,
+// //           documents,
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Get booking error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to fetch booking details",
+// //     });
+// //   }
+// // };
+
+// // // Update booking (user)
+// // export const updateBooking = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const userId = req.user.id;
+// //     const updateData = req.body;
+
+// //     const booking = await Booking.findById(id);
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     if (booking.user.toString() !== userId) {
+// //       return res.status(403).json({
+// //         success: false,
+// //         message: "Unauthorized to update this booking",
+// //       });
+// //     }
+
+// //     if (!["pending", "approved"].includes(booking.status)) {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Booking cannot be updated in its current status",
+// //       });
+// //     }
+
+// //     const allowedUpdates = [
+// //       "pickupTime",
+// //       "returnTime",
+// //       "pickupLocation",
+// //       "dropoffLocation",
+// //       "specialRequests",
+// //       "emergencyContact",
+// //     ];
+
+// //     const updates = {};
+// //     allowedUpdates.forEach((field) => {
+// //       if (updateData[field] !== undefined) {
+// //         updates[field] = updateData[field];
+// //       }
+// //     });
+
+// //     const updatedBooking = await Booking.findByIdAndUpdate(
+// //       id,
+// //       { $set: updates },
+// //       { new: true, runValidators: true },
+// //     );
+
+// //     res.status(200).json({
+// //       success: true,
+// //       message: "Booking updated successfully",
+// //       data: {
+// //         booking: updatedBooking,
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Update booking error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to update booking",
+// //     });
+// //   }
+// // };
+
+// // // Cancel booking (user) - Resets vehicle to available
+// // export const cancelBooking = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const userId = req.user.id;
+// //     const { reason } = req.body;
+
+// //     const booking = await Booking.findById(id);
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     if (booking.user.toString() !== userId) {
+// //       return res.status(403).json({
+// //         success: false,
+// //         message: "Unauthorized to cancel this booking",
+// //       });
+// //     }
+
+// //     if (!booking.canBeCancelled) {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Booking cannot be cancelled at this time",
+// //       });
+// //     }
+
+// //     const refundAmount = booking.calculateRefund();
+
+// //     booking.status = "cancelled";
+// //     booking.cancellationDate = new Date();
+// //     booking.cancellationReason = reason;
+
+// //     if (refundAmount > 0 && booking.paidAmount > 0) {
+// //       booking.paymentStatus = "refunded";
+// //     }
+
+// //     await booking.save();
+
+// //     // ✅ RESET VEHICLE TO AVAILABLE (CANCELLED)
+// //     await resetVehicleToAvailable(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //       "cancelled_by_user",
+// //     );
+
+// //     const vehicleData = await getVehicleDetails(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //     );
+
+// //     await createNotification(
+// //       userId,
+// //       "Booking Cancelled ❌",
+// //       `Your booking for ${vehicleData?.carName} has been cancelled. ${
+// //         reason ? `Reason: ${reason}` : ""
+// //       }`,
+// //       "error",
+// //       `Booking ID: ${booking.confirmationCode}`,
+// //       { bookingId: booking._id },
+// //     );
+
+// //     res.status(200).json({
+// //       success: true,
+// //       message: "Booking cancelled successfully",
+// //       data: {
+// //         booking: {
+// //           id: booking._id,
+// //           status: booking.status,
+// //           refundAmount,
+// //           cancellationDate: booking.cancellationDate,
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Cancel booking error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to cancel booking",
+// //     });
+// //   }
+// // };
+
+// // // Get all bookings (admin)
+// // export const getAllBookings = async (req, res) => {
+// //   try {
+// //     const {
+// //       status,
+// //       startDate,
+// //       endDate,
+// //       vehicleId,
+// //       userId,
+// //       page = 1,
+// //       limit = 20,
+// //       sortBy = "createdAt",
+// //       sortOrder = "desc",
+// //     } = req.query;
+
+// //     const query = {};
+
+// //     if (status) {
+// //       query.status = status;
+// //     }
+
+// //     if (startDate || endDate) {
+// //       query.createdAt = {};
+// //       if (startDate) {
+// //         query.createdAt.$gte = new Date(startDate);
+// //       }
+// //       if (endDate) {
+// //         query.createdAt.$lte = new Date(endDate);
+// //       }
+// //     }
+
+// //     if (vehicleId) {
+// //       query.vehicle = vehicleId;
+// //     }
+
+// //     if (userId) {
+// //       query.user = userId;
+// //     }
+
+// //     const skip = (page - 1) * limit;
+// //     const sort = { [sortBy]: sortOrder === "desc" ? -1 : 1 };
+
+// //     const bookings = await Booking.find(query)
+// //       .populate("user", "name email phone")
+// //       .populate("approvedBy", "name")
+// //       .populate("rejectedBy", "name")
+// //       .sort(sort)
+// //       .skip(skip)
+// //       .limit(parseInt(limit))
+// //       .lean();
+
+// //     const populatedBookings = await Promise.all(
+// //       bookings.map(async (booking) => {
+// //         const vehicleData = await getVehicleDetails(
+// //           booking.vehicle,
+// //           booking.vehicleType,
+// //         );
+// //         return {
+// //           ...booking,
+// //           vehicle: vehicleData,
+// //         };
+// //       }),
+// //     );
+
+// //     const total = await Booking.countDocuments(query);
+
+// //     const stats = await Booking.aggregate([
+// //       { $match: query },
+// //       {
+// //         $group: {
+// //           _id: "$status",
+// //           count: { $sum: 1 },
+// //           totalRevenue: { $sum: "$totalAmount" },
+// //         },
+// //       },
+// //     ]);
+
+// //     res.status(200).json({
+// //       success: true,
+// //       data: {
+// //         bookings: populatedBookings,
+// //         pagination: {
+// //           page: parseInt(page),
+// //           limit: parseInt(limit),
+// //           total,
+// //           pages: Math.ceil(total / limit),
+// //         },
+// //         statistics: stats,
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Get all bookings error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to fetch bookings",
+// //     });
+// //   }
+// // };
+
+// // // // Approve booking (admin) - Sets vehicle to BOOKED
+// // // export const approveBooking = async (req, res) => {
+// // //   try {
+// // //     const { id } = req.params;
+// // //     const adminId = req.user.id;
+
+// // //     const booking = await Booking.findById(id).populate("user", "name email");
+
+// // //     if (!booking) {
+// // //       return res.status(404).json({
+// // //         success: false,
+// // //         message: "Booking not found",
+// // //       });
+// // //     }
+
+// // //     if (booking.status !== "pending") {
+// // //       return res.status(400).json({
+// // //         success: false,
+// // //         message: `Booking cannot be approved in ${booking.status} status`,
+// // //       });
+// // //     }
+
+// // //     const isAvailable = await booking.checkVehicleAvailability();
+// // //     if (!isAvailable) {
+// // //       return res.status(400).json({
+// // //         success: false,
+// // //         message: "Vehicle is no longer available for the selected dates",
+// // //       });
+// // //     }
+
+// // //     // const documents = await Document.findOne({ booking: id });
+// // //     // if (!documents) {
+// // //     //   return res.status(400).json({
+// // //     //     success: false,
+// // //     //     message: "Documents are required before approval",
+// // //     //   });
+// // //     // }
+
+// // //     // Update booking status
+// // //     booking.status = "approved";
+// // //     booking.approvedBy = adminId;
+// // //     booking.approvedAt = new Date();
+// // //     booking.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+// // //     booking.paymentStatus = "pending";
+// // //     await booking.save();
+
+// // //     // Update vehicle status to BOOKED
+// // //     if (booking.vehicleType === "user") {
+// // //       try {
+// // //         await UserVehicle.findByIdAndUpdate(booking.vehicle, {
+// // //           status: "booked",
+// // //           isListed: true, // Keep listed but show as booked
+// // //         });
+// // //         console.log("✅ User vehicle status updated to BOOKED");
+// // //       } catch (error) {
+// // //         console.error("Error updating user vehicle status:", error);
+// // //       }
+// // //     } else {
+// // //       await Vehicle.findByIdAndUpdate(booking.vehicle, {
+// // //         status: "Booked",
+// // //       });
+// // //       console.log("✅ Admin vehicle status updated to Booked");
+// // //     }
+
+// // //     const vehicleData = await getVehicleDetails(
+// // //       booking.vehicle,
+// // //       booking.vehicleType,
+// // //     );
+
+// // //     // Send approval email
+// // //     await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
+// // //       ...booking.toObject(),
+// // //       vehicle: vehicleData,
+// // //       confirmationCode: booking.confirmationCode,
+// // //     });
+
+// // //     // Create in-app notification with payment link
+// // //     await createBookingApprovedNotification(
+// // //       booking.user._id,
+// // //       booking,
+// // //       vehicleData,
+// // //     );
+
+// // //     await createPaymentRequiredNotification(
+// // //       booking.user._id,
+// // //       booking,
+// // //       vehicleData,
+// // //     );
+
+// // //     console.log(
+// // //       `✅ Payment notification sent to user ${booking.user.email} for booking ${booking.confirmationCode}`,
+// // //     );
+
+// // //     res.status(200).json({
+// // //       success: true,
+// // //       message:
+// // //         "Booking approved successfully. Payment notification sent to customer.",
+// // //       data: {
+// // //         booking: {
+// // //           id: booking._id,
+// // //           status: booking.status,
+// // //           approvedAt: booking.approvedAt,
+// // //           expiresAt: booking.expiresAt,
+// // //           confirmationCode: booking.confirmationCode,
+// // //           totalAmount: booking.totalAmount,
+// // //         },
+// // //       },
+// // //     });
+// // //   } catch (error) {
+// // //     console.error("Approve booking error:", error);
+// // //     res.status(500).json({
+// // //       success: false,
+// // //       message: "Failed to approve booking",
+// // //     });
+// // //   }
+// // // };
+
+// // export const approveBooking = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const adminId = req.user.id;
+
+// //     console.log("=== APPROVE BOOKING DEBUG ===");
+// //     console.log("Booking ID:", id);
+// //     console.log("Admin ID:", adminId);
+
+// //     const booking = await Booking.findById(id).populate("user", "name email");
+
+// //     if (!booking) {
+// //       console.log("❌ Booking not found");
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     console.log("Booking found:", {
+// //       id: booking._id,
+// //       status: booking.status,
+// //       vehicleType: booking.vehicleType,
+// //       vehicle: booking.vehicle,
+// //       paymentStatus: booking.paymentStatus,
+// //     });
+
+// //     // Check status
+// //     if (booking.status !== "pending") {
+// //       console.log("❌ Wrong status:", booking.status);
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: `Booking cannot be approved in ${booking.status} status`,
+// //       });
+// //     }
+
+// //     // Check vehicle availability
+// //     console.log("Checking vehicle availability...");
+// //     const isAvailable = await booking.checkVehicleAvailability();
+// //     console.log("Is available:", isAvailable);
+
+// //     if (!isAvailable) {
+// //       console.log("❌ Vehicle not available");
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Vehicle is no longer available for the selected dates",
+// //       });
+// //     }
+
+// //     // Check documents (if required)
+// //     console.log("Checking documents...");
+// //     const documents = await Document.findOne({ booking: id });
+// //     console.log("Documents found:", !!documents);
+
+// //     // TEMPORARILY COMMENT OUT THE DOCUMENTS CHECK FOR TESTING
+// //     // if (!documents) {
+// //     //   console.log("❌ No documents found");
+// //     //   return res.status(400).json({
+// //     //     success: false,
+// //     //     message: "Documents are required before approval",
+// //     //   });
+// //     // }
+
+// //     // Update booking status
+// //     console.log("Updating booking status to approved...");
+// //     booking.status = "approved";
+// //     booking.approvedBy = adminId;
+// //     booking.approvedAt = new Date();
+// //     booking.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+// //     booking.paymentStatus = "pending";
+// //     await booking.save();
+// //     console.log("✅ Booking status updated");
+
+// //     // Update vehicle status to BOOKED
+// //     console.log("Updating vehicle status...");
+// //     if (booking.vehicleType === "user") {
+// //       try {
+// //         const userVehicle = await UserVehicle.findByIdAndUpdate(
+// //           booking.vehicle,
+// //           {
+// //             status: "booked",
+// //             isListed: true,
+// //           },
+// //         );
+// //         console.log(
+// //           "User vehicle updated:",
+// //           userVehicle ? "Success" : "Not found",
+// //         );
+// //       } catch (error) {
+// //         console.error("Error updating user vehicle status:", error);
+// //       }
+// //     } else {
+// //       const adminVehicle = await Vehicle.findByIdAndUpdate(booking.vehicle, {
+// //         status: "Booked",
+// //       });
+// //       console.log(
+// //         "Admin vehicle updated:",
+// //         adminVehicle ? "Success" : "Not found",
+// //       );
+// //     }
+
+// //     // Get vehicle details
+// //     const vehicleData = await getVehicleDetails(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //     );
+// //     console.log("Vehicle data retrieved:", !!vehicleData);
+
+// //     // Send email and notifications
+// //     try {
+// //       await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
+// //         ...booking.toObject(),
+// //         vehicle: vehicleData,
+// //         confirmationCode: booking.confirmationCode,
+// //       });
+// //       console.log("✅ Approval email sent");
+// //     } catch (emailError) {
+// //       console.error("Email error:", emailError.message);
+// //     }
+
+// //     try {
+// //       await createBookingApprovedNotification(
+// //         booking.user._id,
+// //         booking,
+// //         vehicleData,
+// //       );
+// //       await createPaymentRequiredNotification(
+// //         booking.user._id,
+// //         booking,
+// //         vehicleData,
+// //       );
+// //       console.log("✅ Notifications sent");
+// //     } catch (notifError) {
+// //       console.error("Notification error:", notifError.message);
+// //     }
+
+// //     console.log("=== APPROVE BOOKING SUCCESS ===");
+// //     res.status(200).json({
+// //       success: true,
+// //       message:
+// //         "Booking approved successfully. Payment notification sent to customer.",
+// //       data: {
+// //         booking: {
+// //           id: booking._id,
+// //           status: booking.status,
+// //           approvedAt: booking.approvedAt,
+// //           expiresAt: booking.expiresAt,
+// //           confirmationCode: booking.confirmationCode,
+// //           totalAmount: booking.totalAmount,
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("=== APPROVE BOOKING ERROR ===");
+// //     console.error("Error name:", error.name);
+// //     console.error("Error message:", error.message);
+// //     console.error("Error stack:", error.stack);
+
+// //     // Send detailed error response
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to approve booking",
+// //       error: process.env.NODE_ENV === "development" ? error.message : undefined,
+// //     });
+// //   }
+// // };
+
+// // // Reject booking (admin) - Resets vehicle to available
+// // export const rejectBooking = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const { reason } = req.body;
+// //     const adminId = req.user.id;
+
+// //     const booking = await Booking.findById(id).populate("user", "name email");
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     if (booking.status !== "pending") {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: `Booking cannot be rejected in ${booking.status} status`,
+// //       });
+// //     }
+
+// //     booking.status = "rejected";
+// //     booking.rejectedBy = adminId;
+// //     booking.rejectedAt = new Date();
+// //     booking.rejectionReason = reason;
+
+// //     await booking.save();
+
+// //     // ✅ RESET VEHICLE TO AVAILABLE (REJECTED)
+// //     await resetVehicleToAvailable(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //       "rejected_by_admin",
+// //     );
+
+// //     const vehicleData = await getVehicleDetails(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //     );
+
+// //     // Send rejection email
+// //     await sendBookingRejectionEmail(
+// //       booking.user.email,
+// //       booking.user.name,
+// //       {
+// //         ...booking.toObject(),
+// //         vehicle: vehicleData,
+// //         confirmationCode: booking.confirmationCode,
+// //       },
+// //       reason || "No specific reason provided",
+// //     );
+
+// //     // Create in-app notification
+// //     await createNotification(
+// //       booking.user._id,
+// //       "Booking Rejected ",
+// //       `Your booking for ${vehicleData?.carName} has been rejected. Reason: ${
+// //         reason || "No specific reason provided"
+// //       }`,
+// //       "error",
+// //       `Booking ID: ${booking.confirmationCode}`,
+// //       { bookingId: booking._id, rejectionReason: reason },
+// //     );
+
+// //     res.status(200).json({
+// //       success: true,
+// //       message: "Booking rejected successfully. Email sent to customer.",
+// //       data: {
+// //         booking: {
+// //           id: booking._id,
+// //           status: booking.status,
+// //           rejectedAt: booking.rejectedAt,
+// //           rejectionReason: booking.rejectionReason,
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Reject booking error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to reject booking",
+// //     });
+// //   }
+// // };
+
+// // // Confirm booking (user after admin approval/payment)
+// // export const confirmBooking = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const userId = req.user.id;
+
+// //     const booking = await Booking.findById(id).populate("user", "name email");
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     if (booking.user.toString() !== userId) {
+// //       return res.status(403).json({
+// //         success: false,
+// //         message: "Unauthorized to confirm this booking",
+// //       });
+// //     }
+
+// //     if (booking.status !== "approved") {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: `Booking cannot be confirmed in ${booking.status} status`,
+// //       });
+// //     }
+
+// //     if (new Date() > booking.expiresAt) {
+// //       booking.status = "expired";
+// //       await booking.save();
+
+// //       // ✅ RESET VEHICLE TO AVAILABLE (EXPIRED)
+// //       await resetVehicleToAvailable(
+// //         booking.vehicle,
+// //         booking.vehicleType,
+// //         "expired",
+// //       );
+
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Confirmation window has expired",
+// //       });
+// //     }
+
+// //     booking.status = "confirmed";
+// //     booking.confirmedAt = new Date();
+// //     booking.paymentStatus = "paid";
+// //     await booking.save();
+
+// //     const vehicleData = await getVehicleDetails(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //     );
+
+// //     // Send confirmation email
+// //     await sendBookingConfirmationEmail(booking.user.email, booking.user.name, {
+// //       ...booking.toObject(),
+// //       vehicle: vehicleData,
+// //       confirmationCode: booking.confirmationCode,
+// //     });
+
+// //     // Create in-app notification
+// //     await createNotification(
+// //       booking.user._id,
+// //       "Booking Confirmed! 🚗",
+// //       `Your booking for ${vehicleData?.carName} is confirmed. Enjoy your ride!`,
+// //       "success",
+// //       `Pickup: ${new Date(booking.pickupDate).toLocaleDateString()}`,
+// //       { bookingId: booking._id },
+// //     );
+
+// //     res.status(200).json({
+// //       success: true,
+// //       message: "Booking confirmed successfully. Email sent to customer.",
+// //       data: {
+// //         booking: {
+// //           id: booking._id,
+// //           status: booking.status,
+// //           confirmedAt: booking.confirmedAt,
+// //           confirmationCode: booking.confirmationCode,
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Confirm booking error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to confirm booking",
+// //     });
+// //   }
+// // };
+
+// // // Update booking status (admin - for marking as active/completed)
+// // export const updateBookingStatus = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const { status, notes } = req.body;
+// //     const adminId = req.user.id;
+
+// //     const booking = await Booking.findById(id).populate("user", "name email");
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     const validTransitions = {
+// //       confirmed: ["active"],
+// //       active: ["completed", "cancelled"],
+// //       completed: [],
+// //       cancelled: [],
+// //     };
+
+// //     if (!validTransitions[booking.status]?.includes(status)) {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: `Cannot transition from ${booking.status} to ${status}`,
+// //       });
+// //     }
+
+// //     const oldStatus = booking.status;
+// //     booking.status = status;
+
+// //     if (status === "active") {
+// //       booking.startDate = new Date();
+// //     } else if (status === "completed") {
+// //       booking.endDate = new Date();
+// //       // ✅ RESET VEHICLE TO AVAILABLE (COMPLETED)
+// //       await resetVehicleToAvailable(
+// //         booking.vehicle,
+// //         booking.vehicleType,
+// //         "completed",
+// //       );
+// //     } else if (status === "cancelled") {
+// //       // ✅ RESET VEHICLE TO AVAILABLE (ADMIN CANCELLED)
+// //       await resetVehicleToAvailable(
+// //         booking.vehicle,
+// //         booking.vehicleType,
+// //         "cancelled_by_admin",
+// //       );
+// //     }
+
+// //     await booking.save();
+
+// //     const vehicleData = await getVehicleDetails(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //     );
+
+// //     await createNotification(
+// //       booking.user._id,
+// //       `Booking ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+// //       `Your booking for ${vehicleData?.carName} is now ${status}.`,
+// //       status === "active" ? "success" : "info",
+// //       `Booking ID: ${booking.confirmationCode}`,
+// //       { bookingId: booking._id, newStatus: status },
+// //     );
+
+// //     await addBookingActivity(
+// //       id,
+// //       adminId,
+// //       `Status changed from ${oldStatus} to ${status}`,
+// //       notes,
+// //     );
+
+// //     res.status(200).json({
+// //       success: true,
+// //       message: `Booking marked as ${status}`,
+// //       data: {
+// //         booking: {
+// //           id: booking._id,
+// //           status: booking.status,
+// //           startDate: booking.startDate,
+// //           endDate: booking.endDate,
+// //         },
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Update booking status error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to update booking status",
+// //     });
+// //   }
+// // };
+
+// // // Delete booking (admin) - Resets vehicle to available
+// // export const deleteBooking = async (req, res) => {
+// //   try {
+// //     const { id } = req.params;
+// //     const adminId = req.user.id;
+
+// //     const booking = await Booking.findById(id).populate("user", "name email");
+
+// //     if (!booking) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Booking not found",
+// //       });
+// //     }
+
+// //     // ✅ RESET VEHICLE TO AVAILABLE BEFORE DELETING (DELETED)
+// //     await resetVehicleToAvailable(
+// //       booking.vehicle,
+// //       booking.vehicleType,
+// //       "deleted_by_admin",
+// //     );
+
+// //     // Delete the booking
+// //     await booking.deleteOne();
+
+// //     // Create notification for user
+// //     await createNotification(
+// //       booking.user._id,
+// //       "Booking Deleted ",
+// //       `Your booking for ${booking.vehicle?.carName || "vehicle"} has been deleted by admin.`,
+// //       "error",
+// //       `Booking ID: ${booking.confirmationCode}`,
+// //       { bookingId: booking._id },
+// //     );
+
+// //     await addBookingActivity(
+// //       id,
+// //       adminId,
+// //       "Booking deleted",
+// //       "Booking permanently removed",
+// //     );
+
+// //     res.status(200).json({
+// //       success: true,
+// //       message: "Booking deleted successfully",
+// //     });
+// //   } catch (error) {
+// //     console.error("Delete booking error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to delete booking",
+// //     });
+// //   }
+// // };
+
+// // // Auto-update booking and vehicle statuses based on dates
+// // export const autoUpdateBookingStatuses = async (req, res) => {
+// //   try {
+// //     const now = new Date();
+
+// //     // Find all active bookings that have passed their return date
+// //     const expiredActiveBookings = await Booking.find({
+// //       status: "active",
+// //       returnDate: { $lt: now },
+// //     });
+
+// //     // Find all confirmed bookings that have passed their return date
+// //     const expiredConfirmedBookings = await Booking.find({
+// //       status: "confirmed",
+// //       returnDate: { $lt: now },
+// //     });
+
+// //     let updatedCount = 0;
+
+// //     // Update active bookings to completed
+// //     for (const booking of expiredActiveBookings) {
+// //       booking.status = "completed";
+// //       booking.endDate = now;
+// //       await booking.save();
+
+// //       // ✅ RESET VEHICLE TO AVAILABLE (AUTO-EXPIRED)
+// //       await resetVehicleToAvailable(
+// //         booking.vehicle,
+// //         booking.vehicleType,
+// //         "auto_expired",
+// //       );
+
+// //       // Notify user
+// //       await createNotification(
+// //         booking.user,
+// //         "Booking Completed ",
+// //         `Your rental period for ${booking.vehicle?.carName} has ended. Thank you for choosing RentRide!`,
+// //         "success",
+// //         `Booking ID: ${booking.confirmationCode}`,
+// //         { bookingId: booking._id },
+// //       );
+
+// //       updatedCount++;
+// //     }
+
+// //     // Update confirmed bookings that have passed their return date to completed
+// //     for (const booking of expiredConfirmedBookings) {
+// //       booking.status = "completed";
+// //       booking.endDate = now;
+// //       await booking.save();
+
+// //       // ✅ RESET VEHICLE TO AVAILABLE (AUTO-EXPIRED)
+// //       await resetVehicleToAvailable(
+// //         booking.vehicle,
+// //         booking.vehicleType,
+// //         "auto_expired",
+// //       );
+
+// //       updatedCount++;
+// //     }
+
+// //     console.log(`✅ Auto-updated ${updatedCount} expired bookings`);
+
+// //     if (res) {
+// //       res.status(200).json({
+// //         success: true,
+// //         message: `Updated ${updatedCount} expired bookings`,
+// //         updatedCount,
+// //       });
+// //     }
+
+// //     return updatedCount;
+// //   } catch (error) {
+// //     console.error("Auto-update bookings error:", error);
+// //     if (res) {
+// //       res.status(500).json({
+// //         success: false,
+// //         message: "Failed to auto-update bookings",
+// //       });
+// //     }
+// //     return 0;
+// //   }
+// // };
+
+// // // Get booking statistics (admin dashboard)
+// // export const getBookingStatistics = async (req, res) => {
+// //   try {
+// //     const { startDate, endDate } = req.query;
+
+// //     const matchStage = {};
+// //     if (startDate || endDate) {
+// //       matchStage.createdAt = {};
+// //       if (startDate) matchStage.createdAt.$gte = new Date(startDate);
+// //       if (endDate) matchStage.createdAt.$lte = new Date(endDate);
+// //     }
+
+// //     const stats = await Booking.aggregate([
+// //       { $match: matchStage },
+// //       {
+// //         $facet: {
+// //           overview: [
+// //             {
+// //               $group: {
+// //                 _id: null,
+// //                 totalBookings: { $sum: 1 },
+// //                 totalRevenue: { $sum: "$totalAmount" },
+// //                 avgBookingValue: { $avg: "$totalAmount" },
+// //                 pendingBookings: {
+// //                   $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+// //                 },
+// //                 activeBookings: {
+// //                   $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
+// //                 },
+// //               },
+// //             },
+// //           ],
+// //           byStatus: [
+// //             {
+// //               $group: {
+// //                 _id: "$status",
+// //                 count: { $sum: 1 },
+// //                 revenue: { $sum: "$totalAmount" },
+// //               },
+// //             },
+// //           ],
+// //           dailyTrends: [
+// //             {
+// //               $match: {
+// //                 createdAt: {
+// //                   $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+// //                 },
+// //               },
+// //             },
+// //             {
+// //               $group: {
+// //                 _id: {
+// //                   $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+// //                 },
+// //                 bookings: { $sum: 1 },
+// //                 revenue: { $sum: "$totalAmount" },
+// //               },
+// //             },
+// //             { $sort: { _id: 1 } },
+// //             { $limit: 30 },
+// //           ],
+// //           byVehicleType: [
+// //             {
+// //               $group: {
+// //                 _id: "$vehicleType",
+// //                 count: { $sum: 1 },
+// //                 revenue: { $sum: "$totalAmount" },
+// //               },
+// //             },
+// //           ],
+// //         },
+// //       },
+// //     ]);
+
+// //     res.status(200).json({
+// //       success: true,
+// //       data: stats[0],
+// //     });
+// //   } catch (error) {
+// //     console.error("Get statistics error:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: "Failed to fetch statistics",
+// //     });
+// //   }
+// // };
+
+// // // Helper function to get available dates for a vehicle
+// // async function getAvailableDates(vehicleId) {
+// //   const bookings = await Booking.find({
+// //     vehicle: vehicleId,
+// //     status: { $in: ["approved", "confirmed", "active"] },
+// //     returnDate: { $gte: new Date() },
+// //   }).sort({ pickupDate: 1 });
+
+// //   const bookedDates = [];
+// //   bookings.forEach((booking) => {
+// //     const current = new Date(booking.pickupDate);
+// //     const end = new Date(booking.returnDate);
+// //     while (current <= end) {
+// //       bookedDates.push(new Date(current).toISOString().split("T")[0]);
+// //       current.setDate(current.getDate() + 1);
+// //     }
+// //   });
+
+// //   return bookedDates;
+// // }
+// // // Add this function to your bookingController.js
+// // // controllers/bookingController.js - Updated checkUserBookingStatus
+// // export const checkUserBookingStatus = async (req, res) => {
+// //   try {
+// //     const { vehicleId } = req.params;
+// //     const userId = req.user.id;
+
+// //     console.log("Checking booking status for:", { userId, vehicleId });
+
+// //     if (!vehicleId) {
+// //       return res.status(400).json({
+// //         success: false,
+// //         message: "Vehicle ID is required",
+// //       });
+// //     }
+
+// //     // First, check if the vehicle exists in either collection
+// //     let vehicleExists = false;
+// //     let isUserVehicle = false;
+
+// //     const adminVehicle = await Vehicle.findById(vehicleId);
+// //     if (adminVehicle) {
+// //       vehicleExists = true;
+// //       isUserVehicle = false;
+// //     } else {
+// //       const userVehicle = await UserVehicle.findById(vehicleId);
+// //       if (userVehicle) {
+// //         vehicleExists = true;
+// //         isUserVehicle = true;
+// //       }
+// //     }
+
+// //     if (!vehicleExists) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "Vehicle not found",
+// //       });
+// //     }
+
+// //     // Check for any booking (not just completed) that is paid
+// //     // A user can review after booking is confirmed/approved, not necessarily completed
+// //     const booking = await Booking.findOne({
+// //       user: userId,
+// //       vehicle: vehicleId,
+// //       status: { $in: ["confirmed", "approved", "completed", "active"] },
+// //       paymentStatus: "paid",
+// //     });
+
+// //     let hasBooked = false;
+// //     let bookingStatus = null;
+
+// //     if (booking) {
+// //       hasBooked = true;
+// //       bookingStatus = booking.status;
+// //       console.log("Found booking:", booking._id, "Status:", booking.status);
+// //     } else {
+// //       console.log("No booking found for this vehicle");
+// //     }
+
+// //     res.status(200).json({
+// //       success: true,
+// //       data: {
+// //         hasBooked,
+// //         status: bookingStatus,
+// //         bookingId: booking?._id || null,
+// //         vehicleType: isUserVehicle ? "user" : "admin",
+// //       },
+// //     });
+// //   } catch (error) {
+// //     console.error("Error checking booking status:", error);
+// //     res.status(500).json({
+// //       success: false,
+// //       message: error.message || "Failed to check booking status",
+// //     });
+// //   }
+// // };
+
 // import Booking from "../models/Booking.js";
 // import Vehicle from "../models/Vehicle.js";
 // import UserVehicle from "../models/UserVehicle.js";
@@ -10,6 +1641,7 @@
 //   sendBookingConfirmationEmail,
 // } from "../utils/emailService.js";
 // import {
+//   createVehicleOnHoldNotification,
 //   createNotification,
 //   createPaymentRequiredNotification,
 //   createBookingApprovedNotification,
@@ -294,10 +1926,17 @@
 //       }
 //     }
 
+//     // CRITICAL FIX: Set vehicleModel correctly based on vehicleType
+//     const vehicleModel = vehicleType === "user" ? "UserVehicle" : "Vehicle";
+//     console.log(
+//       `Setting vehicleModel to: ${vehicleModel} for vehicleType: ${vehicleType}`,
+//     );
+
 //     // Create booking
 //     const bookingData = {
 //       user: userId,
 //       vehicle: vehicleId,
+//       vehicleModel: vehicleModel, // ← THIS IS THE FIX
 //       pickupDate: pickupDateTime,
 //       pickupTime,
 //       returnDate: returnDateTime,
@@ -745,123 +2384,6 @@
 //   }
 // };
 
-// // // Approve booking (admin) - Sets vehicle to BOOKED
-// // export const approveBooking = async (req, res) => {
-// //   try {
-// //     const { id } = req.params;
-// //     const adminId = req.user.id;
-
-// //     const booking = await Booking.findById(id).populate("user", "name email");
-
-// //     if (!booking) {
-// //       return res.status(404).json({
-// //         success: false,
-// //         message: "Booking not found",
-// //       });
-// //     }
-
-// //     if (booking.status !== "pending") {
-// //       return res.status(400).json({
-// //         success: false,
-// //         message: `Booking cannot be approved in ${booking.status} status`,
-// //       });
-// //     }
-
-// //     const isAvailable = await booking.checkVehicleAvailability();
-// //     if (!isAvailable) {
-// //       return res.status(400).json({
-// //         success: false,
-// //         message: "Vehicle is no longer available for the selected dates",
-// //       });
-// //     }
-
-// //     // const documents = await Document.findOne({ booking: id });
-// //     // if (!documents) {
-// //     //   return res.status(400).json({
-// //     //     success: false,
-// //     //     message: "Documents are required before approval",
-// //     //   });
-// //     // }
-
-// //     // Update booking status
-// //     booking.status = "approved";
-// //     booking.approvedBy = adminId;
-// //     booking.approvedAt = new Date();
-// //     booking.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
-// //     booking.paymentStatus = "pending";
-// //     await booking.save();
-
-// //     // Update vehicle status to BOOKED
-// //     if (booking.vehicleType === "user") {
-// //       try {
-// //         await UserVehicle.findByIdAndUpdate(booking.vehicle, {
-// //           status: "booked",
-// //           isListed: true, // Keep listed but show as booked
-// //         });
-// //         console.log("✅ User vehicle status updated to BOOKED");
-// //       } catch (error) {
-// //         console.error("Error updating user vehicle status:", error);
-// //       }
-// //     } else {
-// //       await Vehicle.findByIdAndUpdate(booking.vehicle, {
-// //         status: "Booked",
-// //       });
-// //       console.log("✅ Admin vehicle status updated to Booked");
-// //     }
-
-// //     const vehicleData = await getVehicleDetails(
-// //       booking.vehicle,
-// //       booking.vehicleType,
-// //     );
-
-// //     // Send approval email
-// //     await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
-// //       ...booking.toObject(),
-// //       vehicle: vehicleData,
-// //       confirmationCode: booking.confirmationCode,
-// //     });
-
-// //     // Create in-app notification with payment link
-// //     await createBookingApprovedNotification(
-// //       booking.user._id,
-// //       booking,
-// //       vehicleData,
-// //     );
-
-// //     await createPaymentRequiredNotification(
-// //       booking.user._id,
-// //       booking,
-// //       vehicleData,
-// //     );
-
-// //     console.log(
-// //       `✅ Payment notification sent to user ${booking.user.email} for booking ${booking.confirmationCode}`,
-// //     );
-
-// //     res.status(200).json({
-// //       success: true,
-// //       message:
-// //         "Booking approved successfully. Payment notification sent to customer.",
-// //       data: {
-// //         booking: {
-// //           id: booking._id,
-// //           status: booking.status,
-// //           approvedAt: booking.approvedAt,
-// //           expiresAt: booking.expiresAt,
-// //           confirmationCode: booking.confirmationCode,
-// //           totalAmount: booking.totalAmount,
-// //         },
-// //       },
-// //     });
-// //   } catch (error) {
-// //     console.error("Approve booking error:", error);
-// //     res.status(500).json({
-// //       success: false,
-// //       message: "Failed to approve booking",
-// //     });
-// //   }
-// // };
-
 // export const approveBooking = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -874,103 +2396,68 @@
 //     const booking = await Booking.findById(id).populate("user", "name email");
 
 //     if (!booking) {
-//       console.log("❌ Booking not found");
-//       return res.status(404).json({
-//         success: false,
-//         message: "Booking not found",
-//       });
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Booking not found" });
 //     }
 
-//     console.log("Booking found:", {
-//       id: booking._id,
-//       status: booking.status,
-//       vehicleType: booking.vehicleType,
-//       vehicle: booking.vehicle,
-//       paymentStatus: booking.paymentStatus,
-//     });
-
-//     // Check status
 //     if (booking.status !== "pending") {
-//       console.log("❌ Wrong status:", booking.status);
 //       return res.status(400).json({
 //         success: false,
 //         message: `Booking cannot be approved in ${booking.status} status`,
 //       });
 //     }
 
-//     // Check vehicle availability
-//     console.log("Checking vehicle availability...");
 //     const isAvailable = await booking.checkVehicleAvailability();
-//     console.log("Is available:", isAvailable);
-
 //     if (!isAvailable) {
-//       console.log("❌ Vehicle not available");
 //       return res.status(400).json({
 //         success: false,
 //         message: "Vehicle is no longer available for the selected dates",
 //       });
 //     }
 
-//     // Check documents (if required)
-//     console.log("Checking documents...");
 //     const documents = await Document.findOne({ booking: id });
-//     console.log("Documents found:", !!documents);
+//     if (!documents) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Documents are required before approval",
+//       });
+//     }
 
-//     // TEMPORARILY COMMENT OUT THE DOCUMENTS CHECK FOR TESTING
-//     // if (!documents) {
-//     //   console.log("❌ No documents found");
-//     //   return res.status(400).json({
-//     //     success: false,
-//     //     message: "Documents are required before approval",
-//     //   });
-//     // }
+//     // ── 24-hour hold window ───────────────────────────────────────────────────
+//     const holdExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-//     // Update booking status
-//     console.log("Updating booking status to approved...");
 //     booking.status = "approved";
 //     booking.approvedBy = adminId;
 //     booking.approvedAt = new Date();
-//     booking.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+//     booking.expiresAt = holdExpiry;
+//     booking.holdExpiresAt = holdExpiry; // ← new field
 //     booking.paymentStatus = "pending";
 //     await booking.save();
 //     console.log("✅ Booking status updated");
 
-//     // Update vehicle status to BOOKED
-//     console.log("Updating vehicle status...");
+//     // ── Set vehicle to ON HOLD (not Booked) ───────────────────────────────────
 //     if (booking.vehicleType === "user") {
-//       try {
-//         const userVehicle = await UserVehicle.findByIdAndUpdate(
-//           booking.vehicle,
-//           {
-//             status: "booked",
-//             isListed: true,
-//           },
-//         );
-//         console.log(
-//           "User vehicle updated:",
-//           userVehicle ? "Success" : "Not found",
-//         );
-//       } catch (error) {
-//         console.error("Error updating user vehicle status:", error);
-//       }
-//     } else {
-//       const adminVehicle = await Vehicle.findByIdAndUpdate(booking.vehicle, {
-//         status: "Booked",
+//       await UserVehicle.findByIdAndUpdate(booking.vehicle, {
+//         status: "On Hold", // ← was "booked"
+//         isListed: true,
+//         holdExpiresAt: holdExpiry,
 //       });
-//       console.log(
-//         "Admin vehicle updated:",
-//         adminVehicle ? "Success" : "Not found",
-//       );
+//       console.log("✅ User vehicle set to On Hold");
+//     } else {
+//       await Vehicle.findByIdAndUpdate(booking.vehicle, {
+//         status: "On Hold", // ← was "Booked"
+//         holdExpiresAt: holdExpiry,
+//       });
+//       console.log("✅ Admin vehicle set to On Hold");
 //     }
 
-//     // Get vehicle details
 //     const vehicleData = await getVehicleDetails(
 //       booking.vehicle,
 //       booking.vehicleType,
 //     );
-//     console.log("Vehicle data retrieved:", !!vehicleData);
 
-//     // Send email and notifications
+//     // ── Send approval email ───────────────────────────────────────────────────
 //     try {
 //       await sendBookingApprovalEmail(booking.user.email, booking.user.name, {
 //         ...booking.toObject(),
@@ -982,7 +2469,13 @@
 //       console.error("Email error:", emailError.message);
 //     }
 
+//     // ── Send notifications ────────────────────────────────────────────────────
 //     try {
+//       await createVehicleOnHoldNotification(
+//         booking.user._id,
+//         booking,
+//         vehicleData,
+//       );
 //       await createBookingApprovedNotification(
 //         booking.user._id,
 //         booking,
@@ -998,29 +2491,24 @@
 //       console.error("Notification error:", notifError.message);
 //     }
 
-//     console.log("=== APPROVE BOOKING SUCCESS ===");
 //     res.status(200).json({
 //       success: true,
 //       message:
-//         "Booking approved successfully. Payment notification sent to customer.",
+//         "Booking approved. Vehicle placed on hold for 24 hours pending payment.",
 //       data: {
 //         booking: {
 //           id: booking._id,
 //           status: booking.status,
 //           approvedAt: booking.approvedAt,
-//           expiresAt: booking.expiresAt,
+//           holdExpiresAt: booking.holdExpiresAt,
 //           confirmationCode: booking.confirmationCode,
 //           totalAmount: booking.totalAmount,
 //         },
 //       },
 //     });
 //   } catch (error) {
-//     console.error("=== APPROVE BOOKING ERROR ===");
-//     console.error("Error name:", error.name);
-//     console.error("Error message:", error.message);
-//     console.error("Error stack:", error.stack);
-
-//     // Send detailed error response
+//     console.error("=== ❌ APPROVE BOOKING ERROR ===");
+//     console.error("Error:", error.message);
 //     res.status(500).json({
 //       success: false,
 //       message: "Failed to approve booking",
@@ -1552,8 +3040,8 @@
 
 //   return bookedDates;
 // }
-// // Add this function to your bookingController.js
-// // controllers/bookingController.js - Updated checkUserBookingStatus
+
+// // Check user booking status for review eligibility
 // export const checkUserBookingStatus = async (req, res) => {
 //   try {
 //     const { vehicleId } = req.params;
@@ -1592,7 +3080,6 @@
 //     }
 
 //     // Check for any booking (not just completed) that is paid
-//     // A user can review after booking is confirmed/approved, not necessarily completed
 //     const booking = await Booking.findOne({
 //       user: userId,
 //       vehicle: vehicleId,
@@ -1690,6 +3177,7 @@ async function resetVehicleToAvailable(
       if (vehicle) {
         vehicle.status = "active";
         vehicle.isListed = true;
+        vehicle.holdExpiresAt = null;
         await vehicle.save();
         console.log(
           `✅ User vehicle ${vehicleId} reset to ACTIVE (Reason: ${reason})`,
@@ -1700,6 +3188,7 @@ async function resetVehicleToAvailable(
       const vehicle = await Vehicle.findById(vehicleId);
       if (vehicle) {
         vehicle.status = "Available";
+        vehicle.holdExpiresAt = null;
         await vehicle.save();
         console.log(
           `✅ Admin vehicle ${vehicleId} reset to AVAILABLE (Reason: ${reason})`,
@@ -1721,6 +3210,11 @@ async function addBookingActivity(bookingId, userId, action, notes = "") {
   );
 }
 
+// Helper function to check date overlap
+function datesOverlap(bookingStart, bookingEnd, checkStart, checkEnd) {
+  return bookingStart < checkEnd && bookingEnd > checkStart;
+}
+
 // Create new booking
 export const createBooking = async (req, res) => {
   try {
@@ -1740,6 +3234,7 @@ export const createBooking = async (req, res) => {
       insuranceOption,
       specialRequests,
       emergencyContact,
+      userContact,
     } = req.body;
 
     const userId = req.user.id;
@@ -1837,15 +3332,6 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // Check vehicle availability (only for admin vehicles)
-    if (vehicleType === "admin" && vehicle.status !== "Available") {
-      console.log("❌ Vehicle not available, status:", vehicle.status);
-      return res.status(400).json({
-        success: false,
-        message: "Vehicle is not available for booking",
-      });
-    }
-
     // Parse dates
     const pickupDateTime = new Date(pickupDate);
     const returnDateTime = new Date(returnDate);
@@ -1902,32 +3388,36 @@ export const createBooking = async (req, res) => {
       totalAmount,
     });
 
-    // Check for overlapping bookings (only for admin vehicles)
-    let overlappingBookings = [];
-    if (vehicleType === "admin") {
-      overlappingBookings = await Booking.find({
-        vehicle: vehicleId,
-        status: { $in: ["approved", "confirmed", "active"] },
-        $or: [
-          {
-            pickupDate: { $lt: returnDateTime },
-            returnDate: { $gt: pickupDateTime },
-          },
-        ],
-      });
-      console.log("Overlapping bookings found:", overlappingBookings.length);
+    // CRITICAL FIX: Check for overlapping bookings for ALL vehicles (both admin and user)
+    const vehicleModel = vehicleType === "user" ? "UserVehicle" : "Vehicle";
 
-      if (overlappingBookings.length > 0) {
-        console.log("❌ Vehicle already booked for these dates");
-        return res.status(400).json({
-          success: false,
-          message: "Vehicle is already booked for the selected dates",
-        });
-      }
+    const overlappingBookings = await Booking.find({
+      vehicle: vehicleId,
+      vehicleModel: vehicleModel,
+      status: { $in: ["approved", "confirmed", "active"] },
+      $or: [
+        {
+          pickupDate: { $lt: returnDateTime },
+          returnDate: { $gt: pickupDateTime },
+        },
+      ],
+    });
+
+    console.log("Overlapping bookings found:", overlappingBookings.length);
+
+    if (overlappingBookings.length > 0) {
+      const conflict = overlappingBookings[0];
+      console.log("❌ Vehicle already booked for these dates");
+      return res.status(400).json({
+        success: false,
+        message: `Vehicle is already booked from ${new Date(conflict.pickupDate).toLocaleDateString()} to ${new Date(conflict.returnDate).toLocaleDateString()}. Please select different dates.`,
+        conflict: {
+          start: conflict.pickupDate,
+          end: conflict.returnDate,
+        },
+      });
     }
 
-    // CRITICAL FIX: Set vehicleModel correctly based on vehicleType
-    const vehicleModel = vehicleType === "user" ? "UserVehicle" : "Vehicle";
     console.log(
       `Setting vehicleModel to: ${vehicleModel} for vehicleType: ${vehicleType}`,
     );
@@ -1936,7 +3426,7 @@ export const createBooking = async (req, res) => {
     const bookingData = {
       user: userId,
       vehicle: vehicleId,
-      vehicleModel: vehicleModel, // ← THIS IS THE FIX
+      vehicleModel: vehicleModel,
       pickupDate: pickupDateTime,
       pickupTime,
       returnDate: returnDateTime,
@@ -1953,9 +3443,16 @@ export const createBooking = async (req, res) => {
       driverOption,
       insuranceOption,
       specialRequests: specialRequests || "",
+      userContact: userContact || {
+        countryCode: "+977",
+        phone: "",
+        fullPhone: "",
+      },
       emergencyContact: {
         name: emergencyContact?.name || "",
         phone: emergencyContact?.phone || "",
+        countryCode: emergencyContact?.countryCode || "+977",
+        fullPhone: emergencyContact?.fullPhone || "",
         relationship: emergencyContact?.relationship || "",
       },
       status: "pending",
@@ -2241,12 +3738,22 @@ export const cancelBooking = async (req, res) => {
 
     await booking.save();
 
-    // ✅ RESET VEHICLE TO AVAILABLE (CANCELLED)
-    await resetVehicleToAvailable(
-      booking.vehicle,
-      booking.vehicleType,
-      "cancelled_by_user",
-    );
+    // ✅ RESET VEHICLE TO AVAILABLE (CANCELLED) - Only if no future bookings
+    const futureBookings = await Booking.find({
+      vehicle: booking.vehicle,
+      vehicleModel: booking.vehicleModel,
+      status: { $in: ["confirmed", "active", "approved"] },
+      pickupDate: { $gt: new Date() },
+      _id: { $ne: booking._id },
+    });
+
+    if (futureBookings.length === 0) {
+      await resetVehicleToAvailable(
+        booking.vehicle,
+        booking.vehicleType,
+        "cancelled_by_user",
+      );
+    }
 
     const vehicleData = await getVehicleDetails(
       booking.vehicle,
@@ -2396,7 +3903,9 @@ export const approveBooking = async (req, res) => {
     const booking = await Booking.findById(id).populate("user", "name email");
 
     if (!booking) {
-      return res.status(404).json({ success: false, message: "Booking not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Booking not found" });
     }
 
     if (booking.status !== "pending") {
@@ -2406,11 +3915,13 @@ export const approveBooking = async (req, res) => {
       });
     }
 
+    // Check availability again before approval
     const isAvailable = await booking.checkVehicleAvailability();
     if (!isAvailable) {
       return res.status(400).json({
         success: false,
-        message: "Vehicle is no longer available for the selected dates",
+        message:
+          "Vehicle is no longer available for the selected dates. Someone else may have booked it.",
       });
     }
 
@@ -2422,35 +3933,27 @@ export const approveBooking = async (req, res) => {
       });
     }
 
-    // ── 24-hour hold window ───────────────────────────────────────────────────
-    const holdExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // ── 24-hour payment window ───────────────────────────────────────────────────
+    const paymentDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     booking.status = "approved";
     booking.approvedBy = adminId;
     booking.approvedAt = new Date();
-    booking.expiresAt = holdExpiry;
-    booking.holdExpiresAt = holdExpiry;  // ← new field
+    booking.expiresAt = paymentDeadline;
+    booking.holdExpiresAt = paymentDeadline;
     booking.paymentStatus = "pending";
     await booking.save();
     console.log("✅ Booking status updated");
 
-    // ── Set vehicle to ON HOLD (not Booked) ───────────────────────────────────
-    if (booking.vehicleType === "user") {
-      await UserVehicle.findByIdAndUpdate(booking.vehicle, {
-        status: "On Hold",        // ← was "booked"
-        isListed: true,
-        holdExpiresAt: holdExpiry,
-      });
-      console.log("✅ User vehicle set to On Hold");
-    } else {
-      await Vehicle.findByIdAndUpdate(booking.vehicle, {
-        status: "On Hold",        // ← was "Booked"
-        holdExpiresAt: holdExpiry,
-      });
-      console.log("✅ Admin vehicle set to On Hold");
-    }
+    // ⚠️ IMPORTANT: DO NOT change vehicle status here!
+    // The vehicle remains available for non-overlapping dates
+    // Only the specific date range is blocked by the booking itself
+    // The booking record with status "approved" will prevent overlapping bookings
 
-    const vehicleData = await getVehicleDetails(booking.vehicle, booking.vehicleType);
+    const vehicleData = await getVehicleDetails(
+      booking.vehicle,
+      booking.vehicleType,
+    );
 
     // ── Send approval email ───────────────────────────────────────────────────
     try {
@@ -2466,9 +3969,16 @@ export const approveBooking = async (req, res) => {
 
     // ── Send notifications ────────────────────────────────────────────────────
     try {
-      await createVehicleOnHoldNotification(booking.user._id, booking, vehicleData);
-      await createBookingApprovedNotification(booking.user._id, booking, vehicleData);
-      await createPaymentRequiredNotification(booking.user._id, booking, vehicleData);
+      await createBookingApprovedNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
+      await createPaymentRequiredNotification(
+        booking.user._id,
+        booking,
+        vehicleData,
+      );
       console.log("✅ Notifications sent");
     } catch (notifError) {
       console.error("Notification error:", notifError.message);
@@ -2476,13 +3986,14 @@ export const approveBooking = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Booking approved. Vehicle placed on hold for 24 hours pending payment.",
+      message:
+        "Booking approved. Complete payment within 24 hours to confirm your booking.",
       data: {
         booking: {
           id: booking._id,
           status: booking.status,
           approvedAt: booking.approvedAt,
-          holdExpiresAt: booking.holdExpiresAt,
+          paymentDeadline: booking.expiresAt,
           confirmationCode: booking.confirmationCode,
           totalAmount: booking.totalAmount,
         },
@@ -2628,7 +4139,7 @@ export const confirmBooking = async (req, res) => {
 
       return res.status(400).json({
         success: false,
-        message: "Confirmation window has expired",
+        message: "Payment window has expired. Please create a new booking.",
       });
     }
 
@@ -2636,6 +4147,10 @@ export const confirmBooking = async (req, res) => {
     booking.confirmedAt = new Date();
     booking.paymentStatus = "paid";
     await booking.save();
+
+    // ⚠️ DO NOT change vehicle status here either
+    // Vehicle remains available for non-overlapping dates
+    // The booking itself blocks the date range
 
     const vehicleData = await getVehicleDetails(
       booking.vehicle,
@@ -2717,12 +4232,22 @@ export const updateBookingStatus = async (req, res) => {
       booking.startDate = new Date();
     } else if (status === "completed") {
       booking.endDate = new Date();
-      // ✅ RESET VEHICLE TO AVAILABLE (COMPLETED)
-      await resetVehicleToAvailable(
-        booking.vehicle,
-        booking.vehicleType,
-        "completed",
-      );
+      // Only reset vehicle if no future bookings exist
+      const futureBookings = await Booking.find({
+        vehicle: booking.vehicle,
+        vehicleModel: booking.vehicleModel,
+        status: { $in: ["confirmed", "active", "approved"] },
+        pickupDate: { $gt: new Date() },
+        _id: { $ne: booking._id },
+      });
+
+      if (futureBookings.length === 0) {
+        await resetVehicleToAvailable(
+          booking.vehicle,
+          booking.vehicleType,
+          "completed",
+        );
+      }
     } else if (status === "cancelled") {
       // ✅ RESET VEHICLE TO AVAILABLE (ADMIN CANCELLED)
       await resetVehicleToAvailable(
@@ -2835,80 +4360,158 @@ export const deleteBooking = async (req, res) => {
 export const autoUpdateBookingStatuses = async (req, res) => {
   try {
     const now = new Date();
-
-    // Find all active bookings that have passed their return date
-    const expiredActiveBookings = await Booking.find({
-      status: "active",
-      returnDate: { $lt: now },
-    });
-
-    // Find all confirmed bookings that have passed their return date
-    const expiredConfirmedBookings = await Booking.find({
-      status: "confirmed",
-      returnDate: { $lt: now },
-    });
-
     let updatedCount = 0;
+    let vehicleResetCount = 0;
 
-    // Update active bookings to completed
-    for (const booking of expiredActiveBookings) {
+    console.log(`🔄 Auto-update running at: ${now.toISOString()}`);
+
+    // Find all confirmed/active bookings that have passed their return date
+    const expiredBookings = await Booking.find({
+      status: { $in: ["confirmed", "active"] },
+      returnDate: { $lt: now },
+    });
+
+    console.log(`Found ${expiredBookings.length} expired bookings to process`);
+
+    for (const booking of expiredBookings) {
+      console.log(
+        `Processing booking ${booking._id} (${booking.confirmationCode})`,
+      );
+
+      // Update booking status to completed
+      const oldStatus = booking.status;
       booking.status = "completed";
       booking.endDate = now;
       await booking.save();
 
-      // ✅ RESET VEHICLE TO AVAILABLE (AUTO-EXPIRED)
-      await resetVehicleToAvailable(
-        booking.vehicle,
-        booking.vehicleType,
-        "auto_expired",
+      console.log(
+        `✅ Booking ${booking._id} status changed from ${oldStatus} to completed`,
       );
 
-      // Notify user
-      await createNotification(
-        booking.user,
-        "Booking Completed ",
-        `Your rental period for ${booking.vehicle?.carName} has ended. Thank you for choosing RentRide!`,
-        "success",
-        `Booking ID: ${booking.confirmationCode}`,
-        { bookingId: booking._id },
-      );
+      // Only reset vehicle if no future bookings exist
+      const futureBookings = await Booking.find({
+        vehicle: booking.vehicle,
+        vehicleModel: booking.vehicleModel,
+        status: { $in: ["confirmed", "active", "approved"] },
+        pickupDate: { $gt: now },
+        _id: { $ne: booking._id },
+      });
+
+      if (futureBookings.length === 0) {
+        const vehicleReset = await resetVehicleToAvailable(
+          booking.vehicle,
+          booking.vehicleType,
+          "rental_period_ended",
+        );
+        if (vehicleReset) {
+          vehicleResetCount++;
+          console.log(
+            `✅ Vehicle ${booking.vehicle} (${booking.vehicleType}) reset to AVAILABLE`,
+          );
+        }
+      } else {
+        console.log(
+          `Vehicle ${booking.vehicle} has future bookings, keeping status`,
+        );
+      }
+
+      // Notify user about completion
+      try {
+        const vehicleData = await getVehicleDetails(
+          booking.vehicle,
+          booking.vehicleType,
+        );
+        await createNotification(
+          booking.user,
+          "Rental Period Completed 🎉",
+          `Your rental period for ${vehicleData?.carName || "your vehicle"} has ended. Thank you for choosing RentRide! We hope you enjoyed your experience.`,
+          "success",
+          `Booking ID: ${booking.confirmationCode}`,
+          { bookingId: booking._id, vehicleId: booking.vehicle },
+        );
+        console.log(`✅ Notification sent to user ${booking.user}`);
+      } catch (notifError) {
+        console.error(
+          `Failed to send completion notification: ${notifError.message}`,
+        );
+      }
 
       updatedCount++;
     }
 
-    // Update confirmed bookings that have passed their return date to completed
-    for (const booking of expiredConfirmedBookings) {
-      booking.status = "completed";
-      booking.endDate = now;
+    // Handle expired approved bookings (payment not made within 24 hours)
+    const expiredApprovedBookings = await Booking.find({
+      status: "approved",
+      expiresAt: { $lt: now },
+    });
+
+    console.log(
+      `Found ${expiredApprovedBookings.length} expired approved bookings`,
+    );
+
+    for (const booking of expiredApprovedBookings) {
+      console.log(`Processing expired approved booking ${booking._id}`);
+
+      booking.status = "expired";
+      booking.expiredAt = now;
       await booking.save();
 
-      // ✅ RESET VEHICLE TO AVAILABLE (AUTO-EXPIRED)
+      // Reset vehicle since payment wasn't made
       await resetVehicleToAvailable(
         booking.vehicle,
         booking.vehicleType,
-        "auto_expired",
+        "payment_not_made",
       );
+      vehicleResetCount++;
+
+      // Notify user that their approval has expired
+      try {
+        const vehicleData = await getVehicleDetails(
+          booking.vehicle,
+          booking.vehicleType,
+        );
+        await createNotification(
+          booking.user,
+          "Booking Expired ⏰",
+          `Your booking for ${vehicleData?.carName || "the vehicle"} has expired because payment was not completed within 24 hours. You can create a new booking if the vehicle is still available.`,
+          "warning",
+          `Booking ID: ${booking.confirmationCode}`,
+          { bookingId: booking._id },
+        );
+      } catch (notifError) {
+        console.error(
+          `Failed to send expiration notification: ${notifError.message}`,
+        );
+      }
 
       updatedCount++;
     }
 
-    console.log(`✅ Auto-updated ${updatedCount} expired bookings`);
+    console.log(
+      `✅ Auto-update completed: ${updatedCount} bookings updated, ${vehicleResetCount} vehicles reset`,
+    );
 
     if (res) {
       res.status(200).json({
         success: true,
-        message: `Updated ${updatedCount} expired bookings`,
-        updatedCount,
+        message: `Updated ${updatedCount} expired bookings, reset ${vehicleResetCount} vehicles`,
+        data: {
+          bookingsUpdated: updatedCount,
+          vehiclesReset: vehicleResetCount,
+          timestamp: now,
+        },
       });
     }
 
     return updatedCount;
   } catch (error) {
-    console.error("Auto-update bookings error:", error);
+    console.error("❌ Auto-update bookings error:", error);
     if (res) {
       res.status(500).json({
         success: false,
         message: "Failed to auto-update bookings",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
     return 0;
@@ -3002,26 +4605,236 @@ export const getBookingStatistics = async (req, res) => {
   }
 };
 
-// Helper function to get available dates for a vehicle
-async function getAvailableDates(vehicleId) {
-  const bookings = await Booking.find({
-    vehicle: vehicleId,
-    status: { $in: ["approved", "confirmed", "active"] },
-    returnDate: { $gte: new Date() },
-  }).sort({ pickupDate: 1 });
+// Get vehicle's booked dates (for calendar display)
+export const getVehicleBookedDates = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
 
-  const bookedDates = [];
-  bookings.forEach((booking) => {
-    const current = new Date(booking.pickupDate);
-    const end = new Date(booking.returnDate);
-    while (current <= end) {
-      bookedDates.push(new Date(current).toISOString().split("T")[0]);
-      current.setDate(current.getDate() + 1);
+    if (!vehicleId) {
+      return res.status(400).json({
+        success: false,
+        message: "Vehicle ID is required",
+      });
     }
-  });
 
-  return bookedDates;
-}
+    // Find vehicle type
+    let vehicle = await Vehicle.findById(vehicleId);
+    let vehicleModel = "Vehicle";
+    let vehicleType = "admin";
+
+    if (!vehicle) {
+      vehicle = await UserVehicle.findById(vehicleId);
+      vehicleModel = "UserVehicle";
+      vehicleType = "user";
+    }
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    const bookedDates = await Booking.find({
+      vehicle: vehicleId,
+      vehicleModel: vehicleModel,
+      status: { $in: ["confirmed", "active", "approved"] },
+      returnDate: { $gt: new Date() },
+    }).select("pickupDate returnDate status");
+
+    res.json({
+      success: true,
+      data: {
+        vehicleId,
+        vehicleType,
+        bookedDates: bookedDates.map((b) => ({
+          start: b.pickupDate,
+          end: b.returnDate,
+          status: b.status,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error("Error getting booked dates:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get booked dates",
+    });
+  }
+};
+
+// Check availability for specific dates
+export const checkAvailability = async (req, res) => {
+  try {
+    const { vehicleId, pickupDate, returnDate } = req.body;
+
+    if (!vehicleId || !pickupDate || !returnDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Vehicle ID, pickup date, and return date are required",
+      });
+    }
+
+    // Find vehicle
+    let vehicle = await Vehicle.findById(vehicleId);
+    let vehicleType = "admin";
+    let vehicleModel = "Vehicle";
+
+    if (!vehicle) {
+      vehicle = await UserVehicle.findById(vehicleId);
+      vehicleType = "user";
+      vehicleModel = "UserVehicle";
+    }
+
+    if (!vehicle) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    const pickup = new Date(pickupDate);
+    const return_date = new Date(returnDate);
+
+    // Validate dates
+    if (pickup >= return_date) {
+      return res.status(400).json({
+        success: false,
+        message: "Return date must be after pickup date",
+      });
+    }
+
+    // Check for overlapping bookings
+    const overlappingBookings = await Booking.find({
+      vehicle: vehicleId,
+      vehicleModel: vehicleModel,
+      status: { $in: ["confirmed", "active", "approved"] },
+      $or: [
+        {
+          pickupDate: { $lt: return_date },
+          returnDate: { $gt: pickup },
+        },
+      ],
+    }).sort({ pickupDate: 1 });
+
+    let nextAvailableDate = null;
+    let message = "";
+
+    if (overlappingBookings.length > 0) {
+      const conflict = overlappingBookings[0];
+
+      // Find next available date after the conflicting booking
+      const nextBooking = await Booking.findOne({
+        vehicle: vehicleId,
+        vehicleModel: vehicleModel,
+        status: { $in: ["confirmed", "active", "approved"] },
+        pickupDate: { $gt: conflict.returnDate },
+      }).sort({ pickupDate: 1 });
+
+      nextAvailableDate = nextBooking ? nextBooking.pickupDate : null;
+
+      message = `Vehicle is booked from ${new Date(conflict.pickupDate).toLocaleDateString()} to ${new Date(conflict.returnDate).toLocaleDateString()}`;
+
+      if (nextAvailableDate) {
+        message += `. Next available from ${new Date(nextAvailableDate).toLocaleDateString()}`;
+      }
+    } else {
+      message = "Vehicle available for selected dates";
+    }
+
+    res.json({
+      success: true,
+      available: overlappingBookings.length === 0,
+      nextAvailableDate,
+      message,
+      overlappingBookings: overlappingBookings.map((b) => ({
+        start: b.pickupDate,
+        end: b.returnDate,
+      })),
+    });
+  } catch (error) {
+    console.error("Availability check error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to check availability",
+    });
+  }
+};
+
+// Run this function periodically (every hour)
+export const releaseExpiredVehicleHolds = async (req, res) => {
+  try {
+    const now = new Date();
+    let releasedCount = 0;
+
+    // Find all vehicles that are marked as "On Hold" or "Booked"
+    // but have no active/upcoming bookings
+    const adminVehicles = await Vehicle.find({
+      status: { $in: ["On Hold", "Booked"] },
+    });
+
+    for (const vehicle of adminVehicles) {
+      // Check if there are any active or future bookings
+      const activeBookings = await Booking.find({
+        vehicle: vehicle._id,
+        vehicleModel: "Vehicle",
+        status: { $in: ["confirmed", "active", "approved"] },
+        returnDate: { $gt: now }, // Still active or future
+      });
+
+      // If no active bookings, release the vehicle
+      if (activeBookings.length === 0) {
+        vehicle.status = "Available";
+        vehicle.holdExpiresAt = null;
+        await vehicle.save();
+        releasedCount++;
+        console.log(
+          `✅ Released vehicle ${vehicle.carName} - No active bookings`,
+        );
+      }
+    }
+
+    // Same for user vehicles
+    const userVehicles = await UserVehicle.find({
+      status: { $in: ["On_Hold", "booked"] },
+    });
+
+    for (const vehicle of userVehicles) {
+      const activeBookings = await Booking.find({
+        vehicle: vehicle._id,
+        vehicleModel: "UserVehicle",
+        status: { $in: ["confirmed", "active", "approved"] },
+        returnDate: { $gt: now },
+      });
+
+      if (activeBookings.length === 0) {
+        vehicle.status = "active";
+        vehicle.isListed = true;
+        vehicle.holdExpiresAt = null;
+        await vehicle.save();
+        releasedCount++;
+        console.log(`✅ Released user vehicle ${vehicle.carName}`);
+      }
+    }
+
+    console.log(
+      `✅ Released ${releasedCount} vehicles with no active bookings`,
+    );
+
+    if (res) {
+      res.json({
+        success: true,
+        message: `Released ${releasedCount} vehicles`,
+        releasedCount,
+      });
+    }
+
+    return releasedCount;
+  } catch (error) {
+    console.error("Error releasing vehicles:", error);
+    return 0;
+  }
+};
 
 // Check user booking status for review eligibility
 export const checkUserBookingStatus = async (req, res) => {

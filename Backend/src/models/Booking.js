@@ -995,6 +995,50 @@ bookingSchema.statics.getStatistics = async function (userId = null) {
   );
 };
 
+
+// Add this method to check if booking overlaps with given dates
+bookingSchema.methods.overlapsWith = function(startDate, endDate) {
+  const bookingStart = new Date(this.pickupDate);
+  const bookingEnd = new Date(this.returnDate);
+  const checkStart = new Date(startDate);
+  const checkEnd = new Date(endDate);
+  
+  return (bookingStart < checkEnd && bookingEnd > checkStart);
+};
+
+// Add static method to find overlapping bookings
+bookingSchema.statics.findOverlappingBookings = async function(vehicleId, vehicleModel, startDate, endDate, excludeBookingId = null) {
+  const query = {
+    vehicle: vehicleId,
+    vehicleModel: vehicleModel,
+    status: { $in: ["confirmed", "active", "approved"] }, // Only these statuses block dates
+    $or: [
+      {
+        pickupDate: { $lt: new Date(endDate) },
+        returnDate: { $gt: new Date(startDate) }
+      }
+    ]
+  };
+  
+  if (excludeBookingId) {
+    query._id = { $ne: excludeBookingId };
+  }
+  
+  return await this.find(query).sort({ pickupDate: 1 });
+};
+
+// Add method to get next available date
+bookingSchema.statics.getNextAvailableDate = async function(vehicleId, vehicleModel, fromDate) {
+  const futureBookings = await this.find({
+    vehicle: vehicleId,
+    vehicleModel: vehicleModel,
+    status: { $in: ["confirmed", "active", "approved"] },
+    pickupDate: { $gt: new Date(fromDate) }
+  }).sort({ pickupDate: 1 });
+  
+  return futureBookings[0]?.pickupDate || null;
+};
+
 // Static method to check if user has completed booking for a vehicle
 bookingSchema.statics.hasUserCompletedBooking = async function (
   userId,
